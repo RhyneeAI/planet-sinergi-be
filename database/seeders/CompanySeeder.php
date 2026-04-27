@@ -1,0 +1,34 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\Company;
+use Illuminate\Database\Seeder;
+
+class CompanySeeder extends Seeder
+{
+    public function run(): void
+    {
+        $companies = [
+            [
+                'name' => 'PT Maju Jaya',
+                'address' => 'Jl. Sudirman No. 123, Jakarta',
+                'code' => 'MJ001',
+            ],
+            [
+                'name' => 'CV Sejahtera Abadi',
+                'address' => 'Jl. Pahlawan No. 45, Bandung',
+                'code' => 'SA002',
+            ],
+            [
+                'name' => 'UD Berkah Sentosa',
+                'address' => 'Jl. Diponegoro No. 78, Surabaya',
+                'code' => 'BS003',
+            ],
+        ];
+
+        foreach ($companies as $company) {
+            Company::create($company);
+        }
+    }
+}
