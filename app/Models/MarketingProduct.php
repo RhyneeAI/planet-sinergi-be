@@ -15,7 +15,7 @@ class MarketingProduct extends Model
     protected $fillable = [
         'uuid',
         'product_id',
-        'marketer_id',
+        'marketing_id',
     ];
 
     protected static function booted(): void
@@ -29,7 +29,7 @@ class MarketingProduct extends Model
         return $this->belongsTo(Product::class);
     }
 
-    public function marketer()
+    public function marketing()
     {
         return $this->belongsTo(Marketing::class);
     }

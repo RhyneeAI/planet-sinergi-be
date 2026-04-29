@@ -27,10 +27,10 @@ class UnitRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => __('unit.validation.name_required'),
-            'name.string'   => __('unit.validation.name_string'),
-            'name.max'      => __('unit.validation.name_max', ['max' => 255]),
-            'name.unique'   => __('unit.validation.name_unique'),
+            'name.required' => __('units.validation.name_required'),
+            'name.string'   => __('units.validation.name_string'),
+            'name.max'      => __('units.validation.name_max', ['max' => 255]),
+            'name.unique'   => __('units.validation.name_unique'),
         ];
     }
 }

@@ -12,15 +12,15 @@ return new class extends Migration
             $table->id();
             $table->uuid('uuid')->unique();
             $table->foreignId('product_id')->constrained()->onDelete('cascade');
-            $table->foreignId('marketer_id')->constrained('marketings')->onDelete('cascade');
+            $table->foreignId('marketing_id')->constrained('marketings')->onDelete('cascade');
             $table->softDeletes();
             $table->timestamps();
             
             // Prevent duplicate assignment
-            $table->unique(['product_id', 'marketer_id']);
+            $table->unique(['product_id', 'marketing_id']);
             
             $table->index(['product_id']);
-            $table->index(['marketer_id']);
+            $table->index(['marketing_id']);
         });
     }
 

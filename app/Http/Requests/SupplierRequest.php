@@ -36,10 +36,10 @@ class SupplierRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => __('supplier.validation.name_required'),
-            'name.unique'   => __('supplier.validation.name_unique'),
-            'phone.regex'   => __('supplier.validation.phone_numeric'),
-            'phone.max'     => __('supplier.validation.phone_max'),
+            'name.required' => __('suppliers.validation.name_required'),
+            'name.unique'   => __('suppliers.validation.name_unique'),
+            'phone.regex'   => __('suppliers.validation.phone_numeric'),
+            'phone.max'     => __('suppliers.validation.phone_max'),
         ];
     }
 }

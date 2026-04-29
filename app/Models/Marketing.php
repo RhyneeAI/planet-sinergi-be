@@ -41,7 +41,7 @@ class Marketing extends Model
         return $this->belongsToMany(Product::class, 'marketing_products');
     }
 
-    public function salesTransactions()
+    public function saleTransactions()
     {
         return $this->hasMany(SaleTransaction::class);
     }

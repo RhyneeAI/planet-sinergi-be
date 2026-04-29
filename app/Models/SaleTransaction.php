@@ -20,7 +20,7 @@ class SaleTransaction extends Model
         'total',
         'user_id',
         'customer_id',
-        'marketer_id',
+        'marketing_id',
         'company_id',
     ];
 
@@ -49,7 +49,7 @@ class SaleTransaction extends Model
         return $this->belongsTo(Customer::class);
     }
 
-    public function marketer()
+    public function marketing()
     {
         return $this->belongsTo(Marketing::class);
     }

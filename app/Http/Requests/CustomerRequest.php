@@ -32,10 +32,10 @@ class CustomerRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required'           => __('customer.validation.name_required'),
-            'name.unique'             => __('customer.validation.name_unique'),
-            'phone.max'               => __('customer.validation.phone_max'),
-            'customer_type_id.exists' => __('customer.validation.customer_type_not_found'),
+            'name.required'           => __('customers.validation.name_required'),
+            'name.unique'             => __('customers.validation.name_unique'),
+            'phone.max'               => __('customers.validation.phone_max'),
+            'customer_type_id.exists' => __('customers.validation.customer_type_not_found'),
         ];
     }
 }
