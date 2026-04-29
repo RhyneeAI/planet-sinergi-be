@@ -7,27 +7,26 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Customer extends Model
+class MarketingProduct extends Model
 {
     use HasFactory, SoftDeletes, HasUuid;
 
+    protected $table = 'marketing_products';
+
     protected $fillable = [
         'uuid',
-        'name',
-        'address',
-        'phone',
-        'customer_type_id',
-        'company_id',
+        'product_id',
+        'marketer_id',
     ];
 
     // Relationships
-    public function company()
+    public function product()
     {
-        return $this->belongsTo(Company::class);
+        return $this->belongsTo(Product::class);
     }
 
-    public function salesTransactions()
+    public function marketer()
     {
-        return $this->hasMany(SaleTransaction::class);
+        return $this->belongsTo(Marketing::class);
     }
 }

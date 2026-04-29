@@ -2,7 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Models\Category;
 use App\Models\Product;
+use App\Models\Supplier;
+use App\Models\Unit;
 use Faker\Factory as Faker;
 use Illuminate\Database\Seeder;
 use Str;
@@ -18,9 +21,9 @@ class ProductSeeder extends Seeder
             $companyId = $faker->numberBetween(1, 3);
             
             // Dapatkan category_id, unit_id, supplier_id yang sesuai dengan company
-            $categoryIds = \App\Models\Category::where('company_id', $companyId)->pluck('id')->toArray();
-            $unitIds = \App\Models\Unit::where('company_id', $companyId)->pluck('id')->toArray();
-            $supplierIds = \App\Models\Supplier::where('company_id', $companyId)->pluck('id')->toArray();
+            $categoryIds = Category::where('company_id', $companyId)->pluck('id')->toArray();
+            $unitIds = Unit::where('company_id', $companyId)->pluck('id')->toArray();
+            $supplierIds = Supplier::where('company_id', $companyId)->pluck('id')->toArray();
             
             $basePrice = $faker->numberBetween(5000, 500000);
             $salesPrice = $basePrice * $faker->randomFloat(2, 1.1, 1.5);
@@ -34,7 +37,6 @@ class ProductSeeder extends Seeder
                 'last_purchase_price' => $basePrice,
                 'stock' => $faker->numberBetween(0, 500),
                 'min_stock' => $faker->numberBetween(5, 50),
-                'discount' => $faker->numberBetween(0, 20),
                 'description' => $faker->sentence,
                 'is_active' => $faker->boolean(90),
                 'category_id' => $categoryIds ? $faker->randomElement($categoryIds) : null,

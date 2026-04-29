@@ -18,7 +18,6 @@ return new class extends Migration
             $table->double('last_purchase_price')->default(0);
             $table->integer('stock')->default(0);
             $table->integer('min_stock')->default(0);
-            $table->double('discount')->default(0);
             $table->text('description')->nullable();
             $table->boolean('is_active')->default(true);
             

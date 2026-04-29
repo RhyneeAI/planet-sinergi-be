@@ -7,26 +7,26 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Marketer extends Model
+class CustomerType extends Model
 {
     use HasFactory, SoftDeletes, HasUuid;
 
+    protected $table = 'customer_types';
+
     protected $fillable = [
         'uuid',
-        'name',
-        'address',
-        'phone',
+        'type',
+        'discount',
         'company_id',
+    ];
+
+    protected $casts = [
+        'discount' => 'double',
     ];
 
     // Relationships
     public function company()
     {
         return $this->belongsTo(Company::class);
-    }
-
-    public function salesTransactions()
-    {
-        return $this->hasMany(SaleTransaction::class);
     }
 }

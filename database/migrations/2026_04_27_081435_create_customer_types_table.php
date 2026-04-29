@@ -8,22 +8,21 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('marketers', function (Blueprint $table) {
+        Schema::create('customer_types', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->unique();
-            $table->string('name');
-            $table->text('address')->nullable();
-            $table->string('phone')->nullable();
+            $table->string('type'); 
+            $table->double('discount')->default(0); 
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
             $table->softDeletes();
             $table->timestamps();
             
-            $table->index(['company_id', 'name']);
+            $table->index(['company_id', 'customer_type']);
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('marketers');
+        Schema::dropIfExists('customer_types');
     }
 };

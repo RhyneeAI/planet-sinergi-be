@@ -2,19 +2,19 @@
 
 namespace Database\Seeders;
 
-use App\Models\Marketer;
+use App\Models\Marketing;
 use Faker\Factory as Faker;
 use Illuminate\Database\Seeder;
 use Str;
 
-class MarketerSeeder extends Seeder
+class MarketingSeeder extends Seeder
 {
     public function run(): void
     {
         $faker = Faker::create('id_ID');
 
         for ($i = 0; $i < 15; $i++) {
-            Marketer::create([
+            Marketing::create([
                 'uuid' => (string) Str::uuid(),
                 'name' => $faker->name,
                 'address' => $faker->address,

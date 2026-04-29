@@ -20,7 +20,6 @@ class Product extends Model
         'last_purchase_price',
         'stock',
         'min_stock',
-        'discount',
         'description',
         'is_active',
         'category_id',
@@ -52,6 +51,16 @@ class Product extends Model
     public function supplier()
     {
         return $this->belongsTo(Supplier::class);
+    }
+
+    public function marketingProducts()
+    {
+        return $this->hasMany(MarketingProduct::class);
+    }
+
+    public function marketings()
+    {
+        return $this->belongsToMany(Marketing::class, 'marketing_products');
     }
 
     public function purchaseDetails()

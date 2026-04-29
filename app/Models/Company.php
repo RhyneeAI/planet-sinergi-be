@@ -49,10 +49,16 @@ class Company extends Model
         return $this->hasMany(Customer::class);
     }
 
-    public function marketers()
+    public function customerTypes()
     {
-        return $this->hasMany(Marketer::class);
+        return $this->hasMany(CustomerType::class);
     }
+
+    public function marketings()
+    {
+        return $this->hasMany(Marketing::class);
+    }
+
 
     public function purchaseTransactions()
     {

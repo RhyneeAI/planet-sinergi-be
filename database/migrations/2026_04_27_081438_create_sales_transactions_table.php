@@ -17,7 +17,7 @@ return new class extends Migration
             $table->double('total')->default(0);
             $table->foreignId('user_id')->constrained()->onDelete('restrict');
             $table->foreignId('customer_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignId('marketer_id')->nullable()->constrained('marketers')->nullOnDelete();
+            $table->foreignId('marketer_id')->nullable()->constrained('marketings')->nullOnDelete();
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
             $table->softDeletes();
             $table->timestamps();

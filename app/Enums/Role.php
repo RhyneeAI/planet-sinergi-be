@@ -6,7 +6,7 @@ enum Role: string
 {
     case ADMIN = 'admin';
     case OWNER = 'owner';
-    case MARKETER = 'marketer';
+    case MARKETING = 'marketing';
 
     public static function values(): array
     {
@@ -18,7 +18,7 @@ enum Role: string
         return match($this) {
             self::ADMIN => 'Administrator',
             self::OWNER => 'Owner',
-            self::MARKETER => 'Marketer',
+            self::MARKETING => 'Marketing',
         };
     }
 }

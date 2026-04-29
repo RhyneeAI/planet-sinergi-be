@@ -38,11 +38,11 @@ class UserSeeder extends Seeder
             ],
             [
                 'uuid' => (string) Str::uuid(),
-                'name' => 'Marketer BS',
-                'username' => 'marketer_bs',
-                'email' => 'marketer_bs@gp.com',
-                'password' => Hash::make('marketer_bs'),
-                'role' => Role::MARKETER,
+                'name' => 'Marketing GP',
+                'username' => 'marketing_gp',
+                'email' => 'marketing_gp@gp.com',
+                'password' => Hash::make('marketing_gp'),
+                'role' => Role::MARKETING,
                 'company_id' => 3,
             ],
         ];

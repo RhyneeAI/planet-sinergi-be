@@ -21,8 +21,9 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             SupplierSeeder::class,
             UserSeeder::class,
+            CustomerTypeSeeder::class,
             CustomerSeeder::class,
-            MarketerSeeder::class,
+            MarketingSeeder::class,
             ProductSeeder::class,
         ]);
     }

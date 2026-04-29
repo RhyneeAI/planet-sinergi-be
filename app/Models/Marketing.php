@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Customer extends Model
+class Marketing extends Model
 {
     use HasFactory, SoftDeletes, HasUuid;
 
@@ -16,7 +16,6 @@ class Customer extends Model
         'name',
         'address',
         'phone',
-        'customer_type_id',
         'company_id',
     ];
 
@@ -24,6 +23,16 @@ class Customer extends Model
     public function company()
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function marketingProducts()
+    {
+        return $this->hasMany(MarketingProduct::class);
+    }
+
+    public function products()
+    {
+        return $this->belongsToMany(Product::class, 'marketing_products');
     }
 
     public function salesTransactions()

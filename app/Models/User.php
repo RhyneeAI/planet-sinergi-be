@@ -61,7 +61,7 @@ class User extends Authenticatable
         return $this->role === Role::OWNER;
     }
 
-    public function isMarketer(): bool
+    public function isMarketing(): bool
     {
         return $this->role === Role::MARKETER;
     }

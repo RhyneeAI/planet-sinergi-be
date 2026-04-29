@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('username')->unique();
             $table->string('email')->unique();
             $table->string('password');
-            $table->enum('role', ['owner', 'admin', 'marketer']);
+            $table->enum('role', ['owner', 'admin', 'marketing']);
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
             $table->rememberToken();
             $table->softDeletes();

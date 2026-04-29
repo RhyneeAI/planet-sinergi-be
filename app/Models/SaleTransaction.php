@@ -45,7 +45,7 @@ class SaleTransaction extends Model
 
     public function marketer()
     {
-        return $this->belongsTo(Marketer::class);
+        return $this->belongsTo(Marketing::class);
     }
 
     public function details()
