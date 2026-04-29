@@ -2,15 +2,17 @@
 
 namespace App\Models;
 
+use App\Traits\HasUlid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PurchaseDetail extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, HasUlid;
 
     protected $fillable = [
+        'ulid',
         'purchase_id',
         'product_id',
         'quantity',

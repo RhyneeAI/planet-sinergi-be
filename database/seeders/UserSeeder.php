@@ -7,6 +7,7 @@ use App\Enums\Role;
 use Faker\Factory as Faker;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Str;
 
 class UserSeeder extends Seeder
 {
@@ -18,6 +19,7 @@ class UserSeeder extends Seeder
         $users = [
             // Admin untuk setiap company
             [
+                'uuid' => (string) Str::uuid(),
                 'name' => 'OWNER',
                 'username' => 'owner_gp',
                 'email' => 'owner_gp@gp.com',
@@ -26,6 +28,7 @@ class UserSeeder extends Seeder
                 'company_id' => 1,
             ],
             [
+                'uuid' => (string) Str::uuid(),
                 'name' => 'Admin SA',
                 'username' => 'admin_gp',
                 'email' => 'admin_gp@gp.com',
@@ -34,6 +37,7 @@ class UserSeeder extends Seeder
                 'company_id' => 2,
             ],
             [
+                'uuid' => (string) Str::uuid(),
                 'name' => 'Marketer BS',
                 'username' => 'marketer_bs',
                 'email' => 'marketer_bs@gp.com',

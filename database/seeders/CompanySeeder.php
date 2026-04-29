@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Company;
 use Illuminate\Database\Seeder;
+use Str;
 
 class CompanySeeder extends Seeder
 {
@@ -11,16 +12,19 @@ class CompanySeeder extends Seeder
     {
         $companies = [
             [
+                'uuid' => (string) Str::uuid(),
                 'name' => 'PT Maju Jaya',
                 'address' => 'Jl. Sudirman No. 123, Jakarta',
                 'code' => 'MJ001',
             ],
             [
+                'uuid' => (string) Str::uuid(),
                 'name' => 'CV Sejahtera Abadi',
                 'address' => 'Jl. Pahlawan No. 45, Bandung',
                 'code' => 'SA002',
             ],
             [
+                'uuid' => (string) Str::uuid(),
                 'name' => 'UD Berkah Sentosa',
                 'address' => 'Jl. Diponegoro No. 78, Surabaya',
                 'code' => 'BS003',

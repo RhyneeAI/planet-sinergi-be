@@ -11,6 +11,7 @@ class CategoryResource extends JsonResource
     {
         return [
             'id'         => $this->id,
+            'uuid'       => $this->uuid,
             'name'       => $this->name,
             'company_id' => $this->company_id,
             'created_at' => $this->created_at?->toISOString(),

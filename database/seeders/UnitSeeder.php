@@ -4,12 +4,13 @@ namespace Database\Seeders;
 
 use App\Models\Unit;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class UnitSeeder extends Seeder
 {
     public function run(): void
     {
-        $units = [
+        $unitsData = [
             ['name' => 'Pcs', 'company_id' => 1],
             ['name' => 'Kg', 'company_id' => 1],
             ['name' => 'Liter', 'company_id' => 1],
@@ -22,8 +23,17 @@ class UnitSeeder extends Seeder
             ['name' => 'Kg', 'company_id' => 3],
         ];
 
-        foreach ($units as $unit) {
-            Unit::create($unit);
+        $units = [];
+        foreach ($unitsData as $data) {
+            $units[] = [
+                'uuid' => (string) Str::uuid(),
+                'name' => $data['name'],
+                'company_id' => $data['company_id'],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
         }
+
+        Unit::insert($units);
     }
 }

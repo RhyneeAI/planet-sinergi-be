@@ -10,6 +10,7 @@ return new class extends Migration
     {
         Schema::create('purchase_details', function (Blueprint $table) {
             $table->id();
+            $table->ulid('ulid')->unique();
             $table->foreignId('purchase_id')->constrained('purchase_transactions')->onDelete('cascade');
             $table->foreignId('product_id')->constrained()->onDelete('restrict');
             $table->integer('quantity')->default(0);

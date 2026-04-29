@@ -10,6 +10,7 @@ return new class extends Migration
     {
         Schema::create('stock_mutations', function (Blueprint $table) {
             $table->id();
+            $table->ulid('ulid')->unique();
             $table->enum('type', ['IN', 'OUT', 'OPNAME']);
             $table->integer('quantity');
             $table->integer('stock_before');

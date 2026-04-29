@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Product;
 use Faker\Factory as Faker;
 use Illuminate\Database\Seeder;
+use Str;
 
 class ProductSeeder extends Seeder
 {
@@ -25,6 +26,7 @@ class ProductSeeder extends Seeder
             $salesPrice = $basePrice * $faker->randomFloat(2, 1.1, 1.5);
             
             $products[] = [
+                'uuid' => (string) Str::uuid(), 
                 'name' => $faker->words(3, true),
                 'code' => 'PRD' . str_pad($i + 1, 5, '0', STR_PAD_LEFT),
                 'base_price' => $basePrice,

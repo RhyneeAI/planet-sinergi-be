@@ -3,14 +3,16 @@
 namespace App\Models;
 
 use App\Enums\MutationType;
+use App\Traits\HasUlid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class StockMutation extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUlid;
 
     protected $fillable = [
+        'ulid',
         'type',
         'quantity',
         'stock_before',

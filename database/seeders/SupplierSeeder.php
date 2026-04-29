@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Supplier;
 use Faker\Factory as Faker;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str; 
 
 class SupplierSeeder extends Seeder
 {
@@ -15,6 +16,7 @@ class SupplierSeeder extends Seeder
 
         for ($i = 0; $i < 20; $i++) {
             $suppliers[] = [
+                'uuid' => (string) Str::uuid(),
                 'name' => $faker->company,
                 'address' => $faker->address,
                 'phone' => $faker->phoneNumber,
@@ -24,7 +26,6 @@ class SupplierSeeder extends Seeder
             ];
         }
 
-        // Insert batch 20 data
         Supplier::insert($suppliers);
     }
 }

@@ -10,6 +10,7 @@ return new class extends Migration
     {
         Schema::create('purchase_transactions', function (Blueprint $table) {
             $table->id();
+            $table->ulid('ulid')->unique();
             $table->string('transaction_code')->unique();
             $table->datetime('transaction_date');
             $table->double('discount')->default(0);
