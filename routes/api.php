@@ -1,8 +1,9 @@
 <?php
 
-use App\Http\Controllers\Api\V1\AuthController;
-use App\Http\Controllers\Api\V1\CategoryController;
-use App\Http\Controllers\Api\V1\UnitController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\SupplierController;
+use App\Http\Controllers\Api\UnitController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -20,14 +21,18 @@ Route::prefix('v1')->group(function () {
     // Protected
     Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
-        Route::group(['middleware' => ['role:owner', 'role:admin']], function () {
+        Route::group(['middleware' => ['role:admin,owner']], function () {
             Route::apiResource('categories', CategoryController::class)->parameters([
                 'categories' => 'category:uuid'
             ]);    
     
             Route::apiResource('units', UnitController::class)->parameters([
                 'units' => 'unit:uuid'
-            ]);     
+            ]);    
+            
+            Route::apiResource('suppliers', SupplierController::class)->parameters([
+                'suppliers' => 'supplier:uuid'
+            ]);
         });
     });
 });

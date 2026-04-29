@@ -20,7 +20,7 @@ class CheckRole
         }
 
         // Cek apakah role user termasuk dalam roles yang diizinkan
-        if (!in_array($user->role, $roles)) {
+        if (!in_array($user->role->value, $roles)) {
             return response()->json([
                 'success' => false,
                 'message' => 'You don\'t have permission to access this resource.',
