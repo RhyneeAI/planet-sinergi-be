@@ -17,7 +17,7 @@ class UnitController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => __('unit.list'),
+            'message' => __('units.list'),
             'data'    => UnitResource::collection($units),
         ]);
     }
@@ -31,7 +31,7 @@ class UnitController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => __('unit.stored'),
+            'message' => __('units.stored'),
             'data'    => new UnitResource($unit),
         ], 201);
     }
@@ -40,18 +40,20 @@ class UnitController extends Controller
     {
         return response()->json([
             'success' => true,
-            'message' => __('unit.detail'),
+            'message' => __('units.detail'),
             'data'    => new UnitResource($unit),
         ]);
     }
 
     public function update(UnitRequest $request, Unit $unit)
     {
-        $unit->update(['name' => $request->name]);
+        if ($request->has('name')) {
+            $unit->update(['name' => $request->name]);
+        }
 
         return response()->json([
             'success' => true,
-            'message' => __('unit.updated'),
+            'message' => __('units.updated'),
             'data'    => new UnitResource($unit),
         ]);
     }
@@ -61,7 +63,7 @@ class UnitController extends Controller
         if ($unit->products()->exists()) {
             return response()->json([
                 'success' => false,
-                'message' => __('unit.has_products'),
+                'message' => __('units.has_products'),
                 'code'    => 422,
             ], 422);
         }
@@ -70,7 +72,7 @@ class UnitController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => __('unit.deleted'),
+            'message' => __('units.deleted'),
         ]);
     }
 }

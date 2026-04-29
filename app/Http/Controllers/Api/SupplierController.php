@@ -17,7 +17,7 @@ class SupplierController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => __('supplier.list'),
+            'message' => __('suppliers.list'),
             'data'    => SupplierResource::collection($suppliers),
         ]);
     }
@@ -33,7 +33,7 @@ class SupplierController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => __('supplier.stored'),
+            'message' => __('suppliers.stored'),
             'data'    => new SupplierResource($supplier),
         ], 201);
     }
@@ -42,7 +42,7 @@ class SupplierController extends Controller
     {
         return response()->json([
             'success' => true,
-            'message' => __('supplier.detail'),
+            'message' => __('suppliers.detail'),
             'data'    => new SupplierResource($supplier),
         ]);
     }
@@ -65,7 +65,7 @@ class SupplierController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => __('supplier.updated'),
+            'message' => __('suppliers.updated'),
             'data'    => new SupplierResource($supplier),
         ]);
     }
@@ -75,7 +75,7 @@ class SupplierController extends Controller
         if ($supplier->purchaseTransactions()->exists()) {
             return response()->json([
                 'success' => false,
-                'message' => __('supplier.has_purchases'),
+                'message' => __('suppliers.has_purchases'),
                 'code'    => 422,
             ], 422);
         }
@@ -84,7 +84,7 @@ class SupplierController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => __('supplier.deleted'),
+            'message' => __('suppliers.deleted'),
         ]);
     }
 }

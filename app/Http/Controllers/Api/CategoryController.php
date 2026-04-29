@@ -47,7 +47,9 @@ class CategoryController extends Controller
 
     public function update(CategoryRequest $request, Category $category)
     {
-        $category->update(['name' => $request->name]);
+        if ($request->has('name')) {
+            $category->update(['name' => $request->name]);
+        }
 
         return response()->json([
             'success' => true,
@@ -61,7 +63,7 @@ class CategoryController extends Controller
         if ($category->products()->exists()) {
             return response()->json([
                 'success' => false,
-                'message' => __('category.has_products'),
+                'message' => __('categories.has_products'),
                 'code'    => 422,
             ], 422);
         }
