@@ -11,8 +11,8 @@ return new class extends Migration
         Schema::create('marketing_products', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->unique();
-            $table->foreignId('product_id')->constrained()->onDelete('cascade');
-            $table->foreignId('marketing_id')->constrained('marketings')->onDelete('cascade');
+            $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
+            $table->foreignId('marketing_id')->constrained('users')->onDelete('cascade');
             $table->softDeletes();
             $table->timestamps();
             

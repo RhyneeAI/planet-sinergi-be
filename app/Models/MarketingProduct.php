@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Role;
 use App\Models\Scopes\CompanyScope;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -31,6 +32,7 @@ class MarketingProduct extends Model
 
     public function marketing()
     {
-        return $this->belongsTo(Marketing::class);
+        return $this->belongsTo(User::class)
+                    ->where('role', Role::MARKETING);
     }
 }

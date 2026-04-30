@@ -36,33 +36,33 @@ class CategorySeeder extends Seeder
             [
                 'uuid' => (string) Str::uuid(),
                 'name' => 'Elektronik',
-                'company_id' => 2,
+                'company_id' => 1,
             ],
             [
                 'uuid' => (string) Str::uuid(),
                 'name' => 'Aksesoris',
-                'company_id' => 2,
+                'company_id' => 1,
             ],
             [
                 'uuid' => (string) Str::uuid(),
                 'name' => 'Perlengkapan',
-                'company_id' => 2,
+                'company_id' => 1,
             ],
             // Company 3
             [
                 'uuid' => (string) Str::uuid(),
                 'name' => 'Pakaian',
-                'company_id' => 3,
+                'company_id' => 1,
             ],
             [
                 'uuid' => (string) Str::uuid(),
                 'name' => 'Sepatu',
-                'company_id' => 3,
+                'company_id' => 1,
             ],
             [
                 'uuid' => (string) Str::uuid(),
                 'name' => 'Aksesoris Fashion',
-                'company_id' => 3,
+                'company_id' => 1,
             ],
         ];
 

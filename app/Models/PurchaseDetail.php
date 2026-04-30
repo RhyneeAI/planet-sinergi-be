@@ -36,4 +36,9 @@ class PurchaseDetail extends Model
     {
         return $this->belongsTo(Product::class);
     }
+    
+    public function stockMutations()
+    {
+        return $this->morphMany(StockMutation::class, 'reference');
+    }
 }

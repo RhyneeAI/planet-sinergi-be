@@ -4,13 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\MarketingRequest;
-use App\Http\Resources\MarketingResource;
-use App\Models\Marketing;
+use App\Http\Resources\UserResource;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class MarketingController extends Controller
 {
-    protected array $sortableColumns = ['name', 'phone', 'created_at'];
+    protected array $sortableColumns = ['name', 'username', 'email', 'created_at'];
 
     public function index(Request $request)
     {
@@ -19,11 +20,12 @@ class MarketingController extends Controller
                             : 'name';
         $orderByValue = strtoupper($request->input('order_by_value', 'ASC')) === 'DESC' ? 'DESC' : 'ASC';
 
-        $marketings = Marketing::when($request->search, function ($query, $search) {
+        $marketings = User::where('role', 'marketing')
+            ->when($request->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('phone', 'like', "%{$search}%")
-                      ->orWhere('address', 'like', "%{$search}%");
+                      ->orWhere('username', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%");
                 });
             })
             ->orderBy($orderByKey, $orderByValue)
@@ -32,50 +34,60 @@ class MarketingController extends Controller
         return response()->json([
             'success' => true,
             'message' => __('marketings.list'),
-            'data'    => MarketingResource::collection($marketings),
+            'data'    => UserResource::collection($marketings),
         ]);
     }
 
     public function store(MarketingRequest $request)
     {
-        $marketing = Marketing::create([
+        $marketing = User::create([
             'name'       => $request->name,
+            'username'   => $request->username,
+            'email'      => $request->email,
+            'password'   => Hash::make($request->password),
             'address'    => $request->address,
             'phone'      => $request->phone,
+            'role'       => 'marketing',
             'company_id' => $request->user()->company_id,
         ]);
 
         return response()->json([
             'success' => true,
             'message' => __('marketings.stored'),
-            'data'    => new MarketingResource($marketing),
+            'data'    => new UserResource($marketing),
         ], 201);
     }
 
-    public function show(Marketing $marketing)
+    public function show(User $user)
     {
         return response()->json([
             'success' => true,
             'message' => __('marketings.detail'),
-            'data'    => new MarketingResource($marketing),
+            'data'    => new UserResource($user),
         ]);
     }
 
-    public function update(MarketingRequest $request, Marketing $marketing)
+    public function update(MarketingRequest $request, User $user)
     {
-        $marketing->update($request->only(['name', 'address', 'phone']));
+        $data = $request->only(['name', 'username', 'email', 'address', 'phone']);
+
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+        }
+
+        $user->update($data);
 
         return response()->json([
             'success' => true,
             'message' => __('marketings.updated'),
-            'data'    => new MarketingResource($marketing),
+            'data'    => new UserResource($user),
         ]);
     }
 
-    public function destroy(Marketing $marketing)
+    public function destroy(User $user)
     {
-        $hasProducts      = $marketing->marketingProducts()->exists();
-        $hasTransactions  = $marketing->saleTransactions()->exists();
+        $hasProducts     = $user->marketingProducts()->exists();
+        $hasTransactions = $user->salesTransactions()->exists();
 
         if ($hasProducts || $hasTransactions) {
             return response()->json([
@@ -85,7 +97,7 @@ class MarketingController extends Controller
             ], 422);
         }
 
-        $marketing->delete();
+        $user->delete();
 
         return response()->json([
             'success' => true,

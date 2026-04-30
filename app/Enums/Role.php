@@ -4,9 +4,9 @@ namespace App\Enums;
 
 enum Role: string
 {
-    case ADMIN = 'admin';
-    case OWNER = 'owner';
-    case MARKETING = 'marketing';
+    case SUPERADMIN = 'SUPERADMIN';
+    case OWNER = 'OWNER';
+    case MARKETING = 'MARKETING';
 
     public static function values(): array
     {
@@ -16,9 +16,9 @@ enum Role: string
     public function label(): string
     {
         return match($this) {
-            self::ADMIN => 'Administrator',
-            self::OWNER => 'Owner',
-            self::MARKETING => 'Marketing',
+            self::SUPERADMIN => 'SUPERADMIN',
+            self::OWNER => 'OWNER',
+            self::MARKETING => 'MARKETING',
         };
     }
 }

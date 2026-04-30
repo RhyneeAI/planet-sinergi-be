@@ -18,7 +18,7 @@ class ProductSeeder extends Seeder
         $products = [];
 
         for ($i = 0; $i < 100; $i++) {
-            $companyId = $faker->numberBetween(1, 3);
+            $companyId = 1;
             
             // Dapatkan category_id, unit_id, supplier_id yang sesuai dengan company
             $categoryIds = Category::where('company_id', $companyId)->pluck('id')->toArray();
@@ -42,6 +42,7 @@ class ProductSeeder extends Seeder
                 'category_id' => $categoryIds ? $faker->randomElement($categoryIds) : null,
                 'unit_id' => $unitIds ? $faker->randomElement($unitIds) : null,
                 'supplier_id' => $supplierIds ? $faker->randomElement($supplierIds) : null,
+                'user_id' => 1,   
                 'company_id' => $companyId,
                 'created_at' => now(),
                 'updated_at' => now(),

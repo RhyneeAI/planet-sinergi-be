@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enums\MutationType;
+use App\Enums\StockMutationType;
 use App\Models\Scopes\CompanyScope;
 use App\Traits\HasUlid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -27,7 +27,7 @@ class StockMutation extends Model
     ];
 
     protected $casts = [
-        'type' => MutationType::class,
+        'type' => StockMutationType::class,
     ];
 
     protected static function booted(): void
@@ -51,19 +51,25 @@ class StockMutation extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    // Helper methods
-    public function isIn(): bool
+    public function reference()
     {
-        return $this->type === MutationType::IN;
+        // Morph to SalesTransactino or PurchaseTransaction
+        return $this->morphTo(__FUNCTION__, 'reference_type', 'reference_id');
     }
 
-    public function isOut(): bool
+    // Helper methods
+    public function isIncoming(): bool
     {
-        return $this->type === MutationType::OUT;
+        return $this->type->isIncoming(); 
+    }
+
+    public function isOutgoing(): bool
+    {
+        return $this->type->isOutgoing(); 
     }
 
     public function isOpname(): bool
     {
-        return $this->type === MutationType::OPNAME;
+        return $this->type->isOpname();
     }
 }

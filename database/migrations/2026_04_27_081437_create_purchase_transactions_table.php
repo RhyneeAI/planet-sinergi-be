@@ -16,12 +16,14 @@ return new class extends Migration
             $table->double('discount')->default(0);
             $table->double('total')->default(0);
             $table->foreignId('supplier_id')->constrained()->onDelete('restrict');
+            $table->foreignId('user_id')->constrained()->onDelete('restrict');
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
             $table->softDeletes();
             $table->timestamps();
             
             $table->index(['company_id', 'transaction_date']);
-            $table->index(['supplier_id', 'company_id']);
+            $table->index('supplier_id');
+            $table->index('user_id');
         });
     }
 

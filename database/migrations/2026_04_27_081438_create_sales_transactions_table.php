@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('sale_transactions', function (Blueprint $table) {
+        Schema::create('sales_transactions', function (Blueprint $table) {
             $table->id();
             $table->ulid('ulid')->unique();
             $table->string('transaction_code')->unique();
@@ -17,7 +17,6 @@ return new class extends Migration
             $table->double('total')->default(0);
             $table->foreignId('user_id')->constrained()->onDelete('restrict');
             $table->foreignId('customer_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignId('marketing_id')->nullable()->constrained('marketings')->nullOnDelete();
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
             $table->softDeletes();
             $table->timestamps();
@@ -25,7 +24,6 @@ return new class extends Migration
             $table->index(['company_id', 'transaction_date']);
             $table->index(['user_id', 'company_id']);
             $table->index(['customer_id', 'company_id']);
-            $table->index(['marketing_id', 'company_id']);
         });
     }
 

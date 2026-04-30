@@ -16,11 +16,11 @@ class UnitSeeder extends Seeder
             ['name' => 'Liter', 'company_id' => 1],
             ['name' => 'Dus', 'company_id' => 1],
             ['name' => 'Pack', 'company_id' => 1],
-            ['name' => 'Pcs', 'company_id' => 2],
-            ['name' => 'Kg', 'company_id' => 2],
-            ['name' => 'Dus', 'company_id' => 2],
-            ['name' => 'Pcs', 'company_id' => 3],
-            ['name' => 'Kg', 'company_id' => 3],
+            ['name' => 'Pcs', 'company_id' => 1],
+            ['name' => 'Kg', 'company_id' => 1],
+            ['name' => 'Dus', 'company_id' => 1],
+            ['name' => 'Pcs', 'company_id' => 1],
+            ['name' => 'Kg', 'company_id' => 1],
         ];
 
         $units = [];

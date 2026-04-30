@@ -12,12 +12,12 @@ return new class extends Migration
             $table->id();
             $table->uuid('uuid')->unique();
             $table->string('type'); 
-            $table->double('discount')->default(0); 
+            $table->double('discount')->default(0.00); 
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
             $table->softDeletes();
             $table->timestamps();
             
-            $table->index(['company_id', 'customer_type']);
+            $table->index(['company_id', 'type']);
         });
     }
 

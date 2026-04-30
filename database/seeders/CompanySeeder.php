@@ -17,18 +17,6 @@ class CompanySeeder extends Seeder
                 'address' => 'Jl. Sudirman No. 123, Jakarta',
                 'code' => 'MJ001',
             ],
-            [
-                'uuid' => (string) Str::uuid(),
-                'name' => 'CV Sejahtera Abadi',
-                'address' => 'Jl. Pahlawan No. 45, Bandung',
-                'code' => 'SA002',
-            ],
-            [
-                'uuid' => (string) Str::uuid(),
-                'name' => 'UD Berkah Sentosa',
-                'address' => 'Jl. Diponegoro No. 78, Surabaya',
-                'code' => 'BS003',
-            ],
         ];
 
         foreach ($companies as $company) {

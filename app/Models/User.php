@@ -20,6 +20,8 @@ class User extends Authenticatable
         'name',
         'username',
         'email',
+        'address',
+        'phone',
         'password',
         'role',
         'company_id',
@@ -48,7 +50,7 @@ class User extends Authenticatable
 
     public function salesTransactions()
     {
-        return $this->hasMany(SaleTransaction::class, 'user_id');
+        return $this->hasMany(SalesTransaction::class, 'user_id');
     }
 
     public function createdStockMutations()
@@ -57,9 +59,9 @@ class User extends Authenticatable
     }
 
     // Helper methods
-    public function isAdmin(): bool
+    public function isSuperAdmin(): bool
     {
-        return $this->role === Role::ADMIN;
+        return $this->role === Role::SUPERADMIN;
     }
 
     public function isOwner(): bool

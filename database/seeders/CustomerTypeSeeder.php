@@ -14,9 +14,9 @@ class CustomerTypeSeeder extends Seeder
             ['type' => 'Member', 'discount' => 10, 'company_id' => 1],
             ['type' => 'VIP', 'discount' => 20, 'company_id' => 1],
             ['type' => 'Regular', 'discount' => 0, 'company_id' => 1],
-            ['type' => 'Member', 'discount' => 5, 'company_id' => 2],
-            ['type' => 'VIP', 'discount' => 15, 'company_id' => 2],
-            ['type' => 'Member', 'discount' => 10, 'company_id' => 3],
+            ['type' => 'Member', 'discount' => 5, 'company_id' => 1],
+            ['type' => 'VIP', 'discount' => 15, 'company_id' => 1],
+            ['type' => 'Member', 'discount' => 10, 'company_id' => 1],
         ];
 
         foreach ($types as $discount) {

@@ -26,6 +26,7 @@ class Product extends Model
         'category_id',
         'unit_id',
         'supplier_id',
+        'user_id',
         'company_id',
     ];
 
@@ -36,6 +37,12 @@ class Product extends Model
     protected static function booted(): void
     {
         static::addGlobalScope(new CompanyScope());
+    }
+
+    // Scopes
+    public static function active($query)
+    {
+        return $query->where('is_active', true);
     }
 
     // Relationships
@@ -59,14 +66,14 @@ class Product extends Model
         return $this->belongsTo(Supplier::class);
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function marketingProducts()
     {
         return $this->hasMany(MarketingProduct::class);
-    }
-
-    public function marketings()
-    {
-        return $this->belongsToMany(Marketing::class, 'marketing_products');
     }
 
     public function purchaseDetails()
@@ -76,29 +83,11 @@ class Product extends Model
 
     public function saleDetails()
     {
-        return $this->hasMany(SaleDetail::class);
+        return $this->hasMany(SalesDetail::class);
     }
 
     public function stockMutations()
     {
         return $this->hasMany(StockMutation::class);
-    }
-
-    // Scopes
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
-    }
-
-    public function scopeLowStock($query)
-    {
-        return $query->whereRaw('stock <= min_stock');
-    }
-
-    // Methods
-    public function updateStock($newStock)
-    {
-        $this->stock = $newStock;
-        $this->save();
     }
 }

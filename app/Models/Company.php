@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Role;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -56,7 +57,8 @@ class Company extends Model
 
     public function marketings()
     {
-        return $this->hasMany(Marketing::class);
+        return $this->hasMany(User::class)
+                    ->where('role', Role::MARKETING);
     }
 
 
@@ -67,7 +69,7 @@ class Company extends Model
 
     public function salesTransactions()
     {
-        return $this->hasMany(SaleTransaction::class);
+        return $this->hasMany(SalesTransaction::class);
     }
 
     public function stockMutations()

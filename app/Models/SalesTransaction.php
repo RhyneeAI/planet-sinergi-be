@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Enums\Role;
 use App\Models\Scopes\CompanyScope;
 use App\Traits\HasUlid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class SaleTransaction extends Model
+class SalesTransaction extends Model
 {
     use HasFactory, SoftDeletes, HasUlid;
 
@@ -51,11 +52,12 @@ class SaleTransaction extends Model
 
     public function marketing()
     {
-        return $this->belongsTo(Marketing::class);
+        return $this->belongsTo(User::class)   
+                    ->where('role', Role::MARKETING);
     }
 
     public function details()
     {
-        return $this->hasMany(SaleDetail::class, 'sale_id');
+        return $this->hasMany(SalesDetail::class, 'sale_id');
     }
 }

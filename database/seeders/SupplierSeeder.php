@@ -20,7 +20,7 @@ class SupplierSeeder extends Seeder
                 'name' => $faker->company,
                 'address' => $faker->address,
                 'phone' => $faker->phoneNumber,
-                'company_id' => $faker->numberBetween(1, 3),
+                'company_id' => 1,
                 'created_at' => now(),
                 'updated_at' => now(),
             ];
