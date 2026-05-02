@@ -20,6 +20,7 @@ class CheckRole
         }
 
         // Cek apakah role user termasuk dalam roles yang diizinkan
+        // dd($roles, $user->role->value, in_array($user->role->value, $roles));
         if (!in_array($user->role->value, $roles)) {
             return response()->json([
                 'success' => false,
