@@ -17,7 +17,7 @@ return new class extends Migration
             $table->double('sell_price')->default(0);
             $table->double('discount')->default(0);
             $table->double('subtotal')->default(0);
-            $table->foreignId('company_id')->constrained('company')->onDelete('cascade');
+            $table->foreignId('company_id')->constrained()->onDelete('cascade');
             $table->softDeletes();
             $table->timestamps();
             

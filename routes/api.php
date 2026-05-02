@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\MarketingController;
+use App\Http\Controllers\Api\MarketingProductController;
 use App\Http\Controllers\Api\SupplierController;
 use App\Http\Controllers\Api\UnitController;
 use Illuminate\Support\Facades\Route;
@@ -42,6 +43,10 @@ Route::prefix('v1')->group(function () {
 
             Route::apiResource('marketings', MarketingController::class)->parameters([
                 'marketings' => 'marketing:uuid'
+            ]);
+
+            Route::apiResource('marketing-products', MarketingProductController::class)->parameters([
+                'marketing-products' => 'marketingProduct:uuid'
             ]);
         });
     });

@@ -13,9 +13,9 @@ return new class extends Migration
             $table->id();
             $table->uuid('uuid')->unique();
             $table->double('marketing_price')->default(0);
-            $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
+            $table->foreignId('product_id')->constrained()->onDelete('cascade');
             $table->foreignId('marketing_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('company_id')->constrained('company')->onDelete('cascade');
+            $table->foreignId('company_id')->constrained()->onDelete('cascade');
             $table->softDeletes();
             $table->timestamps();
             

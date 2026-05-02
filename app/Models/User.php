@@ -48,6 +48,12 @@ class User extends Authenticatable
         return $this->belongsTo(Company::class);
     }
 
+
+    public function marketingProducts()
+    {
+        return $this->hasMany(MarketingProduct::class, 'marketing_id');
+    }
+
     public function salesTransactions()
     {
         return $this->hasMany(SalesTransaction::class, 'user_id');
