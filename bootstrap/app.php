@@ -33,7 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (AuthenticationException $e, Request $request) {
             return response()->json([
                 'success' => false,
-                'message' => app()->isProduction() ? 'Unauthorized.' : $e->getMessage(),
+                'message' => app()->isProduction() ? 'Unauthenticated, Please login' : $e->getMessage(),
                 'code' => 401
             ], 401);
         });
@@ -41,7 +41,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (AuthorizationException $e, Request $request) {
             return response()->json([
                 'success' => false,
-                'message' => app()->isProduction() ? 'Forbidden.' : $e->getMessage()    ,
+                'message' => app()->isProduction() ? 'Unauthorized.' : $e->getMessage()    ,
                 'code' => 403
             ], 403);
         });
