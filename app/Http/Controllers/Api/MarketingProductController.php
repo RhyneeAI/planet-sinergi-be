@@ -52,6 +52,7 @@ class MarketingProductController extends Controller
             'product_id'      => $request->getProductId(),
             'marketing_id'    => $request->getMarketingId(),
             'marketing_price' => $request->marketing_price,
+            'created_by'      => $request->user()->id,
             'company_id'      => $request->user()->company_id,
         ]);
 
