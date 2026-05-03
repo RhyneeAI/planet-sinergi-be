@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\MarketingController;
 use App\Http\Controllers\Api\MarketingProductController;
 use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\StockMutationController;
 use App\Http\Controllers\Api\SupplierController;
 use App\Http\Controllers\Api\UnitController;
 use Illuminate\Support\Facades\Route;
@@ -53,6 +54,12 @@ Route::prefix('v1')->group(function () {
             Route::apiResource('marketing-products', MarketingProductController::class)->parameters([
                 'marketing-products' => 'marketingProduct:uuid'
             ]);
+
+            Route::prefix('stock-mutations')->group(function () {
+                Route::post('/', [StockMutationController::class, 'store']);
+                Route::get('/products', [StockMutationController::class, 'index']);
+                Route::get('/products/{product:uuid}', [StockMutationController::class, 'show']);
+            });
         });
     });
 });

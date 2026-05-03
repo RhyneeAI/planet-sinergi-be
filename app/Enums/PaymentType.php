@@ -8,13 +8,22 @@ enum PaymentType: string
     case TRANSFER = 'TRANSFER';
     case QRIS = 'QRIS';
 
-    public static function all(): array
+    public static function values(): array
     {
         return [
             self::CASH->value,
             self::TRANSFER->value,
             self::QRIS->value,
         ];
+    }
+
+    public function label(): string
+    {
+        return match($this) {
+            self::CASH => 'CASH',
+            self::TRANSFER => 'TRANSFER',
+            self::QRIS => 'QRIS',
+        };
     }
 
     public function isCash(): bool

@@ -30,11 +30,11 @@ return new class extends Migration
             $table->unsignedBigInteger('reference_id')->nullable();
 
             $table->foreignId('created_by')->constrained('users')->onDelete('restrict');
-            $table->timestamp('created_at')->useCurrent();
+            $table->softDeletes();
+            $table->timestamps();
 
             $table->index(['product_id', 'company_id', 'created_at']);
             $table->index(['reference_id']);
-            $table->index(['created_at']);
         });
     }
 

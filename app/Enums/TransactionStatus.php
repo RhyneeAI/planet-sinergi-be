@@ -10,7 +10,7 @@ enum TransactionStatus: string
     case CANCEL = 'CANCEL';
     case PENDING = 'PENDING';
 
-    public static function all(): array
+    public static function values(): array
     {
         return [
             self::UNPAID->value,
@@ -19,6 +19,17 @@ enum TransactionStatus: string
             self::CANCEL->value,
             self::PENDING->value,
         ];
+    }
+
+    public function label(): string
+    {
+        return match($this) {
+            self::UNPAID => 'Belum Dibayar',
+            self::PROCESS => 'Proses',
+            self::PAID => 'Dibayar',
+            self::CANCEL => 'DIbatalkan',
+            self::PENDING => 'Menunggu Pembayaran',
+        };
     }
 
     public function isPending(): bool
