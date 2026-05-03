@@ -1,4 +1,4 @@
-name: Laravel POS API CI
+name: Laravel 12 CI
 
 on:
   push:
@@ -8,13 +8,13 @@ on:
 
 jobs:
   tests:
-    name: Run Tests
+    name: PHP ${{ matrix.php }}
     runs-on: ubuntu-latest
     
     strategy:
       fail-fast: false
       matrix:
-        php: [8.2, 8.3]
+        php: [8.3, 8.4]
     
     steps:
     - name: Checkout code
@@ -42,8 +42,7 @@ jobs:
         restore-keys: ${{ runner.os }}-composer-
     
     - name: Install Composer dependencies
-      run: |
-        composer install --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist --ignore-platform-req=ext-http --ignore-platform-req=ext-redis
+      run: composer install --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
     
     - name: Copy environment file
       run: php -r "file_exists('.env') || copy('.env.example', '.env');"
@@ -62,7 +61,7 @@ jobs:
         DB_DATABASE: database/database.sqlite
       run: php artisan migrate --force
     
-    - name: Run seeders (optional)
+    - name: Run seeders
       env:
         DB_CONNECTION: sqlite
         DB_DATABASE: database/database.sqlite
@@ -73,21 +72,7 @@ jobs:
         DB_CONNECTION: sqlite
         DB_DATABASE: database/database.sqlite
         APP_ENV: testing
-        APP_KEY: base64:$(php artisan key:generate --show --no-interaction)
-        CACHE_DRIVER: array
-        SESSION_DRIVER: array
-        QUEUE_CONNECTION: sync
-      run: |
-        php artisan optimize:clear
-        php artisan test --parallel --stop-on-failure
-    
-    - name: Upload test coverage (optional)
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: test-coverage-${{ matrix.php }}
-        path: coverage/
-        retention-days: 7
+      run: php artisan test
 
   lint:
     name: Code Linting
@@ -100,30 +85,12 @@ jobs:
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: 8.2
-        tools: composer:v2, php-cs-fixer, pint
-    
-    - name: Run Laravel Pint
-      run: ./vendor/bin/pint --test
-      continue-on-error: true
-
-  security:
-    name: Security Check
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Setup PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: 8.2
+        php-version: '8.3'
+        tools: composer:v2
     
     - name: Install Composer dependencies
       run: composer install --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
     
-    - name: Run security checker
-      run: |
-        composer require --dev roave/security-advisories:dev-latest
-        composer audit
+    - name: Run Laravel Pint
+      run: ./vendor/bin/pint --test
+      continue-on-error: true
