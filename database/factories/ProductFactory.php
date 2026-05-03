@@ -4,7 +4,6 @@ namespace Database\Factories;
 
 use App\Models\Category;
 use App\Models\Company;
-use App\Models\Supplier;
 use App\Models\Unit;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -26,7 +25,6 @@ class ProductFactory extends Factory
             'is_active' => true,
             'category_id' => Category::factory(),
             'unit_id' => Unit::factory(),
-            'supplier_id' => Supplier::factory(),
             'created_by' => User::factory(),
             'company_id' => Company::factory(),
             'created_at' => now(),

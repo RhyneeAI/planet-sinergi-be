@@ -21,7 +21,7 @@ class ProductController extends Controller
         $orderByValue = strtoupper($request->input('order_by_value', 'ASC')) === 'DESC' ? 'DESC' : 'ASC';
 
         $products = Product::query()
-            ->with(['category', 'unit', 'supplier'])
+            ->with(['category', 'unit'])
             ->when($request->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
@@ -52,7 +52,6 @@ class ProductController extends Controller
             'is_active' => $request->is_active ?? true,
             'category_id' => $request->category_id,
             'unit_id' => $request->unit_id,
-            'supplier_id' => $request->supplier_id,
             'created_by' => $request->user()->id,
             'company_id' => $request->user()->company_id,
         ]);
@@ -60,7 +59,7 @@ class ProductController extends Controller
         return response()->json([
             'success' => true,
             'message' => __('products.stored'),
-            'data' => new ProductResource($product->load(['category', 'unit', 'supplier', 'createdBy'])),
+            'data' => new ProductResource($product->load(['category', 'unit', 'createdBy'])),
         ], 201);
     }
 
@@ -69,7 +68,7 @@ class ProductController extends Controller
         return response()->json([
             'success' => true,
             'message' => __('products.detail'),
-            'data' => new ProductResource($product->load(['category', 'unit', 'supplier', 'createdBy'])),
+            'data' => new ProductResource($product->load(['category', 'unit', 'createdBy'])),
         ]);
     }
 
@@ -87,7 +86,6 @@ class ProductController extends Controller
             'is_active' => $request->has('is_active') ? $request->is_active : null,
             'category_id' => $request->has('category_id') ? $request->category_id : null,
             'unit_id' => $request->has('unit_id') ? $request->unit_id : null,
-            'supplier_id' => $request->has('supplier_id') ? $request->supplier_id : null,
         ], fn($value) => !is_null($value));
 
         $product->update($data);
@@ -95,7 +93,7 @@ class ProductController extends Controller
         return response()->json([
             'success' => true,
             'message' => __('products.updated'),
-            'data' => new ProductResource($product->load(['category', 'unit', 'supplier', 'createdBy'])),
+            'data' => new ProductResource($product->load(['category', 'unit', 'createdBy'])),
         ]);
     }
 

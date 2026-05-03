@@ -69,10 +69,6 @@ class ProductRequest extends FormRequest
                 'nullable',
                 'exists:units,id',
             ],
-            'supplier_id' => [
-                'nullable',
-                'exists:suppliers,id',
-            ],
         ];
     }
 
@@ -90,7 +86,6 @@ class ProductRequest extends FormRequest
             'min_stock.integer' => __('products.validation.min_stock_integer'),
             'category_id.exists' => __('products.validation.category_exists'),
             'unit_id.exists' => __('products.validation.unit_exists'),
-            'supplier_id.exists' => __('products.validation.supplier_exists'),
         ];
     }
 }

@@ -4,7 +4,6 @@ use App\Models\Category;
 use App\Models\Company;
 use App\Models\Product;
 use App\Models\Unit;
-use App\Models\Supplier;
 use App\Models\User;
 use App\Models\SalesDetail;
 
@@ -90,7 +89,6 @@ it('can paginate products with custom per_page', function () {
 it('can create a product', function () {
     $category = Category::factory()->create(['company_id' => $this->company->id]);
     $unit = Unit::factory()->create(['company_id' => $this->company->id]);
-    $supplier = Supplier::factory()->create(['company_id' => $this->company->id]);
 
     $this->actingAs($this->user)
         ->postJson('/api/v1/products', [
@@ -102,7 +100,6 @@ it('can create a product', function () {
             'min_stock' => 5,
             'category_id' => $category->id,
             'unit_id' => $unit->id,
-            'supplier_id' => $supplier->id,
         ])
         ->assertStatus(201)
         ->assertJsonPath('success', true)

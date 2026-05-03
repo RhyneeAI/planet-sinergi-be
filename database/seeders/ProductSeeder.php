@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use App\Models\Product;
-use App\Models\Supplier;
 use App\Models\Unit;
 use Faker\Factory as Faker;
 use Illuminate\Database\Seeder;
@@ -20,10 +19,9 @@ class ProductSeeder extends Seeder
         for ($i = 0; $i < 100; $i++) {
             $companyId = 1;
             
-            // Dapatkan category_id, unit_id, supplier_id yang sesuai dengan company
+            // Dapatkan category_id, unit_id, yang sesuai dengan company
             $categoryIds = Category::where('company_id', $companyId)->pluck('id')->toArray();
             $unitIds = Unit::where('company_id', $companyId)->pluck('id')->toArray();
-            $supplierIds = Supplier::where('company_id', $companyId)->pluck('id')->toArray();
             
             $basePrice = $faker->numberBetween(5000, 500000);
             $salesPrice = $basePrice * $faker->randomFloat(2, 1.1, 1.5);
@@ -41,7 +39,6 @@ class ProductSeeder extends Seeder
                 'is_active' => $faker->boolean(90),
                 'category_id' => $categoryIds ? $faker->randomElement($categoryIds) : null,
                 'unit_id' => $unitIds ? $faker->randomElement($unitIds) : null,
-                'supplier_id' => $supplierIds ? $faker->randomElement($supplierIds) : null,
                 'created_by' => 1,
                 'company_id' => $companyId,
                 'created_at' => now(),

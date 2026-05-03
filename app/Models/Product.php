@@ -25,7 +25,6 @@ class Product extends Model
         'is_active',
         'category_id',
         'unit_id',
-        'supplier_id',
         'created_by',
         'company_id',
     ];
@@ -66,10 +65,6 @@ class Product extends Model
         return $this->belongsTo(Unit::class);
     }
 
-    public function supplier()
-    {
-        return $this->belongsTo(Supplier::class);
-    }
 
     public function user()
     {
