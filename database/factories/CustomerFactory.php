@@ -13,11 +13,18 @@ class CustomerFactory extends Factory
     {
         return [
             'name'             => fake()->name(),
-            'address'          => fake()->address(),
-            'phone'            => fake()->phoneNumber(),
-            'customer_type_id' => CustomerType::factory(),
+            'address'          => fake()->optional()->address(),
+            'phone'            => fake()->optional()->numerify('08##########'),
+            'customer_type_id' => CustomerType::factory(), 
             'created_by'       => User::factory(),
             'company_id'       => Company::factory(),
         ];
+    }
+
+    public function withType(?int $customerTypeId = null): static
+    {
+        return $this->state([
+            'customer_type_id' => $customerTypeId ?? CustomerType::factory(),
+        ]);
     }
 }

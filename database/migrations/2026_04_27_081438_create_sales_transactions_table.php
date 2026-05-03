@@ -18,8 +18,8 @@ return new class extends Migration
             $table->double('paid')->default(0);
             $table->enum('payment_type', ['CASH', 'TRANSFER', 'QRIS'])->default('cash');
             $table->enum('transaction_status', ['UNPAID', 'PROCESS', 'PAID', 'CANCEL', 'PENDING'])->default('PENDING');
-            $table->foreignId('created_by')->constrained('users')->onDelete('restrict');
             $table->foreignId('customer_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('created_by')->constrained('users')->onDelete('restrict');
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
             $table->softDeletes();
             $table->timestamps();

@@ -1,0 +1,2 @@
+Jika selanjutnya ada pengembangan untuk multi company, wajib
+- Auto generate CustomerType (karena depends)

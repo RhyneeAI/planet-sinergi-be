@@ -25,7 +25,11 @@ class CustomerRequest extends FormRequest
             ],
             'address'          => ['sometimes', 'nullable', 'string'],
             'phone'            => ['sometimes', 'nullable', 'string', 'max:20'],
-            'customer_type_id' => ['sometimes', 'nullable', 'integer', 'exists:customer_types,id'],
+            'customer_type_id' => [
+                $this->isMethod('POST') ? 'required' : 'sometimes', 
+                'integer', 
+                'exists:customer_types,id'
+            ],
         ];
     }
 

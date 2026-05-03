@@ -14,7 +14,7 @@ return new class extends Migration
             $table->string('name');
             $table->text('address')->nullable();
             $table->string('phone')->nullable();
-            $table->string('customer_type_id')->constrained()->onDelete('cascade');
+            $table->foreignId('customer_type_id')->constrained('customer_types')->onDelete('restrict');
             $table->foreignId('created_by')->constrained('users')->onDelete('restrict');
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
             $table->softDeletes();

@@ -8,19 +8,21 @@ use App\Models\Company;
 use App\Models\Customer;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Str;
 
 class SalesTransactionFactory extends Factory
 {
     public function definition(): array
     {
         return [
-            'transaction_code'   => 'SO-' . fake()->unique()->numerify('####'),
-            'transaction_date'   => fake()->dateTime(),
-            'discount'           => fake()->randomFloat(2, 0, 10000),
-            'total'              => fake()->randomFloat(2, 10000, 100000),
-            'paid'               => fake()->randomFloat(2, 0, 100000),
-            'payment_type'       => fake()->randomElement([PaymentType::CASH->value, PaymentType::TRANSFER->value, PaymentType::QRIS->value]),
-            'transaction_status' => fake()->randomElement(TransactionStatus::cases())->value,
+            'ulid'               => Str::ulid(),
+            'transaction_code'   => fake()->unique()->bothify('SO-####'),
+            'transaction_date'   => fake()->dateTimeThisYear(),
+            'discount'           => 0,
+            'total'              => fake()->randomFloat(2, 10000, 1000000),
+            'paid'               => 0,
+            'payment_type'       => PaymentType::CASH,
+            'transaction_status' => TransactionStatus::UNPAID,
             'customer_id'        => Customer::factory(),
             'created_by'         => User::factory(),
             'company_id'         => Company::factory(),

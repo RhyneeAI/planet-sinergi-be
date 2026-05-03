@@ -11,7 +11,7 @@ use Faker\Factory as Faker;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
-class SaleTransactionSeeder extends Seeder
+class SalesTransactionSeeder extends Seeder
 {
     public function run(): void
     {
