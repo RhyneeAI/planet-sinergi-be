@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\MarketingController;
 use App\Http\Controllers\Api\MarketingProductController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\PurchaseTransactionController;
+use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\SalesTransactionController;
 use App\Http\Controllers\Api\StockMutationController;
 use App\Http\Controllers\Api\SupplierController;
@@ -78,7 +79,13 @@ Route::prefix('v1')->group(function () {
                 Route::get('/{salesTransaction:ulid}', [SalesTransactionController::class, 'show']);
                 Route::patch('/{salesTransaction:ulid}/cancel', [SalesTransactionController::class, 'cancel']);
             });
-        });
 
+        });
+            
+        Route::prefix('reports')->group(function () {
+            Route::group(['middleware' => ['role:SUPERADMIN,OWNER,MARKETING']], function () {
+                Route::get('/marketing-commission', [ReportController::class, 'marketingCommission']);
+            });
+        });
     });
 });

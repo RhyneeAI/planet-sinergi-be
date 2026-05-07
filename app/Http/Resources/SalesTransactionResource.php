@@ -20,14 +20,7 @@ class SalesTransactionResource extends JsonResource
             'transaction_status' => $this->transaction_status?->value,
             'customer'           => $this->whenLoaded('customer', fn() =>
                 $this->customer ? [
-                    // 'uuid' => $this->customer->uuid,
                     'name' => $this->customer->name,
-                ] : null
-            ),
-            'marketing'          => $this->whenLoaded('marketing', fn() =>
-                $this->marketing ? [
-                    // 'uuid' => $this->marketing->uuid,
-                    'name' => $this->marketing->name,
                 ] : null
             ),
             'created_by'         => $this->whenLoaded('createdBy', fn() => [

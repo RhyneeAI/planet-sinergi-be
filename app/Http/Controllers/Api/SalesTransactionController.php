@@ -28,7 +28,7 @@ class SalesTransactionController extends Controller
                             : 'transaction_date';
         $orderByValue = strtoupper($request->input('order_by_value', 'DESC')) === 'DESC' ? 'DESC' : 'ASC';
 
-        $transactions = SalesTransaction::with(['customer', 'marketing', 'createdBy'])
+        $transactions = SalesTransaction::with(['customer', 'createdBy'])
             ->when($request->search, fn($q, $search) =>
                 $q->where('transaction_code', 'like', "%{$search}%")
             )
@@ -57,7 +57,6 @@ class SalesTransactionController extends Controller
 
         try {
             $customerId  = $request->getCustomerId();
-            $marketingId = $request->getMarketingId();
             $discount    = $request->discount ?? 0;
             $items       = $request->items;
 
@@ -91,15 +90,6 @@ class SalesTransactionController extends Controller
                 }
             }
 
-            // Jika marketing — resolve marketing products untuk harga
-            $marketingPrices = collect();
-            if ($marketingId) {
-                $marketingPrices = MarketingProduct::where('marketing_id', $marketingId)
-                    ->whereIn('product_id', $products->pluck('id'))
-                    ->get()
-                    ->keyBy('product_id');
-            }
-
             $transactionCode = 'SO-' . strtoupper(Str::random(8)) . '-' . now()->format('Ymd');
 
             $transaction = SalesTransaction::create([
@@ -111,7 +101,6 @@ class SalesTransactionController extends Controller
                 'payment_type'       => $request->payment_type,
                 'transaction_status' => TransactionStatus::PAID,
                 'customer_id'        => $customerId,
-                'marketing_id'       => $marketingId,
                 'created_by'         => $request->user()->id,
                 'company_id'         => $request->user()->company_id,
             ]);
@@ -121,10 +110,8 @@ class SalesTransactionController extends Controller
                 $product     = $products->get($item['product_uuid']);
                 $itemDiscount = $item['discount'] ?? 0;
 
-                // Harga dari marketing_products jika ada, fallback ke request sell_price
-                $sellPrice = $marketingId && $marketingPrices->has($product->id)
-                    ? $marketingPrices->get($product->id)->marketing_price
-                    : $item['sell_price'];
+                // Harga dari request sell_price
+                $sellPrice = $item['sell_price'];
 
                 $subtotal    = ($item['quantity'] * $sellPrice) - $itemDiscount;
                 $stockBefore = $product->stock;
@@ -161,7 +148,7 @@ class SalesTransactionController extends Controller
                 'success' => true,
                 'message' => __('sales_transactions.stored'),
                 'data'    => new SalesTransactionResource(
-                    $transaction->load(['customer', 'marketing', 'createdBy', 'details.product'])
+                    $transaction->load(['customer', 'createdBy', 'details.product'])
                 ),
             ], 201);
 
@@ -177,7 +164,7 @@ class SalesTransactionController extends Controller
             'success' => true,
             'message' => __('sales_transactions.detail'),
             'data'    => new SalesTransactionResource(
-                $salesTransaction->load(['customer', 'marketing', 'createdBy', 'details.product'])
+                $salesTransaction->load(['customer', 'createdBy', 'details.product'])
             ),
         ]);
     }
@@ -234,7 +221,7 @@ class SalesTransactionController extends Controller
                 'success' => true,
                 'message' => __('sales_transactions.cancelled'),
                 'data'    => new SalesTransactionResource(
-                    $salesTransaction->load(['customer', 'marketing', 'createdBy', 'details.product'])
+                    $salesTransaction->load(['customer', 'createdBy', 'details.product'])
                 ),
             ]);
 

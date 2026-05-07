@@ -1,13 +1,11 @@
 <?php
 
 use App\Enums\PaymentType;
-use App\Enums\Role;
 use App\Enums\TransactionStatus;
 use App\Models\Category;
 use App\Models\Company;
 use App\Models\Customer;
 use App\Models\CustomerType;
-use App\Models\MarketingProduct;
 use App\Models\Product;
 use App\Models\SalesTransaction;
 use App\Models\Unit;
@@ -26,9 +24,6 @@ beforeEach(function () {
         'customer_type_id' => $this->customerType->id,
         'created_by'       => $this->user->id,
         'company_id'       => $this->company->id,
-    ]);
-    $this->marketing    = User::factory()->marketing()->create([
-        'company_id' => $this->company->id,
     ]);
     $this->category     = Category::factory()->create([
         'company_id' => $this->company->id,
@@ -57,7 +52,6 @@ beforeEach(function () {
 
     $this->payload = [
         'customer_uuid'    => $this->customer->uuid,
-        'marketing_uuid'   => $this->marketing->uuid,
         'transaction_date' => '2026-05-03',
         'discount'         => 0,
         'total'            => 45000,
@@ -187,60 +181,6 @@ it('can create sales transaction without customer', function () {
 
     $response->assertStatus(201);
     expect($response->json('data.customer'))->toBeNull();
-});
-
-it('can create sales transaction without marketing', function () {
-    $payload = $this->payload;
-    unset($payload['marketing_uuid']);
-
-    $response = $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $payload);
-
-    $response->assertStatus(201);
-    expect($response->json('data.marketing.uuid'))->toBeNull();
-});
-
-it('can create sales transaction without customer and marketing', function () {
-    $payload = $this->payload;
-    unset($payload['marketing_uuid']);
-    unset($payload['customer_uuid']);
-
-    $response = $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $payload);
-
-    $response->assertStatus(201);
-    expect($response->json('data.customer.uuid'))->toBeNull();
-    expect($response->json('data.marketing.uuid'))->toBeNull();
-});
-
-it('uses marketing price when marketing is set and has marketing product', function () {
-    MarketingProduct::factory()->create([
-        'product_id'      => $this->product->id,
-        'marketing_id'    => $this->marketing->id,
-        'marketing_price' => 20000, // ← harga khusus marketing
-        'company_id'      => $this->company->id,
-    ]);
-
-    $payload = array_merge($this->payload, [
-        'marketing_uuid' => $this->marketing->uuid,
-        'total'          => 60000,
-        'paid'           => 60000,
-        'items'          => [
-            [
-                'product_uuid' => $this->product->uuid,
-                'quantity'     => 3,
-                'sell_price'   => 15000, // ← akan di-override oleh marketing price
-                'discount'     => 0,
-            ],
-        ],
-    ]);
-
-    $response = $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $payload);
-
-    $response->assertStatus(201);
-    // sell_price di detail harus 20000 (marketing price), bukan 15000
-    expect($response->json('data.items.0.sell_price'))->toEqual(20000);
 });
 
 it('stock decreases after sales transaction', function () {
@@ -661,16 +601,6 @@ it('returns 422 when customer_uuid not found', function () {
         ->assertStatus(422);
 });
 
-it('returns 422 when marketing_uuid not found', function () {
-    $payload = array_merge($this->payload, [
-        'marketing_uuid' => 'invalid-uuid',
-    ]);
-
-    $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $payload)
-        ->assertStatus(422);
-});
-
 it('returns 422 when total is negative', function () {
     $payload = array_merge($this->payload, ['total' => -1000]);
 
@@ -768,18 +698,3 @@ it('returns 422 when customer belongs to other company', function () {
         ->assertStatus(422);
 });
 
-it('returns 422 when marketing belongs to other company', function () {
-    $otherCompany = Company::factory()->create();
-    $otherUser    = User::factory()->owner()->create(['company_id' => $otherCompany->id]);
-    $otherMarketing = User::factory()->marketing()->create([
-        'company_id' => $otherCompany->id,
-    ]);
-
-    $payload = array_merge($this->payload, [
-        'marketing_uuid' => $otherMarketing->uuid,
-    ]);
-
-    $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $payload)
-        ->assertStatus(422);
-});

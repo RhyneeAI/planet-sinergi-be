@@ -23,7 +23,6 @@ class SalesTransaction extends Model
         'paid',
         'payment_type',
         'transaction_status',
-        'marketing_id',
         'customer_id',
         'created_by',
         'company_id',
@@ -49,11 +48,6 @@ class SalesTransaction extends Model
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by');
-    }
-
-    public function marketing()
-    {
-        return $this->belongsTo(User::class, 'marketing_id');
     }
 
     public function customer()

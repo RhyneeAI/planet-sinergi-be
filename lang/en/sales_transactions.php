@@ -18,8 +18,6 @@ return [
         'transaction_status_invalid'  => 'Transaction status must be one of: UNPAID, PROCESS, PAID, CANCEL, PENDING.',
         'customer_uuid_invalid'       => 'Invalid customer UUID format.',
         'customer_not_found'          => 'Customer not found.',
-        'marketing_uuid_invalid'      => 'Invalid marketing UUID format.',
-        'marketing_not_found'         => 'Marketing not found.',
         'total_required'              => 'Transaction total is required.',
         'paid_required'               => 'Payment amount is required.',
         'discount_greater_than_total' => 'Discount cannot be greater than the total transaction.',

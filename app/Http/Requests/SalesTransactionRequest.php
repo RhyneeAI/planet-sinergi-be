@@ -3,10 +3,8 @@
 namespace App\Http\Requests;
 
 use App\Enums\PaymentType;
-use App\Enums\Role;
 use App\Enums\TransactionStatus;
 use App\Models\Customer;
-use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -61,27 +59,6 @@ class SalesTransactionRequest extends FormRequest
                     }
                 }
             ],
-            'marketing_uuid'       => [
-                'nullable',
-                'string',
-                'uuid',
-                function ($attribute, $value, $fail) {
-                    if (!$value) return; // nullable
-                    
-                    if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $value)) {
-                        return; // uuid rule handle error
-                    }
-                    
-                    $marketingExists = User::where('uuid', $value)
-                        ->where('role', Role::MARKETING)
-                        ->where('company_id', $this->user()->company_id)
-                        ->exists();
-                    
-                    if (!$marketingExists) {
-                        $fail(__('sales_transactions.validation.marketing_not_found'));
-                    }
-                }
-            ],
             'items'                => ['required', 'array', 'min:1'],
             'items.*.product_uuid' => ['required', 'string', 'uuid', 'exists:products,uuid'],
             'items.*.quantity'     => ['required', 'integer', 'min:1'],
@@ -123,15 +100,6 @@ class SalesTransactionRequest extends FormRequest
             ->value('id');
     }
 
-    public function getMarketingId(): ?int
-    {
-        if (!$this->marketing_uuid) return null;
-        return User::where('uuid', $this->marketing_uuid)
-            ->where('role', Role::MARKETING)
-            ->where('company_id', $this->user()->company_id)
-            ->value('id');
-    }
-
     public function messages(): array
     {
         return [
@@ -145,8 +113,6 @@ class SalesTransactionRequest extends FormRequest
             'transaction_status.enum'       => __('sales_transactions.validation.transaction_status_invalid'),
             'customer_uuid.uuid'            => __('sales_transactions.validation.customer_uuid_invalid'),
             'customer_uuid.exists'          => __('sales_transactions.validation.customer_not_found'),
-            'marketing_uuid.uuid'           => __('sales_transactions.validation.marketing_uuid_invalid'),
-            'marketing_uuid.exists'         => __('sales_transactions.validation.marketing_not_found'),
             'total.required'                => __('sales_transactions.validation.total_required'),
             'paid.required'                 => __('sales_transactions.validation.paid_required'),
             'items.required'                => __('sales_transactions.validation.items_required'),
