@@ -26,6 +26,8 @@ class DatabaseSeeder extends Seeder
             ProductSeeder::class,
             SalesTransactionSeeder::class,
             PurchaseTransactionSeeder::class,
+
+            MarketingCommissionReportSeeder::class
         ]);
     }
 }

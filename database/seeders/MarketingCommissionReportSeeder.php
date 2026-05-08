@@ -343,7 +343,6 @@ class MarketingCommissionReportSeeder extends Seeder
                 'paid'               => $totalAfterDiscount,
                 'payment_type'       => $sale['payment'],
                 'transaction_status' => TransactionStatus::PAID,
-                'marketing_id'       => $sale['marketing']->id,
                 'customer_id'        => $sale['customer']?->id,
                 'created_by'         => $owner->id,
                 'company_id'         => $company->id,

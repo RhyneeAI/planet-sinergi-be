@@ -27,7 +27,7 @@ class PurchaseTransactionSeeder extends Seeder
         }
 
         $transactions = [];
-        for ($i = 0; $i < 50; $i++) {
+        for ($i = 0; $i < 20; $i++) {
             $discount = $faker->randomFloat(2, 0, 5000);
             $subtotal = $faker->randomFloat(2, 50000, 500000);
             $total = max(0, $subtotal - $discount);
