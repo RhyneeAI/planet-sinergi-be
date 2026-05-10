@@ -36,7 +36,7 @@ class PurchaseTransactionController extends Controller
             )
             ->when($request->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
-                    $q->whereRaw('transaction_code LIKE ?', ['%' . strtolower($search) . '%'])
+                    $q->whereRaw('LOWER(transaction_code) LIKE ?', ['%' . strtolower($search) . '%'])
                     ->orWhereHas('supplier', function ($supplierQuery) use ($search) {
                         $supplierQuery->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($search) . '%']);
                     });
