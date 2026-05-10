@@ -144,6 +144,8 @@ class ReportController extends Controller
         $filename    = 'laporan-komisi-marketing-' . now()->format('YmdHis') . '.pdf';
         $storagePath = 'reports/marketing-commission/' . $filename;
 
+        Storage::disk('public')->put($storagePath, $pdf->output());
+
         $downloadUrl = $request->getSchemeAndHttpHost() . '/storage/' . $storagePath;
 
         return response()->json([
