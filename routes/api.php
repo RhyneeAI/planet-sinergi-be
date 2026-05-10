@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\CustomerTypeController;
+use App\Http\Controllers\Api\HomeController;
 use App\Http\Controllers\Api\MarketingController;
 use App\Http\Controllers\Api\MarketingProductController;
 use App\Http\Controllers\Api\ProductController;
@@ -30,6 +31,10 @@ Route::prefix('v1')->group(function () {
     // Protected
     Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
+        
+        // Dashboard/Home
+        Route::get('/home', [HomeController::class, 'index']);
+
         Route::group(['middleware' => ['role:SUPERADMIN,OWNER']], function () {
             Route::apiResource('categories', CategoryController::class)->parameters([
                 'categories' => 'category:uuid'
