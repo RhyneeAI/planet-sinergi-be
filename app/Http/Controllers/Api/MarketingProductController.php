@@ -19,14 +19,14 @@ class MarketingProductController extends Controller
                             : 'created_at';
         $orderByValue = strtoupper($request->input('order_by_value', 'ASC')) === 'DESC' ? 'DESC' : 'ASC';
 
-        $marketingProducts = MarketingProduct::with(['product', 'createdBy'])
+        $marketingProducts = MarketingProduct::with(['product', 'createdBy', 'marketing'])
             ->join('products', 'products.id', '=', 'marketing_products.product_id')
             ->select('marketing_products.*', 'products.name as product_name') // hindari conflict kolom
-            ->when($request->marketing_uuid, function ($query, $marketingUuid) {
-                $query->whereHas('marketing', fn($q) =>
-                    $q->where('uuid', $marketingUuid)
-                );
-            })
+            // ->when($request->marketing_uuid, function ($query, $marketingUuid) {
+            //     $query->whereHas('marketing', fn($q) =>
+            //         $q->where('uuid', $marketingUuid)
+            //     );
+            // })
             ->when($request->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('products.name', 'like', "%{$search}%")
@@ -56,7 +56,7 @@ class MarketingProductController extends Controller
             'company_id'      => $request->user()->company_id,
         ]);
 
-        $marketingProduct->load('product');
+        $marketingProduct->load(['product', 'createdBy', 'marketing']);
 
         return response()->json([
             'success' => true,
@@ -67,7 +67,7 @@ class MarketingProductController extends Controller
 
     public function show(MarketingProduct $marketingProduct)
     {
-        $marketingProduct->loadMissing('product');
+        $marketingProduct->loadMissing(['product', 'createdBy', 'marketing']);
 
         return response()->json([
             'success' => true,
@@ -82,7 +82,7 @@ class MarketingProductController extends Controller
             $request->only(['marketing_price'])
         );
 
-        $marketingProduct->load('product');
+        $marketingProduct->load(['product', 'createdBy', 'marketing']);
 
         return response()->json([
             'success' => true,

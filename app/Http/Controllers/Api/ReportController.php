@@ -191,7 +191,7 @@ class ReportController extends Controller
                     'product_id' => $first->product_id,
                     'code'       => $first->product->code ?? '-',
                     'name'       => $first->product->name ?? '-',
-                    'sell_price' => $rows->avg('sell_price'), // rata-rata harga jual
+                    'sell_price' => $rows->avg('sell_price'), 
                     'qty_sold'   => $qtySold,
                     'revenue'    => $revenue,
                 ];
