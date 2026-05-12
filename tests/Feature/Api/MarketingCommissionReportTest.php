@@ -165,13 +165,13 @@ it('returns 401 when not authenticated', function () {
 
 it('calculates commission correctly without discount', function () {
     /*
-     * Product A: qty 2, marketing_price 6500, base 5000
-     *   komisi = (6500-5000)*2 = 3000
-     * Product B: qty 3, marketing_price 15000, base 12000
-     *   komisi = (15000-12000)*3 = 9000
+     * Product A: qty 2, sales_price 8000, marketing_price 6500
+     *   komisi = (8000 - 6500) * 2 = 3000
+     * Product B: qty 3, sales_price 18000, marketing_price 15000
+     *   komisi = (18000 - 15000) * 3 = 9000
      * Diskon = 0
      * Total komisi = 12000
-     */
+    */
     makeSalesTrx([
         'date'        => '2026-03-01',
         'discount'    => 0,
@@ -198,11 +198,11 @@ it('calculates commission correctly without discount', function () {
 
 it('calculates commission correctly with discount (fully charged to marketing)', function () {
     /*
-     * Product A: qty 2, marketing_price 6500, base 5000
-     *   komisi kotor = (6500-5000)*2 = 3000
-     * Diskon transaksi = 2000 (100% ditanggung marketing)
+     * Product A: qty 2, sales_price 8000, marketing_price 6500
+     *   komisi kotor = (8000 - 6500) * 2 = 3000
+     * Diskon = 2000 (100% ditanggung marketing)
      * Komisi bersih = 3000 - 2000 = 1000
-     */
+    */
     makeSalesTrx([
         'date'        => '2026-03-01',
         'discount'    => 2000,
@@ -301,11 +301,11 @@ it('calculates commission separately for each marketing', function () {
     MarketingProduct::factory()->create([
         'product_id'      => $this->productA->id,
         'marketing_id'    => $this->marketing2->id,
-        'marketing_price' => 7000, // komisi/unit = (7000-5000) = 2000
+        'marketing_price' => 7000, // komisi = (8000-7000)*qty = 1000*qty
         'company_id'      => $this->company->id,
     ]);
 
-    // Marketing 1: (6500-5000)*2 = 3000
+    // Marketing 1: (8000-6500)*2 = 3000
     makeSalesTrx([
         'date'        => '2026-03-01',
         'discount'    => 0,
@@ -318,7 +318,7 @@ it('calculates commission separately for each marketing', function () {
         ],
     ]);
 
-    // Marketing 2: (7000-5000)*3 = 6000
+    // Marketing 2: (8000-7000)*3 = 3000
     makeSalesTrx([
         'date'        => '2026-03-05',
         'discount'    => 0,
@@ -335,8 +335,7 @@ it('calculates commission separately for each marketing', function () {
         ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
-    // 3000 + 6000 = 9000
-    expect($response->json('data.grand_total.total_commission'))->toEqual(9000);
+    expect($response->json('data.grand_total.total_commission'))->toEqual(6000);
 });
 
 // =============================

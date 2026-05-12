@@ -189,21 +189,19 @@ class MarketingCommissionReportSeeder extends Seeder
         // Assign Marketing Products
         // ================================
         $marketingPrices = [
-            // Abdillah punya harga lebih tinggi
             'abdillah' => [
-                'PRD-001' => 6500,
-                'PRD-002' => 15000,
-                'PRD-003' => 10000,
-                'PRD-004' => 18000,
-                'PRD-005' => 12500,
+                'PRD-001' => 6500,  // sales_price 8000  → komisi 1500/unit ✅
+                'PRD-002' => 15000, // sales_price 18000 → komisi 3000/unit ✅
+                'PRD-003' => 10000, // sales_price 12000 → komisi 2000/unit ✅
+                'PRD-004' => 18000, // sales_price 20000 → komisi 2000/unit ✅
+                'PRD-005' => 12500, // sales_price 14000 → komisi 1500/unit ✅
             ],
-            // Ahmad punya harga sedikit lebih rendah dari Abdillah
             'ahmad' => [
-                'PRD-001' => 6000,
-                'PRD-002' => 14000,
-                'PRD-003' => 9500,
-                'PRD-004' => 17000,
-                'PRD-005' => 12000,
+                'PRD-001' => 6000,  // sales_price 8000  → komisi 2000/unit ✅
+                'PRD-002' => 14000, // sales_price 18000 → komisi 4000/unit ✅
+                'PRD-003' => 9500,  // sales_price 12000 → komisi 2500/unit ✅
+                'PRD-004' => 17000, // sales_price 20000 → komisi 3000/unit ✅
+                'PRD-005' => 12000, // sales_price 14000 → komisi 2000/unit ✅
             ],
         ];
 

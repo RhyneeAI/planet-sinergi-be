@@ -46,7 +46,7 @@ class ReportController extends Controller
                 'customer:id,name',
                 'createdBy:id,name,uuid',
                 'createdBy.marketingProducts:id,marketing_id,product_id,marketing_price',
-                'details.product:id,uuid,name,code,base_price,sales_price',
+                'details.product:id,uuid,name,code,sales_price',
             ])
             ->where('company_id', $companyId)
             ->whereIn('created_by', $marketingUserIds) 
@@ -94,7 +94,7 @@ class ReportController extends Controller
                     $marketingPrice = $mpMap[$createdBy][$detail->product_id] ?? null;
                     if (!$marketingPrice) continue;
 
-                    $grossCommission += ($marketingPrice - $detail->product->base_price) * $detail->quantity;
+                    $grossCommission += ($detail->product->sales_price - $marketingPrice) * $detail->quantity;
                 }
 
                 // Diskon sepenuhnya ditanggung marketing
