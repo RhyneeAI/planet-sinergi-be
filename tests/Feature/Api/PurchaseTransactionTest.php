@@ -324,7 +324,7 @@ it('last_purchase_price updates after purchase', function () {
         ->postJson('/api/v1/purchase-transactions', $this->payload);
 
     $this->product->refresh();
-    expect(floatval($this->product->last_purchase_price))->toBe(10000);
+    expect($this->product->last_purchase_price)->toEqual(10000.0);
 });
 
 it('stock_mutation is created after purchase', function () {
