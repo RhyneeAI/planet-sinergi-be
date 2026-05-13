@@ -35,7 +35,7 @@ class ProductController extends Controller
         }
         
         $sequence = $maxSequence + 1;
-        $code = sprintf('%s%03d', $company->code, $sequence); // MJ001, MJ002, etc
+        $code = sprintf('%s%04d', $company->code, $sequence); // MJ001, MJ002, etc
         
         return response()->json([
             'success' => true,

@@ -45,25 +45,25 @@ it('can generate unique product code with company code prefix', function () {
         ->getJson('/api/v1/products/generate-code')
         ->assertStatus(200)
         ->assertJsonPath('success', true)
-        ->assertJsonPath('data.code', 'ABC-000001');
+        ->assertJsonPath('data.code', 'ABC0001');
 });
 
 it('generates sequential product codes', function () {
     $this->company->update(['code' => 'XYZ']);
 
     Product::factory()->create([
-        'code' => 'XYZ-000001',
+        'code' => 'XYZ0001',
         'company_id' => $this->company->id,
     ]);
     Product::factory()->create([
-        'code' => 'XYZ-000002',
+        'code' => 'XYZ0002',
         'company_id' => $this->company->id,
     ]);
 
     $this->actingAs($this->user)
         ->getJson('/api/v1/products/generate-code')
         ->assertStatus(200)
-        ->assertJsonPath('data.code', 'XYZ-000003');
+        ->assertJsonPath('data.code', 'XYZ0003');
 });
 
 it('returns 401 when not authenticated on generate code', function () {
