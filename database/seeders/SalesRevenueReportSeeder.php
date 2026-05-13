@@ -26,6 +26,7 @@ class SalesRevenueReportSeeder extends Seeder
         // Company & Users baru
         // ================================
         $company = Company::create([
+            'uuid'       => Str::uuid(),
             'name'    => 'Toko Sejahtera',
             'address' => 'Jl. Merdeka No. 99',
             'code'    => 'TSJ-001',
@@ -46,6 +47,16 @@ class SalesRevenueReportSeeder extends Seeder
             'name'       => 'Kasir Sejahtera',
             'username'   => 'kasir_sejahtera',
             'email'      => 'kasir@sejahtera.com',
+            'password'   => Hash::make('password'),
+            'role'       => Role::MARKETING,
+            'company_id' => $company->id,
+        ]);
+
+        $cashier2 = User::create([
+            'uuid'       => Str::uuid(),
+            'name'       => 'Kasir Kuda',
+            'username'   => 'kasir_kuda',
+            'email'      => 'kasirkuda@sejahtera.com',
             'password'   => Hash::make('password'),
             'role'       => Role::MARKETING,
             'company_id' => $company->id,
@@ -140,7 +151,7 @@ class SalesRevenueReportSeeder extends Seeder
                 'customer'   => $customers[1],
                 'payment'    => PaymentType::TRANSFER,
                 'discount'   => 5000,
-                'created_by' => $cashier->id,
+                'created_by' => $cashier2->id,
                 'items'      => [
                     ['code' => 'SJ-004', 'qty' => 3,  'price' => 18000],
                     ['code' => 'SJ-007', 'qty' => 15, 'price' => 4000],
@@ -163,7 +174,7 @@ class SalesRevenueReportSeeder extends Seeder
                 'customer'   => $customers[2],
                 'payment'    => PaymentType::QRIS,
                 'discount'   => 10000,
-                'created_by' => $cashier->id,
+                'created_by' => $cashier2->id,
                 'items'      => [
                     ['code' => 'SJ-002', 'qty' => 4,  'price' => 15000],
                     ['code' => 'SJ-005', 'qty' => 5,  'price' => 13000],
@@ -187,7 +198,7 @@ class SalesRevenueReportSeeder extends Seeder
                 'customer'   => $customers[4],
                 'payment'    => PaymentType::TRANSFER,
                 'discount'   => 0,
-                'created_by' => $cashier->id,
+                'created_by' => $cashier2->id,
                 'items'      => [
                     ['code' => 'SJ-004', 'qty' => 5,  'price' => 18000],
                     ['code' => 'SJ-005', 'qty' => 8,  'price' => 13000],
@@ -210,7 +221,7 @@ class SalesRevenueReportSeeder extends Seeder
                 'customer'   => $customers[1],
                 'payment'    => PaymentType::QRIS,
                 'discount'   => 15000,
-                'created_by' => $cashier->id,
+                'created_by' => $cashier2->id,
                 'items'      => [
                     ['code' => 'SJ-002', 'qty' => 6,  'price' => 15000],
                     ['code' => 'SJ-003', 'qty' => 8,  'price' => 10000],
@@ -234,7 +245,7 @@ class SalesRevenueReportSeeder extends Seeder
                 'customer'   => $customers[2],
                 'payment'    => PaymentType::TRANSFER,
                 'discount'   => 5000,
-                'created_by' => $cashier->id,
+                'created_by' => $cashier2->id,
                 'items'      => [
                     ['code' => 'SJ-006', 'qty' => 15, 'price' => 6000],
                     ['code' => 'SJ-002', 'qty' => 5,  'price' => 15000],

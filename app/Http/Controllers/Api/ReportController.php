@@ -164,17 +164,39 @@ class ReportController extends Controller
     {
         $companyId = $request->user()->company_id;
 
+        // Resolve marketing_uuid → id jika ada
+        $marketingId = null;
+        if ($request->marketing_uuid) {
+            $marketingId = User::where('uuid', $request->marketing_uuid)
+                ->where('role', Role::MARKETING)
+                ->where('company_id', $companyId)
+                ->value('id');
+
+            if (!$marketingId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('reports.validation.marketingCommission.marketing_not_found'),
+                    'code'    => 404,
+                ], 404);
+            }
+        }
+
         // Ambil semua sales_details dalam rentang transaksi PAID
         $details = SalesDetail::with([
                 'product:id,uuid,name,code',
                 'saleTransaction:id,transaction_code,transaction_date,created_by',
                 'saleTransaction.createdBy:id,name'
             ])
-            ->whereHas('saleTransaction', function ($q) use ($companyId, $request) {
+            ->whereHas('saleTransaction', function ($q) use ($companyId, $request, $marketingId) {
                 $q->where('company_id', $companyId)
                 ->where('transaction_status', TransactionStatus::PAID)
                 ->whereDate('transaction_date', '>=', $request->date_from)
                 ->whereDate('transaction_date', '<=', $request->date_to);
+                
+                // Filter by marketing if provided
+                if ($marketingId) {
+                    $q->where('created_by', $marketingId);
+                }
             })
             ->where('company_id', $companyId)
             ->get();

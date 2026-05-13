@@ -29,17 +29,18 @@ class DatabaseSeeder extends Seeder
             SalesTransactionSeeder::class,
             PurchaseTransactionSeeder::class,
 
-            MarketingCommissionReportSeeder::class
+            MarketingCommissionReportSeeder::class,
+            SalesRevenueReportSeeder::class,
         ]);
 
-        if (app()->environment('local', 'staging')) {
-            $this->call(StagingSeeder::class);
-            $this->info('Staging seeder dijalankan.');
-        }
+        // if (app()->environment('local', 'staging')) {
+        //     $this->call(StagingSeeder::class);
+        //     $this->info('Staging seeder dijalankan.');
+        // }
 
-        if (app()->environment('production')) {
-            $this->call(ProductionSeeder::class);
-            $this->info('Production seeder dijalankan.');
-        }
+        // if (app()->environment('production')) {
+        //     $this->call(ProductionSeeder::class);
+        //     $this->info('Production seeder dijalankan.');
+        // }
     }
 }

@@ -372,3 +372,106 @@ it('uses sell_price from sales_details not products.sales_price', function () {
     $response->assertStatus(200);
     expect($response->json('data.grand_total.total_revenue'))->toEqual(14000);
 });
+
+// =============================
+// FILTER BY MARKETING
+// =============================
+
+it('filters transactions by specific marketing', function () {
+    $anotherCashier = User::factory()->create([
+        'role'       => Role::MARKETING,
+        'company_id' => $this->company->id,
+    ]);
+
+    // Transaksi dari cashier pertama
+    makeSalesRevTrx([
+        'date'       => '2026-03-01',
+        'total'      => 15000,
+        'created_by' => $this->cashier->id,
+        'company_id' => $this->company->id,
+        'items'      => [
+            ['product_id' => $this->productA->id, 'qty' => 3, 'price' => 5000],
+        ],
+    ]);
+
+    // Transaksi dari cashier kedua
+    makeSalesRevTrx([
+        'date'       => '2026-03-05',
+        'total'      => 25000,
+        'created_by' => $anotherCashier->id,
+        'company_id' => $this->company->id,
+        'items'      => [
+            ['product_id' => $this->productA->id, 'qty' => 5, 'price' => 5000],
+        ],
+    ]);
+
+    // Filter by first cashier
+    $response = $this->actingAs($this->user)
+        ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31&marketing_uuid=' . $this->cashier->uuid);
+
+    $response->assertStatus(200);
+    expect($response->json('data.grand_total.total_qty'))->toEqual(3);
+    expect($response->json('data.grand_total.total_revenue'))->toEqual(15000);
+});
+
+it('returns 422 when marketing_uuid format is invalid', function () {
+    $this->actingAs($this->user)
+        ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31&marketing_uuid=invalid-uuid')
+        ->assertStatus(422)
+        ->assertJsonStructure(['errors' => ['marketing_uuid']]);
+});
+
+it('returns 422 when marketing_uuid does not exist', function () {
+    $fakeUuid = '550e8400-e29b-41d4-a716-446655440000';
+    $this->actingAs($this->user)
+        ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31&marketing_uuid=' . $fakeUuid)
+        ->assertStatus(422)
+        ->assertJsonStructure(['errors' => ['marketing_uuid']]);
+});
+
+it('returns 422 when marketing_uuid is not a marketing user (e.g., owner)', function () {
+    // Try to filter by owner user (not marketing role)
+    $this->actingAs($this->user)
+        ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31&marketing_uuid=' . $this->user->uuid)
+        ->assertStatus(422)
+        ->assertJsonStructure(['errors' => ['marketing_uuid']]);
+});
+
+it('returns 422 when marketing belongs to different company', function () {
+    $otherCompany = Company::factory()->create();
+    $otherMarketing = User::factory()->create([
+        'role'       => Role::MARKETING,
+        'company_id' => $otherCompany->id,
+    ]);
+
+    $this->actingAs($this->user)
+        ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31&marketing_uuid=' . $otherMarketing->uuid)
+        ->assertStatus(422)
+        ->assertJsonStructure(['errors' => ['marketing_uuid']]);
+});
+
+it('returns zero when filtered marketing has no transactions', function () {
+    $anotherCashier = User::factory()->create([
+        'role'       => Role::MARKETING,
+        'company_id' => $this->company->id,
+    ]);
+
+    // Create transaction by first cashier only
+    makeSalesRevTrx([
+        'date'       => '2026-03-01',
+        'total'      => 15000,
+        'created_by' => $this->cashier->id,
+        'company_id' => $this->company->id,
+        'items'      => [
+            ['product_id' => $this->productA->id, 'qty' => 3, 'price' => 5000],
+        ],
+    ]);
+
+    // Filter by second cashier (no transactions)
+    $response = $this->actingAs($this->user)
+        ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31&marketing_uuid=' . $anotherCashier->uuid);
+
+    $response->assertStatus(200);
+    expect($response->json('data.grand_total.total_qty'))->toEqual(0);
+    expect($response->json('data.grand_total.total_revenue'))->toEqual(0);
+});
