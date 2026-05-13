@@ -21,20 +21,21 @@ class ProductController extends Controller
         
         // Get all codes for this company
         $products = Product::where('company_id', $company->id)
-            ->where('code', 'LIKE', $company->code . '-%')
-            ->pluck('code');
+            ->where('code', 'LIKE', $company->code . '%')
+            ->get();
         
         $maxSequence = 0;
-        foreach ($products as $code) {
-            $parts = explode('-', $code);
-            $sequence = (int) end($parts);
-            if ($sequence > $maxSequence) {
-                $maxSequence = $sequence;
+        foreach ($products as $product) {
+            // Extract number after company code (e.g., "MJ001" → 1)
+            $code = $product->code;
+            $number = (int) substr($code, strlen($company->code));
+            if ($number > $maxSequence) {
+                $maxSequence = $number;
             }
         }
         
         $sequence = $maxSequence + 1;
-        $code = sprintf('%s-%06d', $company->code, $sequence);
+        $code = sprintf('%s%03d', $company->code, $sequence); // MJ001, MJ002, etc
         
         return response()->json([
             'success' => true,
