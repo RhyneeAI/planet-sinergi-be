@@ -110,7 +110,7 @@ class PurchaseTransactionController extends Controller
 
                 $product->update([
                     'stock'               => $stockAfter,
-                    'last_purchase_price' => $item['buy_price'],
+                    'last_purchase_price' => ($product->base_price + $item['buy_price']) / 2
                 ]);
 
                 StockMutation::create([
