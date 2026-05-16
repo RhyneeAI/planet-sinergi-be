@@ -71,6 +71,11 @@ class SalesTransactionRequest extends FormRequest
     {
         return [
             function ($validator) {
+                // Jika cicilan, skip validasi paid
+                if ($this->payment_type === PaymentType::CICIL->value) {
+                    return;
+                }
+
                 $total    = $this->total ?? 0;
                 $discount = $this->discount ?? 0;
                 $paid     = $this->paid ?? 0;

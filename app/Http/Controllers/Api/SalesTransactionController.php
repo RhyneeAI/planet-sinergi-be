@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\InstallmentStatus;
+use App\Enums\PaymentType;
 use App\Enums\Role;
 use App\Enums\StockMutationType;
 use App\Enums\TransactionStatus;
@@ -13,6 +15,7 @@ use App\Models\Product;
 use App\Models\SalesDetail;
 use App\Models\SalesTransaction;
 use App\Models\StockMutation;
+use App\Models\SalesInstallmentPlan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -29,9 +32,14 @@ class SalesTransactionController extends Controller
         $orderByValue = strtoupper($request->input('order_by_value', 'DESC')) === 'DESC' ? 'DESC' : 'ASC';
 
         $transactions = SalesTransaction::with(['customer', 'createdBy'])
-            ->when($request->search, fn($q, $search) =>
-                $q->where('transaction_code', 'like', "%{$search}%")
-            )
+            ->when($request->search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('transaction_code', 'like', "%{$search}%")
+                    ->orWhereHas('customer', function ($customerQuery) use ($search) {
+                        $customerQuery->where('name', 'like', "%{$search}%");
+                    });
+                });
+            })
             ->when($request->date_from, fn($q, $date) =>
                 $q->whereDate('transaction_date', '>=', $date)
             )
@@ -90,16 +98,18 @@ class SalesTransactionController extends Controller
                 }
             }
 
-            $transactionCode = 'SO-' . strtoupper(Str::random(8)) . '-' . now()->format('Ymd');
+            $transactionCode = 'SO-' . $request->user()->company()->code . '-' . now()->format('Ymd');
 
             $transaction = SalesTransaction::create([
                 'transaction_code'   => $transactionCode,
                 'transaction_date'   => $request->transaction_date,
                 'discount'           => $discount,
                 'total'              => $request->total,
-                'paid'               => $request->paid,
+                'paid'               => $request->payment_type === PaymentType::CICIL->value ? 0 : $request->paid,
                 'payment_type'       => $request->payment_type,
-                'transaction_status' => TransactionStatus::PAID,
+                'transaction_status' => $request->payment_type === PaymentType::CICIL->value
+                                                                ? TransactionStatus::PENDING  
+                                                                : TransactionStatus::PAID,
                 'customer_id'        => $customerId,
                 'created_by'         => $request->user()->id,
                 'company_id'         => $request->user()->company_id,
@@ -139,6 +149,20 @@ class SalesTransactionController extends Controller
                     'company_id'   => $request->user()->company_id,
                     'reference_id' => $detail->id,
                     'created_by'   => $request->user()->id,
+                ]);
+            }
+
+            if ($request->payment_type === PaymentType::CICIL->value) {
+                SalesInstallmentPlan::create([
+                    'ulid'                 => Str::ulid(),
+                    'sales_transaction_id' => $transaction->id,
+                    'customer_id'          => $customerId,
+                    'total_amount'         => $request->total,
+                    'paid_amount'          => 0,
+                    'tenor'                => $request->tenor,
+                    'start_date'           => now()->toDateString(),
+                    'status'               => InstallmentStatus::ACTIVE,
+                    'company_id'           => $request->user()->company_id,
                 ]);
             }
 

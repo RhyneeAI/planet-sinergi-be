@@ -224,6 +224,43 @@ it('only includes transactions within date range', function () {
 });
 
 // =============================
+// INCLUDE PENDING (CICIL)
+// =============================
+
+it('includes pending transactions', function () {
+    // PAID
+    makeSalesRevTrx([
+        'date'       => '2026-03-01',
+        'total'      => 15000,
+        'status'     => TransactionStatus::PAID,
+        'created_by' => $this->cashier->id,
+        'company_id' => $this->company->id,
+        'items'      => [
+            ['product_id' => $this->productA->id, 'qty' => 3, 'price' => 5000],
+        ],
+    ]);
+
+    // CANCEL — tidak masuk
+    makeSalesRevTrx([
+        'date'       => '2026-03-05',
+        'total'      => 25000,
+        'status'     => TransactionStatus::PENDING,
+        'created_by' => $this->cashier->id,
+        'company_id' => $this->company->id,
+        'items'      => [
+            ['product_id' => $this->productA->id, 'qty' => 5, 'price' => 5000],
+        ],
+    ]);
+
+    $response = $this->actingAs($this->user)
+        ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31');
+
+    $response->assertStatus(200);
+    expect($response->json('data.grand_total.total_qty'))->toEqual(8);
+    expect($response->json('data.grand_total.total_revenue'))->toEqual(40000);
+});
+
+// =============================
 // EXCLUDE CANCELLED
 // =============================
 

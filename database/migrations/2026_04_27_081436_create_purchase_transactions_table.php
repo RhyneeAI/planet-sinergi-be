@@ -16,7 +16,7 @@ return new class extends Migration
             $table->double('discount')->default(0);
             $table->double('total')->default(0);
             $table->double('paid')->default(0);
-            $table->enum('payment_type', ['CASH', 'TRANSFER', 'QRIS'])->default('CASH');
+            $table->enum('payment_type', ['CASH', 'TRANSFER', 'QRIS', 'CICIL'])->default('CASH');
             $table->enum('transaction_status', ['UNPAID', 'PROCESS', 'PAID', 'CANCEL', 'PENDING'])->default('PENDING');
             $table->foreignId('supplier_id')->constrained()->onDelete('restrict');
             $table->foreignId('created_by')->constrained('users')->onDelete('restrict');

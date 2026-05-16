@@ -21,6 +21,7 @@ return [
         'total_required'                => 'Total transaksi wajib diisi',
         'paid_required'                 => 'Jumlah pembayaran wajib diisi.',
         'discount_greater_than_total'   => 'Diskon tidak boleh lebih besar dari total transaksi.',
+        'paid_must_zero'                => 'Jumlah bayar harus 0 untuk metode pembayaran Cicilan',
         'paid_lower_than_total'         => 'Jumlah pembayaran tidak boleh kurang dari total transaksi.',
         'items_required'                => 'Item penjualan wajib diisi.',
         'items_min'                     => 'Minimal 1 item penjualan.',

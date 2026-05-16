@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\PaymentType;
 use App\Enums\Role;
 use App\Enums\TransactionStatus;
 use App\Http\Controllers\Controller;
@@ -184,12 +185,13 @@ class ReportController extends Controller
         // Ambil semua sales_details dalam rentang transaksi PAID
         $details = SalesDetail::with([
                 'product:id,uuid,name,code',
-                'saleTransaction:id,transaction_code,transaction_date,created_by',
-                'saleTransaction.createdBy:id,name'
+                'saleTransaction:id,transaction_code,transaction_date,total,payment_type,created_by',
+                'saleTransaction.createdBy:id,name',
+                'saleTransaction.installmentPlan:id,sales_transaction_id,paid_amount,total_amount,status',
             ])
             ->whereHas('saleTransaction', function ($q) use ($companyId, $request, $marketingId) {
                 $q->where('company_id', $companyId)
-                ->where('transaction_status', TransactionStatus::PAID)
+                ->whereIn('transaction_status', [TransactionStatus::PAID, TransactionStatus::PENDING])
                 ->whereDate('transaction_date', '>=', $request->date_from)
                 ->whereDate('transaction_date', '<=', $request->date_to);
                 
@@ -222,20 +224,31 @@ class ReportController extends Controller
             ->take(10)
             ->values();
 
-        // Build detail rows — semua transaksi, tidak di-limit
         $detailTransactions = $details->groupBy('saleTransaction.id')->map(function ($items, $transactionId) {
             $firstItem = $items->first();
+            $trx = $firstItem->saleTransaction;
+            $isCicil = $trx->payment_type === PaymentType::CICIL;
+            $plan = $isCicil ? $trx->installmentPlan : null;
+
             return [
-                'transaction_code' => $firstItem->saleTransaction->transaction_code,
-                'date'             => $firstItem->saleTransaction->transaction_date->format('d/m/Y'),
-                'cashier'          => $firstItem->saleTransaction->createdBy->name ?? '-',
+                'transaction_code' => $trx->transaction_code,
+                'date'             => $trx->transaction_date->format('d/m/Y'),
+                'cashier'          => $trx->createdBy->name ?? '-',
+                'payment_type'     => $trx->payment_type?->value,
+                'total'            => $trx->total,
+                'is_cicil'         => $isCicil,
+                'cicil_info'       => $isCicil ? [
+                    'paid_amount'      => $plan?->paid_amount ?? 0,
+                    'remaining_amount' => $plan?->remainingAmount() ?? 0,
+                    'status'           => $plan?->status->label(),
+                ] : null,
                 'items'            => $items->map(function ($row) {
                     return [
                         'code'       => $row->product->code ?? '-',
                         'name'       => $row->product->name ?? '-',
                         'sell_price' => $row->sell_price,
                         'quantity'   => $row->quantity,
-                        'revenue'    => $row->quantity * $row->sell_price,
+                        'subtotal'    => $row->quantity * $row->sell_price,
                     ];
                 })->values(),
             ];
@@ -243,8 +256,11 @@ class ReportController extends Controller
 
         // Grand total
         $grandTotal = [
-            'total_qty'     => $details->sum('quantity'),
-            'total_revenue' => $details->sum(fn($r) => $r->quantity * $r->sell_price),
+            'total_qty'       => $details->sum('quantity'),
+            'total_revenue'   => $details->sum(fn($r) => $r->quantity * $r->sell_price),
+            'total_remaining' => $details
+                ->filter(fn($r) => $r->saleTransaction->payment_type === PaymentType::CICIL)
+                ->sum(fn($r) => $r->saleTransaction->installmentPlan?->remainingAmount() ?? 0),
         ];
 
         // Generate PDF

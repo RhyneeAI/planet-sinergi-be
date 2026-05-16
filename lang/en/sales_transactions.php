@@ -21,6 +21,7 @@ return [
         'total_required'              => 'Transaction total is required.',
         'paid_required'               => 'Payment amount is required.',
         'discount_greater_than_total' => 'Discount cannot be greater than the total transaction.',
+        'paid_must_zero'              => 'Total payment must be 0 for Installments',
         'paid_lower_than_total'       => 'Payment amount cannot be less than the total transaction.',
         'items_required'              => 'Sales items are required.',
         'items_min'                   => 'At least 1 item is required.',

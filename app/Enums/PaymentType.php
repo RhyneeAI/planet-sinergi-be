@@ -7,6 +7,7 @@ enum PaymentType: string
     case CASH = 'CASH';
     case TRANSFER = 'TRANSFER';
     case QRIS = 'QRIS';
+    case CICIL = 'CICIL';
 
     public static function values(): array
     {
@@ -14,6 +15,7 @@ enum PaymentType: string
             self::CASH->value,
             self::TRANSFER->value,
             self::QRIS->value,
+            self::CICIL->value,
         ];
     }
 
@@ -23,6 +25,7 @@ enum PaymentType: string
             self::CASH => 'CASH',
             self::TRANSFER => 'TRANSFER',
             self::QRIS => 'QRIS',
+            self::CICIL => 'CICIL',
         };
     }
 
@@ -37,6 +40,11 @@ enum PaymentType: string
     }
 
     public function isQris(): bool
+    {
+        return $this === self::QRIS;
+    }
+
+    public function isCicil(): bool
     {
         return $this === self::QRIS;
     }

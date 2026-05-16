@@ -59,4 +59,10 @@ class SalesTransaction extends Model
     {
         return $this->hasMany(SalesDetail::class, 'sale_id');
     }
+
+    // CICILAN
+    public function installmentPlan()
+    {
+        return $this->hasOne(SalesInstallmentPlan::class);
+    }
 }
