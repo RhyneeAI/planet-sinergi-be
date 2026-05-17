@@ -31,7 +31,7 @@ class SalesTransactionController extends Controller
                             : 'transaction_date';
         $orderByValue = strtoupper($request->input('order_by_value', 'DESC')) === 'DESC' ? 'DESC' : 'ASC';
 
-        $transactions = SalesTransaction::with(['customer', 'createdBy'])
+        $transactions = SalesTransaction::with(['customer', 'createdBy', 'details', 'details.product'])
             ->when($request->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('transaction_code', 'like', "%{$search}%")
@@ -46,9 +46,9 @@ class SalesTransactionController extends Controller
             ->when($request->date_to, fn($q, $date) =>
                 $q->whereDate('transaction_date', '<=', $date)
             )
-            // ->when($request->status, fn($q, $status) =>
-            //     $q->where('transaction_status', $status)
-            // )
+            ->when($request->status, fn($q, $status) =>
+                $q->where('transaction_status', $status)
+            )
             ->orderBy($orderByKey, $orderByValue)
             ->paginate($request->input('per_page', 15));
 
@@ -172,7 +172,7 @@ class SalesTransactionController extends Controller
                 'success' => true,
                 'message' => __('sales_transactions.stored'),
                 'data'    => new SalesTransactionResource(
-                    $transaction->load(['customer', 'createdBy', 'details.product'])
+                    $transaction->load(['customer', 'createdBy', 'details', 'details.product'])
                 ),
             ], 201);
 
@@ -188,7 +188,7 @@ class SalesTransactionController extends Controller
             'success' => true,
             'message' => __('sales_transactions.detail'),
             'data'    => new SalesTransactionResource(
-                $salesTransaction->load(['customer', 'createdBy', 'details.product'])
+                $salesTransaction->load(['customer', 'createdBy', 'details', 'details.product'])
             ),
         ]);
     }
@@ -245,7 +245,7 @@ class SalesTransactionController extends Controller
                 'success' => true,
                 'message' => __('sales_transactions.cancelled'),
                 'data'    => new SalesTransactionResource(
-                    $salesTransaction->load(['customer', 'createdBy', 'details.product'])
+                    $salesTransaction->load(['customer', 'createdBy', 'details', 'details.product'])
                 ),
             ]);
 

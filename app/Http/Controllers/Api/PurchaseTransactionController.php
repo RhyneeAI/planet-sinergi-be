@@ -29,12 +29,15 @@ class PurchaseTransactionController extends Controller
                             : 'transaction_date';
         $orderByValue = strtoupper($request->input('order_by_value', 'DESC')) === 'DESC' ? 'DESC' : 'ASC';
 
-        $transactions = PurchaseTransaction::with(['supplier', 'createdBy'])
+        $transactions = PurchaseTransaction::with(['supplier', 'createdBy', 'details', 'details.product'])
             ->when($request->date_from, fn($q, $date) =>
                 $q->whereDate('transaction_date', '>=', $date)
             )
             ->when($request->date_to, fn($q, $date) =>
                 $q->whereDate('transaction_date', '<=', $date)
+            )
+            ->when($request->status, fn($q, $status) =>
+                $q->where('transaction_status', $status)
             )
             ->when($request->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
@@ -150,7 +153,7 @@ class PurchaseTransactionController extends Controller
                 'success' => true,
                 'message' => __('purchase_transactions.stored'),
                 'data'    => new PurchaseTransactionResource(
-                    $transaction->load(['supplier', 'createdBy', 'details.product'])
+                    $transaction->load(['supplier', 'createdBy', 'details', 'details.product'])
                 ),
             ], 201);
 
@@ -166,7 +169,7 @@ class PurchaseTransactionController extends Controller
             'success' => true,
             'message' => __('purchase_transactions.detail'),
             'data'    => new PurchaseTransactionResource(
-                $purchaseTransaction->load(['supplier', 'createdBy', 'details.product'])
+                $purchaseTransaction->load(['supplier', 'createdBy', 'details', 'details.product'])
             ),
         ]);
     }
@@ -223,7 +226,7 @@ class PurchaseTransactionController extends Controller
                 'success' => true,
                 'message' => __('purchase_transactions.cancelled'),
                 'data'    => new PurchaseTransactionResource(
-                    $purchaseTransaction->load(['supplier', 'createdBy', 'details.product'])
+                    $purchaseTransaction->load(['supplier', 'createdBy', 'details', 'details.product'])
                 ),
             ]);
 
