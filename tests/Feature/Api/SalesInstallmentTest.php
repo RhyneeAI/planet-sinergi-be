@@ -86,6 +86,18 @@ it('can get installment plan list', function () {
         ]);
 });
 
+it('can filter by status', function () {
+    $plan = ($this->makePlan)();
+    $plan->update(['status' => InstallmentStatus::COMPLETED]);
+    ($this->makePlan)(); // ACTIVE
+
+    $response = $this->actingAs($this->owner)
+        ->getJson('/api/v1/sales-installments?status=COMPLETED');
+
+    $response->assertStatus(200);
+    expect($response->json('data'))->toHaveCount(1);
+});
+
 it('returns 401 when not authenticated', function () {
     $this->getJson('/api/v1/sales-installments')->assertStatus(401);
 });

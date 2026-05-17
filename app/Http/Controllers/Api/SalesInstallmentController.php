@@ -17,9 +17,9 @@ class SalesInstallmentController extends Controller
     public function index(Request $request)
     {
         $plans = SalesInstallmentPlan::with(['customer', 'salesTransaction'])
-            // ->when($request->status, fn($q, $status) =>
-            //     $q->where('status', $status)
-            // )
+            ->when($request->status, fn($q, $status) =>
+                $q->where('status', $status)
+            )
             ->when($request->search, fn($q, $search) =>
                 $q->whereHas('customer', fn($c) =>
                     $c->where('name', 'like', "%{$search}%")
