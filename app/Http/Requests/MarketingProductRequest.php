@@ -43,12 +43,10 @@ class MarketingProductRequest extends FormRequest
         ];
     }
 
-    // Duplikat check dipindah ke after() — dijalankan setelah rules lulus
     public function after(): array
     {
         return [
             function ($validator) {
-                // Hanya cek duplikat jika product_uuid & marketing_uuid valid
                 if ($validator->errors()->hasAny(['product_uuid', 'marketing_uuid'])) {
                     return;
                 }
@@ -58,17 +56,20 @@ class MarketingProductRequest extends FormRequest
 
                 if (!$productId || !$marketingId) return;
 
-                $exists = MarketingProduct::where('product_id', $productId)
+                $query = MarketingProduct::where('product_id', $productId)
                     ->where('marketing_id', $marketingId)
-                    ->where('company_id', $this->user()->company_id)
-                    ->when($this->marketing_product, fn($q) =>
-                        $q->where('id', '!=', $this->marketing_product->id)
-                    )
-                    ->exists();
+                    ->where('company_id', $this->user()->company_id);
 
-                if ($exists) {
+                // Untuk update — ignore record yang sedang diedit
+                // $this->route('marketingProduct') untuk ambil model dari route binding
+                $currentModel = $this->route('marketingProduct');
+                if ($currentModel) {
+                    $query->where('id', '!=', $currentModel->id);
+                }
+
+                if ($query->exists()) {
                     $validator->errors()->add(
-                        'marketing_uuid',
+                        'product_uuid',
                         __('marketing_product.validation.product_already_assigned')
                     );
                 }
