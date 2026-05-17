@@ -29,7 +29,6 @@ class PurchaseTransactionController extends Controller
                             : 'transaction_date';
         $orderByValue = strtoupper($request->input('order_by_value', 'DESC')) === 'DESC' ? 'DESC' : 'ASC';
 
-
         $transactions = PurchaseTransaction::with(['supplier', 'createdBy'])
             ->when($request->date_from, fn($q, $date) =>
                 $q->whereDate('transaction_date', '>=', $date)
@@ -89,7 +88,9 @@ class PurchaseTransactionController extends Controller
                 'total'              => $request->total,
                 'paid'               => $request->paid,
                 'payment_type'       => $request->payment_type,
-                'transaction_status' => TransactionStatus::PAID,
+                'transaction_status' => $request->payment_type === PaymentType::CICIL->value
+                                                                ? TransactionStatus::PENDING  
+                                                                : TransactionStatus::PAID,
                 'supplier_id'        => $supplierId,
                 'created_by'         => $request->user()->id,
                 'company_id'         => $request->user()->company_id,
