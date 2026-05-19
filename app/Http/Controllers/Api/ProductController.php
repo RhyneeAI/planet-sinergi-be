@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\StockMutationType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductRequest;
 use App\Http\Resources\ProductResource;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\StockMutation;
 use App\Models\Unit;
 use Illuminate\Http\Request;
 
@@ -73,30 +75,47 @@ class ProductController extends Controller
 
     public function store(ProductRequest $request)
     {
-        // Cari category, unit berdasarkan UUID
-        $category = $request->category_uuid ? Category::where('uuid', $request->category_uuid)->first() : null;
-        $unit = $request->unit_uuid ? Unit::where('uuid', $request->unit_uuid)->first() : null;
+        $category = $request->category_uuid
+            ? Category::where('uuid', $request->category_uuid)->first()
+            : null;
+        $unit = $request->unit_uuid
+            ? Unit::where('uuid', $request->unit_uuid)->first()
+            : null;
+
+        $stock = $request->stock ?? 0;
 
         $product = Product::create([
-            'name' => $request->name,
-            'code' => $request->code,
-            'base_price' => $request->base_price ?? 0,
-            'sales_price' => $request->sales_price,
+            'name'                => $request->name,
+            'code'                => $request->code,
+            'base_price'          => $request->base_price ?? 0,
+            'sales_price'         => $request->sales_price,
             'last_purchase_price' => $request->last_purchase_price ?? 0,
-            'stock' => $request->stock ?? 0,
-            'min_stock' => $request->min_stock ?? 0,
-            'description' => $request->description,
-            'is_active' => $request->is_active ?? true,
-            'category_id' => $category?->id, 
-            'unit_id' => $unit?->id,         
-            'created_by' => $request->user()->id,
-            'company_id' => $request->user()->company_id,
+            'stock'               => $stock,
+            'min_stock'           => $request->min_stock ?? 0,
+            'description'         => $request->description,
+            'is_active'           => $request->is_active ?? true,
+            'category_id'         => $category?->id,
+            'unit_id'             => $unit?->id,
+            'created_by'          => $request->user()->id,
+            'company_id'          => $request->user()->company_id,
+        ]);
+
+        StockMutation::create([
+            'type'         => StockMutationType::ADJUST_IN,
+            'quantity'     => $stock,
+            'stock_before' => 0,
+            'stock_after'  => $stock,
+            'notes'        => "Mutasi awal produk",
+            'product_id'   => $product->id,
+            'company_id'   => $request->user()->company_id,
+            'reference_id' => null,
+            'created_by'   => $request->user()->id,
         ]);
 
         return response()->json([
             'success' => true,
             'message' => __('products.stored'),
-            'data' => new ProductResource($product->load(['category', 'unit', 'createdBy'])),
+            'data'    => new ProductResource($product->load(['category', 'unit', 'createdBy'])),
         ], 201);
     }
 

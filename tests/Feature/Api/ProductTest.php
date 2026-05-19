@@ -3,6 +3,7 @@
 use App\Models\Category;
 use App\Models\Company;
 use App\Models\Product;
+use App\Models\StockMutation;
 use App\Models\Unit;
 use App\Models\User;
 use App\Models\SalesDetail;
@@ -213,6 +214,87 @@ it('allows same product code in different companies', function () {
             'sales_price' => 10000,
         ])
         ->assertStatus(201);
+});
+
+// tests/Feature/Api/ProductTest.php — tambahkan di bagian STORE
+
+it('creates ADJUST_IN stock mutation when product created with stock > 0', function () {
+    $payload = [
+        'name'        => 'Produk Test',
+        'sales_price' => 10000,
+        'stock'       => 50,
+    ];
+
+    $this->actingAs($this->user)
+        ->postJson('/api/v1/products', $payload)
+        ->assertStatus(201);
+
+    $this->assertDatabaseHas('stock_mutations', [
+        'type'         => 'ADJUST_IN',
+        'quantity'     => 50,
+        'stock_before' => 0,
+        'stock_after'  => 50,
+        'company_id'   => $this->company->id,
+    ]);
+});
+
+it('does not create stock mutation when product created with stock 0', function () {
+    $payload = [
+        'name'        => 'Produk Test',
+        'sales_price' => 10000,
+        'stock'       => 0,
+    ];
+
+    $this->actingAs($this->user)
+        ->postJson('/api/v1/products', $payload)
+        ->assertStatus(201);
+
+    $this->assertDatabaseCount('stock_mutations', 1);
+});
+
+it('does not create stock mutation when stock field is not provided', function () {
+    $payload = [
+        'name'        => 'Produk Test',
+        'sales_price' => 10000,
+    ];
+
+    $this->actingAs($this->user)
+        ->postJson('/api/v1/products', $payload)
+        ->assertStatus(201);
+
+    $this->assertDatabaseCount('stock_mutations', 1);
+});
+
+it('stock mutation notes contains product name', function () {
+    $payload = [
+        'name'        => 'Sabun Mandi Special',
+        'sales_price' => 10000,
+        'stock'       => 25,
+    ];
+
+    $this->actingAs($this->user)
+        ->postJson('/api/v1/products', $payload)
+        ->assertStatus(201);
+
+    $mutation = StockMutation::first();
+    expect($mutation->notes)->toContain('Mutasi awal produk');
+});
+
+it('created_by in stock mutation matches authenticated user', function () {
+    $payload = [
+        'name'        => 'Produk Test',
+        'sales_price' => 10000,
+        'stock'       => 10,
+    ];
+
+    $this->actingAs($this->user)
+        ->postJson('/api/v1/products', $payload)
+        ->assertStatus(201);
+
+    $this->assertDatabaseHas('stock_mutations', [
+        'created_by' => $this->user->id,
+        'company_id' => $this->company->id,
+    ]);
 });
 
 it('returns 401 when not authenticated on store', function () {
