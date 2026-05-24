@@ -20,6 +20,8 @@ return [
         'base_price_numeric' => 'The base price must be a number.',
         'sales_price_required' => 'The sales price is required.',
         'sales_price_numeric' => 'The sales price must be a number.',
+        'marketing_price_numeric' => 'Marketing price must be a number.',
+        'marketing_price_min'     => 'Marketing price cannot be negative.',
         'stock_integer' => 'The stock must be an integer.',
         'min_stock_integer' => 'The minimum stock must be an integer.',
         'category_uuid_exists' => 'Selected category does not exist.',

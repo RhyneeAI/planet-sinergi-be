@@ -42,6 +42,7 @@ beforeEach(function () {
     $this->productA = Product::factory()->create([
         'base_price'  => 5000,
         'sales_price' => 8000,
+        'marketing_price' => 7000,
         'stock'       => 100,
         'category_id' => $this->category->id,
         'unit_id'     => $this->unit->id,
@@ -53,6 +54,7 @@ beforeEach(function () {
     $this->productB = Product::factory()->create([
         'base_price'  => 12000,
         'sales_price' => 18000,
+        'marketing_price' => 15000,
         'stock'       => 100,
         'category_id' => $this->category->id,
         'unit_id'     => $this->unit->id,
@@ -62,19 +64,19 @@ beforeEach(function () {
 
     // marketing_price A = 6500 → komisi/unit = 1500
     // marketing_price B = 15000 → komisi/unit = 3000
-    MarketingProduct::factory()->create([
-        'product_id'      => $this->productA->id,
-        'marketing_id'    => $this->marketing->id,
-        'marketing_price' => 6500,
-        'company_id'      => $this->company->id,
-    ]);
+    // MarketingProduct::factory()->create([
+    //     'product_id'      => $this->productA->id,
+    //     'marketing_id'    => $this->marketing->id,
+    //     'marketing_price' => 6500,
+    //     'company_id'      => $this->company->id,
+    // ]);
 
-    MarketingProduct::factory()->create([
-        'product_id'      => $this->productB->id,
-        'marketing_id'    => $this->marketing->id,
-        'marketing_price' => 15000,
-        'company_id'      => $this->company->id,
-    ]);
+    // MarketingProduct::factory()->create([
+    //     'product_id'      => $this->productB->id,
+    //     'marketing_id'    => $this->marketing->id,
+    //     'marketing_price' => 15000,
+    //     'company_id'      => $this->company->id,
+    // ]);
 });
 
 // Helper buat transaksi + detail
@@ -164,24 +166,16 @@ it('returns 401 when not authenticated', function () {
 // =============================
 
 it('calculates commission correctly without discount', function () {
-    /*
-     * Product A: qty 2, sales_price 8000, marketing_price 6500
-     *   komisi = (8000 - 6500) * 2 = 3000
-     * Product B: qty 3, sales_price 18000, marketing_price 15000
-     *   komisi = (18000 - 15000) * 3 = 9000
-     * Diskon = 0
-     * Total komisi = 12000
-    */
     makeSalesTrx([
         'date'        => '2026-03-01',
         'discount'    => 0,
-        'total'       => (2 * 6500) + (3 * 15000),
+        'total'       => 20000,
         'created_by'  => $this->marketing->id,
         'customer_id' => $this->customer->id,
         'company_id'  => $this->company->id,
         'items'       => [
-            ['product_id' => $this->productA->id, 'qty' => 2, 'price' => 6500],
-            ['product_id' => $this->productB->id, 'qty' => 3, 'price' => 15000],
+            ['product_id' => $this->productA->id, 'qty' => 1, 'price' => 8000],
+            ['product_id' => $this->productB->id, 'qty' => 1, 'price' => 20000],
         ],
     ]);
 
@@ -189,7 +183,7 @@ it('calculates commission correctly without discount', function () {
         ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
-    expect($response->json('data.grand_total.total_commission'))->toEqual(12000);
+    expect($response->json('data.grand_total.total_commission'))->toEqual(6000);
 });
 
 // =============================
@@ -197,21 +191,15 @@ it('calculates commission correctly without discount', function () {
 // =============================
 
 it('calculates commission correctly with discount (fully charged to marketing)', function () {
-    /*
-     * Product A: qty 2, sales_price 8000, marketing_price 6500
-     *   komisi kotor = (8000 - 6500) * 2 = 3000
-     * Diskon = 2000 (100% ditanggung marketing)
-     * Komisi bersih = 3000 - 2000 = 1000
-    */
     makeSalesTrx([
         'date'        => '2026-03-01',
         'discount'    => 2000,
-        'total'       => (2 * 6500) - 2000,
+        'total'       => 18000,
         'created_by'  => $this->marketing->id,
         'customer_id' => $this->customer->id,
         'company_id'  => $this->company->id,
         'items'       => [
-            ['product_id' => $this->productA->id, 'qty' => 2, 'price' => 6500],
+            ['product_id' => $this->productA->id, 'qty' => 2, 'price' => 9000],
         ],
     ]);
 
@@ -219,14 +207,10 @@ it('calculates commission correctly with discount (fully charged to marketing)',
         ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
-    expect($response->json('data.grand_total.total_commission'))->toEqual(1000);
+    expect($response->json('data.grand_total.total_commission'))->toEqual(2000);
 });
 
 it('commission is never negative even if discount exceeds gross commission', function () {
-    /*
-     * Komisi kotor = (6500-5000)*1 = 1500
-     * Diskon = 10000 → komisi bersih = max(0, 1500-10000) = 0
-     */
     makeSalesTrx([
         'date'        => '2026-03-01',
         'discount'    => 10000,
@@ -251,46 +235,35 @@ it('commission is never negative even if discount exceeds gross commission', fun
 // =============================
 
 it('accumulates commission correctly across multiple transactions', function () {
-    /*
-     * Transaksi 1: Product A qty 2, no discount
-     *   komisi = (6500-5000)*2 = 3000
-     *
-     * Transaksi 2: Product B qty 1, discount 2000
-     *   komisi kotor = (15000-12000)*1 = 3000
-     *   diskon = 2000 (100% marketing)
-     *   komisi bersih = 3000 - 2000 = 1000
-     *
-     * Total = 3000 + 1000 = 4000
-     */
     makeSalesTrx([
         'date'        => '2026-02-01',
-        'discount'    => 0,
-        'total'       => 2 * 6500,
+        'discount'    => 2000,
+        'total'       => 18000,
         'created_by'  => $this->marketing->id,
         'customer_id' => $this->customer->id,
         'company_id'  => $this->company->id,
         'items'       => [
-            ['product_id' => $this->productA->id, 'qty' => 2, 'price' => 6500],
+            ['product_id' => $this->productA->id, 'qty' => 2, 'price' => 9000],
         ],
-    ]);
+    ]); // Commission : 2k
 
     makeSalesTrx([
         'date'        => '2026-03-01',
-        'discount'    => 2000,
-        'total'       => 15000 - 2000,
+        'discount'    => 0,
+        'total'       => 20000,
         'created_by'  => $this->marketing->id,
         'customer_id' => null,
         'company_id'  => $this->company->id,
         'items'       => [
-            ['product_id' => $this->productB->id, 'qty' => 1, 'price' => 15000],
+            ['product_id' => $this->productB->id, 'qty' => 1, 'price' => 20000],
         ],
-    ]);
+    ]); // Commission : 5k
 
     $response = $this->actingAs($this->owner)
         ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
-    expect($response->json('data.grand_total.total_commission'))->toEqual(4000);
+    expect($response->json('data.grand_total.total_commission'))->toEqual(7000);
 });
 
 // =============================
@@ -301,33 +274,31 @@ it('calculates commission separately for each marketing', function () {
     MarketingProduct::factory()->create([
         'product_id'      => $this->productA->id,
         'marketing_id'    => $this->marketing2->id,
-        'marketing_price' => 7000, // komisi = (8000-7000)*qty = 1000*qty
+        'marketing_price' => 7000, 
         'company_id'      => $this->company->id,
     ]);
 
-    // Marketing 1: (8000-6500)*2 = 3000
     makeSalesTrx([
         'date'        => '2026-03-01',
         'discount'    => 0,
-        'total'       => 2 * 6500,
+        'total'       => 2 * 9000,
         'created_by'  => $this->marketing->id,
         'customer_id' => $this->customer->id,
         'company_id'  => $this->company->id,
         'items'       => [
-            ['product_id' => $this->productA->id, 'qty' => 2, 'price' => 6500],
+            ['product_id' => $this->productA->id, 'qty' => 2, 'price' => 9000],
         ],
     ]);
 
-    // Marketing 2: (8000-7000)*3 = 3000
     makeSalesTrx([
         'date'        => '2026-03-05',
         'discount'    => 0,
-        'total'       => 3 * 7000,
+        'total'       => 3 * 9000,
         'created_by'  => $this->marketing2->id,
         'customer_id' => null,
         'company_id'  => $this->company->id,
         'items'       => [
-            ['product_id' => $this->productA->id, 'qty' => 3, 'price' => 7000],
+            ['product_id' => $this->productA->id, 'qty' => 3, 'price' => 9000],
         ],
     ]);
 
@@ -335,7 +306,7 @@ it('calculates commission separately for each marketing', function () {
         ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
-    expect($response->json('data.grand_total.total_commission'))->toEqual(6000);
+    expect($response->json('data.grand_total.total_commission'))->toEqual(10000);
 });
 
 // =============================
@@ -347,12 +318,12 @@ it('only includes transactions within date range', function () {
     makeSalesTrx([
         'date'        => '2026-03-15',
         'discount'    => 0,
-        'total'       => 6500,
+        'total'       => 9000,
         'created_by'  => $this->marketing->id,
         'customer_id' => $this->customer->id,
         'company_id'  => $this->company->id,
         'items'       => [
-            ['product_id' => $this->productA->id, 'qty' => 1, 'price' => 6500],
+            ['product_id' => $this->productA->id, 'qty' => 1, 'price' => 9000],
         ],
     ]);
 
@@ -360,12 +331,12 @@ it('only includes transactions within date range', function () {
     makeSalesTrx([
         'date'        => '2026-06-01',
         'discount'    => 0,
-        'total'       => 6500,
+        'total'       => 9000,
         'created_by'  => $this->marketing->id,
         'customer_id' => $this->customer->id,
         'company_id'  => $this->company->id,
         'items'       => [
-            ['product_id' => $this->productA->id, 'qty' => 1, 'price' => 6500],
+            ['product_id' => $this->productA->id, 'qty' => 1, 'price' => 9000],
         ],
     ]);
 
@@ -373,8 +344,7 @@ it('only includes transactions within date range', function () {
         ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-03-31');
 
     $response->assertStatus(200);
-    // Hanya 1 transaksi: (6500-5000)*1 = 1500
-    expect($response->json('data.grand_total.total_commission'))->toEqual(1500);
+    expect($response->json('data.grand_total.total_commission'))->toEqual(2000);
 });
 
 it('filters by specific marketing_uuid', function () {
@@ -388,24 +358,24 @@ it('filters by specific marketing_uuid', function () {
     makeSalesTrx([
         'date'        => '2026-03-01',
         'discount'    => 0,
-        'total'       => 6500,
+        'total'       => 9000,
         'created_by'  => $this->marketing->id,
         'customer_id' => $this->customer->id,
         'company_id'  => $this->company->id,
         'items'       => [
-            ['product_id' => $this->productA->id, 'qty' => 1, 'price' => 6500],
+            ['product_id' => $this->productA->id, 'qty' => 1, 'price' => 9000],
         ],
     ]);
 
     makeSalesTrx([
         'date'        => '2026-03-05',
         'discount'    => 0,
-        'total'       => 7000,
+        'total'       => 9000,
         'created_by'  => $this->marketing2->id,
         'customer_id' => null,
         'company_id'  => $this->company->id,
         'items'       => [
-            ['product_id' => $this->productA->id, 'qty' => 1, 'price' => 7000],
+            ['product_id' => $this->productA->id, 'qty' => 1, 'price' => 9000],
         ],
     ]);
 
@@ -413,8 +383,7 @@ it('filters by specific marketing_uuid', function () {
         ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31&marketing_uuid=' . $this->marketing->uuid);
 
     $response->assertStatus(200);
-    // Hanya marketing 1: (6500-5000)*1 = 1500
-    expect($response->json('data.grand_total.total_commission'))->toEqual(1500);
+    expect($response->json('data.grand_total.total_commission'))->toEqual(2000);
 });
 
 it('excludes transactions created by non-marketing role', function () {
@@ -422,12 +391,12 @@ it('excludes transactions created by non-marketing role', function () {
     makeSalesTrx([
         'date'        => '2026-03-01',
         'discount'    => 0,
-        'total'       => 6500,
+        'total'       => 9000,
         'created_by'  => $this->owner->id, // ← owner bukan marketing
         'customer_id' => $this->customer->id,
         'company_id'  => $this->company->id,
         'items'       => [
-            ['product_id' => $this->productA->id, 'qty' => 1, 'price' => 6500],
+            ['product_id' => $this->productA->id, 'qty' => 1, 'price' => 9000],
         ],
     ]);
 
@@ -443,13 +412,13 @@ it('excludes cancelled transactions from commission', function () {
     makeSalesTrx([
         'date'        => '2026-03-01',
         'discount'    => 0,
-        'total'       => 6500,
+        'total'       => 9000,
         'status'      => TransactionStatus::PAID,
         'created_by'  => $this->marketing->id,
         'customer_id' => $this->customer->id,
         'company_id'  => $this->company->id,
         'items'       => [
-            ['product_id' => $this->productA->id, 'qty' => 1, 'price' => 6500],
+            ['product_id' => $this->productA->id, 'qty' => 1, 'price' => 9000],
         ],
     ]);
 
@@ -457,13 +426,13 @@ it('excludes cancelled transactions from commission', function () {
     makeSalesTrx([
         'date'        => '2026-03-10',
         'discount'    => 0,
-        'total'       => 6500,
+        'total'       => 9000,
         'status'      => TransactionStatus::CANCEL,
         'created_by'  => $this->marketing->id,
         'customer_id' => $this->customer->id,
         'company_id'  => $this->company->id,
         'items'       => [
-            ['product_id' => $this->productA->id, 'qty' => 1, 'price' => 6500],
+            ['product_id' => $this->productA->id, 'qty' => 1, 'price' => 9000],
         ],
     ]);
 
@@ -471,8 +440,7 @@ it('excludes cancelled transactions from commission', function () {
         ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
-    // Hanya 1 PAID: (6500-5000)*1 = 1500
-    expect($response->json('data.grand_total.total_commission'))->toEqual(1500);
+    expect($response->json('data.grand_total.total_commission'))->toEqual(2000);
 });
 
 it('returns zero when no transactions in range', function () {
@@ -485,35 +453,35 @@ it('returns zero when no transactions in range', function () {
     expect($response->json('data.grand_total.total_discount'))->toEqual(0);
 });
 
-it('skips commission for product not in marketing_products', function () {
-    $productC = Product::factory()->create([
-        'base_price'  => 8000,
-        'sales_price' => 12000,
-        'stock'       => 100,
-        'category_id' => $this->category->id,
-        'unit_id'     => $this->unit->id,
-        'created_by'  => $this->owner->id,
-        'company_id'  => $this->company->id,
-    ]);
+// it('skips commission for product not in marketing_products', function () {
+//     $productC = Product::factory()->create([
+//         'base_price'  => 8000,
+//         'sales_price' => 12000,
+//         'stock'       => 100,
+//         'category_id' => $this->category->id,
+//         'unit_id'     => $this->unit->id,
+//         'created_by'  => $this->owner->id,
+//         'company_id'  => $this->company->id,
+//     ]);
 
-    makeSalesTrx([
-        'date'        => '2026-03-01',
-        'discount'    => 0,
-        'total'       => 10000,
-        'created_by'  => $this->marketing->id,
-        'customer_id' => $this->customer->id,
-        'company_id'  => $this->company->id,
-        'items'       => [
-            ['product_id' => $productC->id, 'qty' => 1, 'price' => 10000],
-        ],
-    ]);
+//     makeSalesTrx([
+//         'date'        => '2026-03-01',
+//         'discount'    => 0,
+//         'total'       => 10000,
+//         'created_by'  => $this->marketing->id,
+//         'customer_id' => $this->customer->id,
+//         'company_id'  => $this->company->id,
+//         'items'       => [
+//             ['product_id' => $productC->id, 'qty' => 1, 'price' => 10000],
+//         ],
+//     ]);
 
-    $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
+//     $response = $this->actingAs($this->owner)
+//         ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
 
-    $response->assertStatus(200);
-    expect($response->json('data.grand_total.total_commission'))->toEqual(0);
-});
+//     $response->assertStatus(200);
+//     expect($response->json('data.grand_total.total_commission'))->toEqual(0);
+// });
 
 it('returns correct response structure', function () {
     makeSalesTrx([

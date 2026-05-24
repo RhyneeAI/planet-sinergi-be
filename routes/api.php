@@ -19,7 +19,7 @@ use App\Http\Controllers\Api\SupplierController;
 use App\Http\Controllers\Api\UnitController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('v1')->group(function () {
+Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
     // Public
     Route::post('/login', [AuthController::class, 'login']);
     Route::get('/login', function () {

@@ -20,6 +20,8 @@ return [
         'base_price_numeric' => 'Harga modal harus berupa angka.',
         'sales_price_required' => 'Harga jual wajib diisi.',
         'sales_price_numeric' => 'Harga jual harus berupa angka.',
+        'marketing_price_numeric' => 'Harga marketing harus berupa angka.',
+        'marketing_price_min'     => 'Harga marketing tidak boleh negatif.',
         'stock_integer' => 'Stok harus berupa bilangan bulat.',
         'min_stock_integer' => 'Stok minimal harus berupa bilangan bulat.',
         'category_uuid_exists' => 'Kategori yang dipilih tidak valid.',

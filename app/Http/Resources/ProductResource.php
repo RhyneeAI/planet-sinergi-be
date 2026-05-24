@@ -16,6 +16,7 @@ class ProductResource extends JsonResource
             'code' => $this->code,
             'base_price' => (float) $this->base_price,
             'sales_price' => (float) $this->sales_price,
+            'marketing_price' => (float) $this->marketing_price,
             // 'last_purchase_price' => (float) $this->last_purchase_price,
             'stock' => (int) $this->stock,
             'min_stock' => (int) $this->min_stock,

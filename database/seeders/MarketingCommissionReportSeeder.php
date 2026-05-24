@@ -171,53 +171,39 @@ class MarketingCommissionReportSeeder extends Seeder
             $products[$pd['code']] = Product::where('code', $pd['code'])
                 ->where('company_id', $company->id)
                 ->first() ?? Product::create([
-                    'uuid'        => Str::uuid(),
-                    'name'        => $pd['name'],
-                    'code'        => $pd['code'],
-                    'base_price'  => $pd['base_price'],
-                    'sales_price' => $pd['sales_price'],
-                    'stock'       => $pd['stock'],
-                    'is_active'   => true,
-                    'category_id' => $category->id,
-                    'unit_id'     => $unit->id,
-                    'created_by'  => $owner->id,
-                    'company_id'  => $company->id,
+                    'uuid'            => Str::uuid(),
+                    'name'            => $pd['name'],
+                    'code'            => $pd['code'],
+                    'base_price'      => $pd['base_price'],
+                    'sales_price'     => $pd['sales_price'],
+                    'marketing_price' => $pd['marketing_price'],
+                    'stock'           => $pd['stock'],
+                    'is_active'       => true,
+                    'category_id'     => $category->id,
+                    'unit_id'         => $unit->id,
+                    'created_by'      => $owner->id,
+                    'company_id'      => $company->id,
                 ]);
         }
 
         // ================================
         // Assign Marketing Products
         // ================================
-        $marketingPrices = [
-            'abdillah' => [
-                'PRD-001' => 6500,  // sales_price 8000  → komisi 1500/unit ✅
-                'PRD-002' => 15000, // sales_price 18000 → komisi 3000/unit ✅
-                'PRD-003' => 10000, // sales_price 12000 → komisi 2000/unit ✅
-                'PRD-004' => 18000, // sales_price 20000 → komisi 2000/unit ✅
-                'PRD-005' => 12500, // sales_price 14000 → komisi 1500/unit ✅
-            ],
-            'ahmad' => [
-                'PRD-001' => 6000,  // sales_price 8000  → komisi 2000/unit ✅
-                'PRD-002' => 14000, // sales_price 18000 → komisi 4000/unit ✅
-                'PRD-003' => 9500,  // sales_price 12000 → komisi 2500/unit ✅
-                'PRD-004' => 17000, // sales_price 20000 → komisi 3000/unit ✅
-                'PRD-005' => 12000, // sales_price 14000 → komisi 2000/unit ✅
-            ],
-        ];
+        // Sekarang marketing_price disimpan di Product, bukan MarketingProduct
+        // Hanya perlu membuat relationship antara marketing dan product
 
         foreach ([$abdillah, $ahmad] as $marketing) {
-            $key = strtolower($marketing->username);
-            foreach ($marketingPrices[$key] as $code => $price) {
+            // Assign semua products ke setiap marketing
+            foreach ($products as $code => $product) {
                 MarketingProduct::firstOrCreate(
                     [
-                        'product_id'   => $products[$code]->id,
+                        'product_id'   => $product->id,
                         'marketing_id' => $marketing->id,
                         'company_id'   => $company->id,
-                        'created_by'   => $owner->id,
                     ],
                     [
-                        'uuid'            => Str::uuid(),
-                        'marketing_price' => $price,
+                        'uuid'       => Str::uuid(),
+                        'created_by' => $owner->id,
                     ]
                 );
             }

@@ -46,8 +46,7 @@ class ReportController extends Controller
         $transactions = SalesTransaction::with([
                 'customer:id,name',
                 'createdBy:id,name,uuid',
-                'createdBy.marketingProducts:id,marketing_id,product_id,marketing_price',
-                'details.product:id,uuid,name,code,sales_price',
+                'details.product:id,uuid,name,code,sales_price,marketing_price',
             ])
             ->where('company_id', $companyId)
             ->whereIn('created_by', $marketingUserIds) 
@@ -58,18 +57,6 @@ class ReportController extends Controller
             ->orderBy('created_by')
             ->orderBy('transaction_date')
             ->get();
-
-        // Build marketing_products map dari eager load
-        // structure: created_by => [ product_id => marketing_price ]
-        $mpMap = [];
-        foreach ($transactions as $trx) {
-            $createdBy = $trx->created_by;
-            if (!isset($mpMap[$createdBy])) {
-                $mpMap[$createdBy] = $trx->createdBy->marketingProducts
-                    ->pluck('marketing_price', 'product_id')
-                    ->toArray();
-            }
-        }
 
         // Build report
         $report      = [];
@@ -92,10 +79,11 @@ class ReportController extends Controller
                 // Hitung komisi kotor dari items
                 $grossCommission = 0;
                 foreach ($trx->details as $detail) {
-                    $marketingPrice = $mpMap[$createdBy][$detail->product_id] ?? null;
+                    $marketingPrice = $detail->product->marketing_price;
+
                     if (!$marketingPrice) continue;
 
-                    $grossCommission += ($detail->product->sales_price - $marketingPrice) * $detail->quantity;
+                    $grossCommission += ($detail->sell_price - $detail->discount - $marketingPrice) * $detail->quantity;
                 }
 
                 // Diskon sepenuhnya ditanggung marketing

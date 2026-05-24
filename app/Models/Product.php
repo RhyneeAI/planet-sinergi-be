@@ -18,6 +18,7 @@ class Product extends Model
         'code',
         'base_price',
         'sales_price',
+        'marketing_price',
         'last_purchase_price',
         'stock',
         'min_stock',
