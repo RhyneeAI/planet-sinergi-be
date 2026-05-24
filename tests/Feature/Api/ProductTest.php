@@ -13,6 +13,8 @@ beforeEach(function () {
     $this->user = User::factory()->owner()->create([
         'company_id' => $this->company->id,
     ]);
+    $this->category = Category::factory()->create();
+    $this->unit = Unit::factory()->create();
 });
 
 // =============================
@@ -295,6 +297,54 @@ it('created_by in stock mutation matches authenticated user', function () {
         'created_by' => $this->user->id,
         'company_id' => $this->company->id,
     ]);
+});
+
+it('can create product with marketing_price', function () {
+    $this->actingAs($this->user)
+        ->postJson('/api/v1/products', [
+            'name'            => 'Produk Test',
+            'sales_price'     => 15000,
+            'marketing_price' => 12000,
+        ])
+        ->assertStatus(201)
+        ->assertJsonPath('data.marketing_price', 12000);
+});
+
+it('marketing_price defaults to 0 when not provided', function () {
+    $this->actingAs($this->user)
+        ->postJson('/api/v1/products', [
+            'name'        => 'Produk Test',
+            'sales_price' => 15000,
+        ])
+        ->assertStatus(201)
+        ->assertJsonPath('data.marketing_price', 0);
+});
+
+it('can update marketing_price', function () {
+    $product = Product::factory()->create([
+        'marketing_price' => 10000,
+        'company_id'      => $this->company->id,
+        'created_by'      => $this->user->id,
+        'category_id'     => $this->category->id,
+        'unit_id'         => $this->unit->id,
+    ]);
+
+    $this->actingAs($this->user)
+        ->patchJson("/api/v1/products/{$product->uuid}", [
+            'marketing_price' => 13000,
+        ])
+        ->assertStatus(200)
+        ->assertJsonPath('data.marketing_price', 13000);
+});
+
+it('returns 422 when marketing_price is negative', function () {
+    $this->actingAs($this->user)
+        ->postJson('/api/v1/products', [
+            'name'            => 'Produk Test',
+            'sales_price'     => 15000,
+            'marketing_price' => -1000,
+        ])
+        ->assertStatus(422);
 });
 
 it('returns 401 when not authenticated on store', function () {

@@ -19,6 +19,8 @@ class SalesTransaction extends Model
         'transaction_code',
         'transaction_date',
         'discount',
+        'additional_cost',      
+        'additional_cost_note', 
         'total',
         'paid',
         'payment_type',
@@ -31,7 +33,8 @@ class SalesTransaction extends Model
     protected $casts = [
         'transaction_date' => 'datetime',
         'payment_type' => PaymentType::class,
-        'transaction_status' => TransactionStatus::class
+        'transaction_status' => TransactionStatus::class,
+        'additional_cost'   => 'float', 
     ];
 
     protected static function booted(): void

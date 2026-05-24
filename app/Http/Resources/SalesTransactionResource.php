@@ -14,6 +14,8 @@ class SalesTransactionResource extends JsonResource
             'transaction_code'   => $this->transaction_code,
             'transaction_date'   => $this->transaction_date?->toISOString(),
             'discount'           => (float) $this->discount,
+            'additional_cost'      => (float) $this->additional_cost,  
+            'additional_cost_note' => $this->additional_cost_note, 
             'total'              => (float) $this->total,
             'paid'               => (float) $this->paid,
             'payment_type'       => $this->payment_type?->value,

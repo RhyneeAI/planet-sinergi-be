@@ -800,6 +800,7 @@ it('can cancel a purchase transaction', function () {
 
     $stockAfterPurchase = $this->product->fresh()->stock;
 
+    $this->travel(6)->seconds();
     $this->actingAs($this->user)
         ->patchJson("/api/v1/purchase-transactions/{$ulid}/cancel")
         ->assertStatus(200)

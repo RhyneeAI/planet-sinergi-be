@@ -19,6 +19,8 @@ return [
         'customer_uuid_invalid'       => 'Invalid customer UUID format.',
         'customer_not_found'          => 'Customer not found.',
         'total_required'              => 'Transaction total is required.',
+        'additional_cost_numeric'     => 'Additional cost must be a number.',
+        'additional_cost_min'         => 'Additional cost cannot be negative.',
         'paid_required'               => 'Payment amount is required.',
         'discount_greater_than_total' => 'Discount cannot be greater than the total transaction.',
         'paid_must_zero'              => 'Total payment must be 0 for Installments',

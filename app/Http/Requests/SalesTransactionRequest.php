@@ -29,6 +29,8 @@ class SalesTransactionRequest extends FormRequest
                 'date',
             ],
             'discount'           => ['sometimes', 'numeric', 'min:0'],
+            'additional_cost'      => ['sometimes', 'numeric', 'min:0'],
+            'additional_cost_note' => ['nullable', 'string', 'max:255'],
             'total'              => ['sometimes', 'numeric', 'min:0'],
             'paid'               => ['sometimes', 'numeric', 'min:0'],
             'payment_type'       => [
@@ -118,6 +120,8 @@ class SalesTransactionRequest extends FormRequest
             'transaction_status.enum'       => __('sales_transactions.validation.transaction_status_invalid'),
             'customer_uuid.uuid'            => __('sales_transactions.validation.customer_uuid_invalid'),
             'customer_uuid.exists'          => __('sales_transactions.validation.customer_not_found'),
+            'additional_cost.numeric'       => __('sales_transactions.validation.additional_cost_numeric'),
+            'additional_cost.min'           => __('sales_transactions.validation.additional_cost_min'),
             'total.required'                => __('sales_transactions.validation.total_required'),
             'paid.required'                 => __('sales_transactions.validation.paid_required'),
             'items.required'                => __('sales_transactions.validation.items_required'),

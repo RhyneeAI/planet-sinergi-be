@@ -406,6 +406,51 @@ it('each item creates a SALES_OUT stock mutation', function () {
     $this->assertDatabaseCount('stock_mutations', 2);
 });
 
+// tests/Feature/Api/SalesTransactionTest.php — tambahkan
+
+it('can create sales transaction with additional cost', function () {
+    $payload = array_merge($this->payload, [
+        'additional_cost'      => 15000,
+        'additional_cost_note' => 'Ongkos kirim',
+    ]);
+
+    $response = $this->actingAs($this->user)
+        ->postJson('/api/v1/sales-transactions', $payload);
+
+    $response->assertStatus(201)
+        ->assertJsonPath('data.additional_cost', 15000)
+        ->assertJsonPath('data.additional_cost_note', 'Ongkos kirim');
+});
+
+it('additional_cost defaults to 0 when not provided', function () {
+    $response = $this->actingAs($this->user)
+        ->postJson('/api/v1/sales-transactions', $this->payload);
+
+    $response->assertStatus(201)
+        ->assertJsonPath('data.additional_cost', 0);
+});
+
+it('returns 422 when additional_cost is negative', function () {
+    $payload = array_merge($this->payload, ['additional_cost' => -5000]);
+
+    $this->actingAs($this->user)
+        ->postJson('/api/v1/sales-transactions', $payload)
+        ->assertStatus(422);
+});
+
+it('can create transaction with additional_cost_note only without amount', function () {
+    $payload = array_merge($this->payload, [
+        'additional_cost_note' => 'Catatan biaya',
+        // additional_cost tidak dikirim → default 0
+    ]);
+
+    $this->actingAs($this->user)
+        ->postJson('/api/v1/sales-transactions', $payload)
+        ->assertStatus(201)
+        ->assertJsonPath('data.additional_cost', 0)
+        ->assertJsonPath('data.additional_cost_note', 'Catatan biaya');
+});
+
 it('returns 401 when not authenticated on store', function () {
     $this->postJson('/api/v1/sales-transactions', $this->payload)
         ->assertStatus(401);

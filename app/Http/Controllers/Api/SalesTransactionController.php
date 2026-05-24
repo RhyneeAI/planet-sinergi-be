@@ -103,12 +103,26 @@ class SalesTransactionController extends Controller
                 }
             }
 
-            $transactionCode = 'SO-' . $request->user()->company->code . '-' . now()->format('YmdHis');
+            $companyCode = $request->user()->company->code;
+            $datePrefix = now()->format('Ymd'); 
+            $prefix = "SO-{$companyCode}{$datePrefix}";
+
+            $lastTransaction = SalesTransaction::where('transaction_code', 'like', $prefix . '%')->orderBy('id', 'desc')->first();
+            if ($lastTransaction) {
+                $lastNumber = (int) substr($lastTransaction->transaction_code, -4);
+                $sequence = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
+            } else {
+                $sequence = '001';
+            }
+
+            $transactionCode = $prefix . $sequence;
 
             $transaction = SalesTransaction::create([
                 'transaction_code'   => $transactionCode,
                 'transaction_date'   => $request->transaction_date,
                 'discount'           => $discount,
+                'additional_cost'      => $request->additional_cost ?? 0,    
+                'additional_cost_note' => $request->additional_cost_note,    
                 'total'              => $request->total,
                 'paid'               => $request->payment_type === PaymentType::CICIL->value ? 0 : $request->paid,
                 'payment_type'       => $request->payment_type,
