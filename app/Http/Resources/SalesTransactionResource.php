@@ -37,6 +37,7 @@ class SalesTransactionResource extends JsonResource
                         'code' => $detail->product->code,
                     ],
                     'quantity'   => (int) $detail->quantity,
+                    'marketing_price' => (float) $detail->marketing_price,
                     'sell_price' => (float) $detail->sell_price,
                     'discount'   => (float) $detail->discount,
                     'subtotal'   => (float) $detail->subtotal,
