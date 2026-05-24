@@ -24,6 +24,7 @@ class ProductController extends Controller
         // Get all codes for this company
         $products = Product::where('company_id', $company->id)
             ->where('code', 'LIKE', $company->code . '%')
+            ->withTrashed() 
             ->get();
         
         $maxSequence = 0;
