@@ -87,11 +87,23 @@ class PurchaseTransactionController extends Controller
                 ], 422);
             }
 
-            $transactionCode = 'PO-' . strtoupper(Str::random(8)) . '-' . now()->format('Ymd');
+            $companyCode = $request->user()->company->code;
+            $datePrefix = now()->format('Ymd'); 
+            $prefix = "PO-{$companyCode}{$datePrefix}";
+
+            $lastTransaction = PurchaseTransaction::where('transaction_code', 'like', $prefix . '%')->orderBy('id', 'desc')->first();
+            if ($lastTransaction) {
+                $lastNumber = (int) substr($lastTransaction->transaction_code, -4);
+                $sequence = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
+            } else {
+                $sequence = '001';
+            }
+
+            $transactionCode = $prefix . $sequence;
 
             $transaction = PurchaseTransaction::create([
                 'transaction_code'   => $transactionCode,
-                'transaction_date'   => $request->transaction_date,
+                'transaction_date'   => $request->transaction_date . ' ' . date("H:i:s"),
                 'discount'           => $discount,
                 'total'              => $request->total,
                 'paid'               => $request->paid,

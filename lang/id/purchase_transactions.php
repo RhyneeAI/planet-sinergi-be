@@ -6,7 +6,7 @@ return [
     'stored'            => 'Transaksi pembelian berhasil dibuat.',
     'cancelled'         => 'Transaksi pembelian berhasil dibatalkan.',
     'already_cancelled' => 'Transaksi pembelian sudah dibatalkan sebelumnya.',
-    'cannot_cancel'     => 'Transaksi pembelian tidak dapat dibatalkan.',
+    'cannot_cancel'     => 'Transaksi pembelian tidak dapat dibatalkan karena belum dibayar.',
     'validation'        => [
         'supplier_uuid_required'          => 'Supplier wajib dipilih.',
         'supplier_uuid_not_valid'         => 'Supplier tidak valid.',

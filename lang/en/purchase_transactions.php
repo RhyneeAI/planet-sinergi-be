@@ -6,7 +6,7 @@ return [
     'stored'            => 'Purchase transaction created successfully.',
     'cancelled'         => 'Purchase transaction cancelled successfully.',
     'already_cancelled' => 'Purchase transaction has already been cancelled.',
-    'cannot_cancel'     => 'Purchase transaction cannot be cancelled.',
+    'cannot_cancel'     => 'Purchase transaction cannot be cancelled because it is unpaid.',
     'validation'        => [
         'supplier_uuid_required'          => 'Supplier is required.',
         'supplier_uuid_not_valid'         => 'Supplier not valid.',
