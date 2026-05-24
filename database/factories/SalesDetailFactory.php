@@ -19,6 +19,7 @@ class SalesDetailFactory extends Factory
             'sale_id' => SalesTransaction::factory(),
             'product_id' => Product::factory(),
             'quantity' => $quantity,
+            'marketing_price' => $price - 2000,
             'sell_price' => $price,
             'discount' => fake()->randomFloat(2, 0, 10000),
             'subtotal' => $quantity * $price,

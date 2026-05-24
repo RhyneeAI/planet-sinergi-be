@@ -139,21 +139,23 @@ class SalesTransactionController extends Controller
                 $product     = $products->get($item['product_uuid']);
                 $itemDiscount = $item['discount'] ?? 0;
 
-                // Harga dari request sell_price
+                // Harga dari request sell_price, marketing_price
                 $sellPrice = $item['sell_price'];
+                $marketingPrice = $item['marketing_price'];
 
                 $subtotal    = ($item['quantity'] * $sellPrice) - $itemDiscount;
                 $stockBefore = $product->stock;
                 $stockAfter  = $stockBefore - $item['quantity'];
 
                 $detail = SalesDetail::create([
-                    'sale_id'    => $transaction->id,
-                    'product_id' => $product->id,
-                    'quantity'   => $item['quantity'],
-                    'sell_price' => $sellPrice,
-                    'discount'   => $itemDiscount,
-                    'subtotal'   => $subtotal,
-                    'company_id' => $request->user()->company_id,
+                    'sale_id'           => $transaction->id,
+                    'product_id'        => $product->id,
+                    'quantity'          => $item['quantity'],
+                    'sell_price'        => $sellPrice,
+                    'marketing_price'   => $marketingPrice,
+                    'discount'          => $itemDiscount,
+                    'subtotal'          => $subtotal,
+                    'company_id'        => $request->user()->company_id,
                 ]);
 
                 $product->update(['stock' => $stockAfter]);

@@ -75,15 +75,10 @@ class ReportController extends Controller
 
             foreach ($mktTransactions as $trx) {
                 $totalAfterDiscount = $trx->total - $trx->discount;
-
                 // Hitung komisi kotor dari items
                 $grossCommission = 0;
                 foreach ($trx->details as $detail) {
-                    $marketingPrice = $detail->product->marketing_price;
-
-                    if (!$marketingPrice) continue;
-
-                    $grossCommission += ($detail->sell_price - $detail->discount - $marketingPrice) * $detail->quantity;
+                    $grossCommission += ($detail->sell_price - $detail->discount - $detail->marketing_price) * $detail->quantity;
                 }
 
                 // Diskon sepenuhnya ditanggung marketing
@@ -217,6 +212,22 @@ class ReportController extends Controller
             $trx = $firstItem->saleTransaction;
             $isCicil = $trx->payment_type === PaymentType::CICIL;
             $plan = $isCicil ? $trx->installmentPlan : null;
+            
+            // Cek apakah transaksi dibuat oleh OWNER atau MARKETING
+            $createdBy = $trx->createdBy;
+            $isOwner = $createdBy->role === Role::OWNER;
+            
+            // Hitung total keuntungan transaksi
+            $totalProfit = 0;
+            foreach ($items as $item) {
+                $basePrice = $item->product->base_price;
+                if ($isOwner) {
+                    $profit = $item->sell_price - $basePrice;
+                } else {
+                    $profit = $item->marketing_price - $basePrice;
+                }
+                $totalProfit += $profit * $item->quantity;
+            }
 
             return [
                 'transaction_code' => $trx->transaction_code,
@@ -224,19 +235,23 @@ class ReportController extends Controller
                 'cashier'          => $trx->createdBy->name ?? '-',
                 'payment_type'     => $trx->payment_type?->value,
                 'total'            => $trx->total,
+                'profit'           => $totalProfit, // ← tambahkan
                 'is_cicil'         => $isCicil,
                 'cicil_info'       => $isCicil ? [
                     'paid_amount'      => $plan?->paid_amount ?? 0,
                     'remaining_amount' => $plan?->remainingAmount() ?? 0,
                     'status'           => $plan?->status->label(),
                 ] : null,
-                'items'            => $items->map(function ($row) {
+                'items'            => $items->map(function ($row) use ($isOwner) {
                     return [
                         'code'       => $row->product->code ?? '-',
                         'name'       => $row->product->name ?? '-',
                         'sell_price' => $row->sell_price,
                         'quantity'   => $row->quantity,
-                        'subtotal'    => $row->quantity * $row->sell_price,
+                        'subtotal'   => $row->quantity * $row->sell_price,
+                        'profit'     => $isOwner 
+                            ? ($row->sell_price - $row->product->base_price) * $row->quantity
+                            : ($row->marketing_price - $row->product->base_price) * $row->quantity,
                     ];
                 })->values(),
             ];
@@ -246,6 +261,7 @@ class ReportController extends Controller
         $grandTotal = [
             'total_qty'       => $details->sum('quantity'),
             'total_revenue'   => $details->sum(fn($r) => $r->quantity * $r->sell_price),
+            'total_profit'    => $detailTransactions->sum('profit'), // ← tambahkan
             'total_remaining' => $details
                 ->filter(fn($r) => $r->saleTransaction->payment_type === PaymentType::CICIL)
                 ->sum(fn($r) => $r->saleTransaction->installmentPlan?->remainingAmount() ?? 0),

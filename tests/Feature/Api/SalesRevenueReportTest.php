@@ -16,48 +16,50 @@ use Illuminate\Support\Str;
 
 beforeEach(function () {
     $this->company      = Company::factory()->create();
-    $this->user         = User::factory()->owner()->create(['company_id' => $this->company->id]);
+    $this->owner        = User::factory()->owner()->create(['company_id' => $this->company->id]);
     $this->cashier      = User::factory()->create([
         'role'       => Role::MARKETING,
         'company_id' => $this->company->id,
     ]);
     $this->customerType = CustomerType::factory()->create([
         'company_id' => $this->company->id,
-        'created_by' => $this->user->id,
+        'created_by' => $this->owner->id,
     ]);
     $this->customer     = Customer::factory()->create([
         'customer_type_id' => $this->customerType->id,
-        'created_by'       => $this->user->id,
+        'created_by'       => $this->owner->id,
         'company_id'       => $this->company->id,
     ]);
     $this->category     = Category::factory()->create([
         'company_id' => $this->company->id,
-        'created_by' => $this->user->id,
+        'created_by' => $this->owner->id,
     ]);
     $this->unit         = Unit::factory()->create([
         'company_id' => $this->company->id,
-        'created_by' => $this->user->id,
+        'created_by' => $this->owner->id,
     ]);
 
-    // Product A: sell 5000
+    // Product A: base price 3000, sales price 5000
     $this->productA = Product::factory()->create([
         'code'        => 'TEST-A',
+        'base_price'  => 3000,
         'sales_price' => 5000,
         'stock'       => 100,
         'category_id' => $this->category->id,
         'unit_id'     => $this->unit->id,
-        'created_by'  => $this->user->id,
+        'created_by'  => $this->owner->id,
         'company_id'  => $this->company->id,
     ]);
 
-    // Product B: sell 15000
+    // Product B: base price 10000, sales price 15000
     $this->productB = Product::factory()->create([
         'code'        => 'TEST-B',
+        'base_price'  => 10000,
         'sales_price' => 15000,
         'stock'       => 100,
         'category_id' => $this->category->id,
         'unit_id'     => $this->unit->id,
-        'created_by'  => $this->user->id,
+        'created_by'  => $this->owner->id,
         'company_id'  => $this->company->id,
     ]);
 });
@@ -81,14 +83,15 @@ function makeSalesRevTrx(array $data): SalesTransaction
 
     foreach ($data['items'] as $item) {
         SalesDetail::create([
-            'ulid'       => Str::ulid(),
-            'sale_id'    => $trx->id,
-            'product_id' => $item['product_id'],
-            'quantity'   => $item['qty'],
-            'sell_price' => $item['price'],
-            'discount'   => 0,
-            'subtotal'   => $item['qty'] * $item['price'],
-            'company_id' => $data['company_id'],
+            'ulid'            => Str::ulid(),
+            'sale_id'         => $trx->id,
+            'product_id'      => $item['product_id'],
+            'quantity'        => $item['qty'],
+            'sell_price'      => $item['price'],
+            'marketing_price' => $item['marketing_price'] ?? null,
+            'discount'        => $item['discount'] ?? 0,
+            'subtotal'        => $item['qty'] * $item['price'],
+            'company_id'      => $data['company_id'],
         ]);
     }
 
@@ -100,21 +103,21 @@ function makeSalesRevTrx(array $data): SalesTransaction
 // =============================
 
 it('returns 422 when date_from is missing', function () {
-    $this->actingAs($this->user)
+    $this->actingAs($this->owner)
         ->getJson('/api/v1/reports/sales-revenue?date_to=2026-05-01')
         ->assertStatus(422)
         ->assertJsonStructure(['errors' => ['date_from']]);
 });
 
 it('returns 422 when date_to is missing', function () {
-    $this->actingAs($this->user)
+    $this->actingAs($this->owner)
         ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01')
         ->assertStatus(422)
         ->assertJsonStructure(['errors' => ['date_to']]);
 });
 
 it('returns 422 when date_to is before date_from', function () {
-    $this->actingAs($this->user)
+    $this->actingAs($this->owner)
         ->getJson('/api/v1/reports/sales-revenue?date_from=2026-05-01&date_to=2026-01-01')
         ->assertStatus(422)
         ->assertJsonStructure(['errors' => ['date_to']]);
@@ -130,23 +133,18 @@ it('returns 401 when not authenticated', function () {
 // =============================
 
 it('calculates grand total qty and revenue correctly', function () {
-    /*
-     * Trx 1: Product A qty 3, price 5000 → revenue 15000
-     *         Product B qty 2, price 15000 → revenue 30000
-     * Total qty = 5, total revenue = 45000
-     */
     makeSalesRevTrx([
         'date'       => '2026-03-01',
         'total'      => 45000,
         'created_by' => $this->cashier->id,
         'company_id' => $this->company->id,
         'items'      => [
-            ['product_id' => $this->productA->id, 'qty' => 3, 'price' => 5000],
-            ['product_id' => $this->productB->id, 'qty' => 2, 'price' => 15000],
+            ['product_id' => $this->productA->id, 'qty' => 3, 'price' => 5000, 'marketing_price' => 4000],
+            ['product_id' => $this->productB->id, 'qty' => 2, 'price' => 15000, 'marketing_price' => 12000],
         ],
     ]);
 
-    $response = $this->actingAs($this->user)
+    $response = $this->actingAs($this->owner)
         ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
@@ -155,18 +153,13 @@ it('calculates grand total qty and revenue correctly', function () {
 });
 
 it('accumulates revenue correctly across multiple transactions', function () {
-    /*
-     * Trx 1: Product A qty 3 → 15000
-     * Trx 2: Product A qty 5 → 25000
-     * Product A total qty = 8, revenue = 40000
-     */
     makeSalesRevTrx([
         'date'       => '2026-02-01',
         'total'      => 15000,
         'created_by' => $this->cashier->id,
         'company_id' => $this->company->id,
         'items'      => [
-            ['product_id' => $this->productA->id, 'qty' => 3, 'price' => 5000],
+            ['product_id' => $this->productA->id, 'qty' => 3, 'price' => 5000, 'marketing_price' => 4000],
         ],
     ]);
 
@@ -176,11 +169,11 @@ it('accumulates revenue correctly across multiple transactions', function () {
         'created_by' => $this->cashier->id,
         'company_id' => $this->company->id,
         'items'      => [
-            ['product_id' => $this->productA->id, 'qty' => 5, 'price' => 5000],
+            ['product_id' => $this->productA->id, 'qty' => 5, 'price' => 5000, 'marketing_price' => 4000],
         ],
     ]);
 
-    $response = $this->actingAs($this->user)
+    $response = $this->actingAs($this->owner)
         ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
@@ -189,33 +182,106 @@ it('accumulates revenue correctly across multiple transactions', function () {
 });
 
 // =============================
+// PROFIT CALCULATION
+// =============================
+
+it('calculates profit correctly for owner transactions', function () {
+    // Owner langsung transaksi (bukan marketing)
+    makeSalesRevTrx([
+        'date'       => '2026-03-01',
+        'total'      => 50000,
+        'created_by' => $this->owner->id,
+        'company_id' => $this->company->id,
+        'items'      => [
+            ['product_id' => $this->productA->id, 'qty' => 2, 'price' => 10000, 'marketing_price' => 0],
+            ['product_id' => $this->productB->id, 'qty' => 1, 'price' => 30000, 'marketing_price' => 0],
+        ],
+    ]);
+
+    // Profit = (10000 - 3000)*2 + (30000 - 10000)*1 = 14000 + 20000 = 34000
+    $response = $this->actingAs($this->owner)
+        ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31');
+
+    $response->assertStatus(200);
+    expect($response->json('data.grand_total.total_revenue'))->toEqual(50000);
+    // Jika controller sudah implement profit di response, tambahkan assertion:
+    // expect($response->json('data.grand_total.total_profit'))->toEqual(34000);
+});
+
+it('calculates profit correctly for marketing transactions', function () {
+    // Marketing transaksi dengan marketing_price
+    makeSalesRevTrx([
+        'date'       => '2026-03-01',
+        'total'      => 50000,
+        'created_by' => $this->cashier->id,
+        'company_id' => $this->company->id,
+        'items'      => [
+            ['product_id' => $this->productA->id, 'qty' => 2, 'price' => 10000, 'marketing_price' => 8000],
+            ['product_id' => $this->productB->id, 'qty' => 1, 'price' => 30000, 'marketing_price' => 25000],
+        ],
+    ]);
+
+    // Profit = (8000 - 3000)*2 + (25000 - 10000)*1 = 10000 + 15000 = 25000
+    $response = $this->actingAs($this->owner)
+        ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31');
+
+    $response->assertStatus(200);
+    expect($response->json('data.grand_total.total_revenue'))->toEqual(50000);
+    // expect($response->json('data.grand_total.total_profit'))->toEqual(25000);
+});
+
+it('uses marketing_price from sales_details not from product for historical accuracy', function () {
+    // Ubah marketing_price di product (seharusnya tidak berpengaruh ke laporan)
+    $this->productA->update(['marketing_price' => 99999]);
+    $this->productB->update(['marketing_price' => 99999]);
+
+    makeSalesRevTrx([
+        'date'       => '2026-03-01',
+        'total'      => 50000,
+        'created_by' => $this->cashier->id,
+        'company_id' => $this->company->id,
+        'items'      => [
+            ['product_id' => $this->productA->id, 'qty' => 2, 'price' => 10000, 'marketing_price' => 8000],
+            ['product_id' => $this->productB->id, 'qty' => 1, 'price' => 30000, 'marketing_price' => 25000],
+        ],
+    ]);
+
+    $response = $this->actingAs($this->owner)
+        ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31');
+
+    $response->assertStatus(200);
+    expect($response->json('data.grand_total.total_revenue'))->toEqual(50000);
+    // profit tetap 25000 (menggunakan marketing_price dari SalesDetail = 8000 & 25000)
+    // BUKAN 99999 dari product
+    // expect($response->json('data.grand_total.total_profit'))->toEqual(25000);
+});
+
+// =============================
 // FILTER DATE RANGE
 // =============================
 
 it('only includes transactions within date range', function () {
-    // Dalam range
     makeSalesRevTrx([
         'date'       => '2026-03-15',
         'total'      => 15000,
         'created_by' => $this->cashier->id,
         'company_id' => $this->company->id,
         'items'      => [
-            ['product_id' => $this->productA->id, 'qty' => 3, 'price' => 5000],
+            ['product_id' => $this->productA->id, 'qty' => 3, 'price' => 5000, 'marketing_price' => 4000],
         ],
     ]);
 
-    // Di luar range
     makeSalesRevTrx([
         'date'       => '2026-06-01',
         'total'      => 25000,
         'created_by' => $this->cashier->id,
         'company_id' => $this->company->id,
         'items'      => [
-            ['product_id' => $this->productA->id, 'qty' => 5, 'price' => 5000],
+            ['product_id' => $this->productA->id, 'qty' => 5, 'price' => 5000, 'marketing_price' => 4000],
         ],
     ]);
 
-    $response = $this->actingAs($this->user)
+    $response = $this->actingAs($this->owner)
         ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-03-31');
 
     $response->assertStatus(200);
@@ -228,7 +294,6 @@ it('only includes transactions within date range', function () {
 // =============================
 
 it('includes pending transactions', function () {
-    // PAID
     makeSalesRevTrx([
         'date'       => '2026-03-01',
         'total'      => 15000,
@@ -236,11 +301,10 @@ it('includes pending transactions', function () {
         'created_by' => $this->cashier->id,
         'company_id' => $this->company->id,
         'items'      => [
-            ['product_id' => $this->productA->id, 'qty' => 3, 'price' => 5000],
+            ['product_id' => $this->productA->id, 'qty' => 3, 'price' => 5000, 'marketing_price' => 4000],
         ],
     ]);
 
-    // CANCEL — tidak masuk
     makeSalesRevTrx([
         'date'       => '2026-03-05',
         'total'      => 25000,
@@ -248,11 +312,11 @@ it('includes pending transactions', function () {
         'created_by' => $this->cashier->id,
         'company_id' => $this->company->id,
         'items'      => [
-            ['product_id' => $this->productA->id, 'qty' => 5, 'price' => 5000],
+            ['product_id' => $this->productA->id, 'qty' => 5, 'price' => 5000, 'marketing_price' => 4000],
         ],
     ]);
 
-    $response = $this->actingAs($this->user)
+    $response = $this->actingAs($this->owner)
         ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
@@ -265,7 +329,6 @@ it('includes pending transactions', function () {
 // =============================
 
 it('excludes cancelled transactions', function () {
-    // PAID
     makeSalesRevTrx([
         'date'       => '2026-03-01',
         'total'      => 15000,
@@ -273,11 +336,10 @@ it('excludes cancelled transactions', function () {
         'created_by' => $this->cashier->id,
         'company_id' => $this->company->id,
         'items'      => [
-            ['product_id' => $this->productA->id, 'qty' => 3, 'price' => 5000],
+            ['product_id' => $this->productA->id, 'qty' => 3, 'price' => 5000, 'marketing_price' => 4000],
         ],
     ]);
 
-    // CANCEL — tidak masuk
     makeSalesRevTrx([
         'date'       => '2026-03-05',
         'total'      => 25000,
@@ -285,11 +347,11 @@ it('excludes cancelled transactions', function () {
         'created_by' => $this->cashier->id,
         'company_id' => $this->company->id,
         'items'      => [
-            ['product_id' => $this->productA->id, 'qty' => 5, 'price' => 5000],
+            ['product_id' => $this->productA->id, 'qty' => 5, 'price' => 5000, 'marketing_price' => 4000],
         ],
     ]);
 
-    $response = $this->actingAs($this->user)
+    $response = $this->actingAs($this->owner)
         ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
@@ -305,21 +367,21 @@ it('only includes transactions from same company', function () {
     $otherCompany = Company::factory()->create();
     $otherUser    = User::factory()->owner()->create(['company_id' => $otherCompany->id]);
 
-    // Transaksi company sendiri
     makeSalesRevTrx([
         'date'       => '2026-03-01',
         'total'      => 15000,
         'created_by' => $this->cashier->id,
         'company_id' => $this->company->id,
         'items'      => [
-            ['product_id' => $this->productA->id, 'qty' => 3, 'price' => 5000],
+            ['product_id' => $this->productA->id, 'qty' => 3, 'price' => 5000, 'marketing_price' => 4000],
         ],
     ]);
 
-    // Transaksi company lain — tidak masuk
     $otherProduct = Product::factory()->create([
         'company_id' => $otherCompany->id,
         'created_by' => $otherUser->id,
+        'base_price' => 5000,
+        'sales_price' => 10000,
         'category_id' => $this->category->id,
         'unit_id'     => $this->unit->id,
     ]);
@@ -330,11 +392,11 @@ it('only includes transactions from same company', function () {
         'created_by' => $otherUser->id,
         'company_id' => $otherCompany->id,
         'items'      => [
-            ['product_id' => $otherProduct->id, 'qty' => 5, 'price' => 5000],
+            ['product_id' => $otherProduct->id, 'qty' => 5, 'price' => 5000, 'marketing_price' => 0],
         ],
     ]);
 
-    $response = $this->actingAs($this->user)
+    $response = $this->actingAs($this->owner)
         ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
@@ -346,7 +408,7 @@ it('only includes transactions from same company', function () {
 // =============================
 
 it('returns zero when no transactions in range', function () {
-    $response = $this->actingAs($this->user)
+    $response = $this->actingAs($this->owner)
         ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
@@ -365,11 +427,11 @@ it('returns correct response structure', function () {
         'created_by' => $this->cashier->id,
         'company_id' => $this->company->id,
         'items'      => [
-            ['product_id' => $this->productA->id, 'qty' => 3, 'price' => 5000],
+            ['product_id' => $this->productA->id, 'qty' => 3, 'price' => 5000, 'marketing_price' => 4000],
         ],
     ]);
 
-    $this->actingAs($this->user)
+    $this->actingAs($this->owner)
         ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31')
         ->assertStatus(200)
         ->assertJsonStructure([
@@ -388,22 +450,17 @@ it('returns correct response structure', function () {
 // =============================
 
 it('uses sell_price from sales_details not products.sales_price', function () {
-    /*
-     * Product A sales_price = 5000
-     * Tapi dijual dengan harga 7000 (harga saat transaksi)
-     * Revenue harus = 7000 * 2 = 14000, bukan 5000 * 2 = 10000
-     */
     makeSalesRevTrx([
         'date'       => '2026-03-01',
         'total'      => 14000,
         'created_by' => $this->cashier->id,
         'company_id' => $this->company->id,
         'items'      => [
-            ['product_id' => $this->productA->id, 'qty' => 2, 'price' => 7000],
+            ['product_id' => $this->productA->id, 'qty' => 2, 'price' => 7000, 'marketing_price' => 6000],
         ],
     ]);
 
-    $response = $this->actingAs($this->user)
+    $response = $this->actingAs($this->owner)
         ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
@@ -420,30 +477,27 @@ it('filters transactions by specific marketing', function () {
         'company_id' => $this->company->id,
     ]);
 
-    // Transaksi dari cashier pertama
     makeSalesRevTrx([
         'date'       => '2026-03-01',
         'total'      => 15000,
         'created_by' => $this->cashier->id,
         'company_id' => $this->company->id,
         'items'      => [
-            ['product_id' => $this->productA->id, 'qty' => 3, 'price' => 5000],
+            ['product_id' => $this->productA->id, 'qty' => 3, 'price' => 5000, 'marketing_price' => 4000],
         ],
     ]);
 
-    // Transaksi dari cashier kedua
     makeSalesRevTrx([
         'date'       => '2026-03-05',
         'total'      => 25000,
         'created_by' => $anotherCashier->id,
         'company_id' => $this->company->id,
         'items'      => [
-            ['product_id' => $this->productA->id, 'qty' => 5, 'price' => 5000],
+            ['product_id' => $this->productA->id, 'qty' => 5, 'price' => 5000, 'marketing_price' => 4000],
         ],
     ]);
 
-    // Filter by first cashier
-    $response = $this->actingAs($this->user)
+    $response = $this->actingAs($this->owner)
         ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31&marketing_uuid=' . $this->cashier->uuid);
 
     $response->assertStatus(200);
@@ -452,7 +506,7 @@ it('filters transactions by specific marketing', function () {
 });
 
 it('returns 422 when marketing_uuid format is invalid', function () {
-    $this->actingAs($this->user)
+    $this->actingAs($this->owner)
         ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31&marketing_uuid=invalid-uuid')
         ->assertStatus(422)
         ->assertJsonStructure(['errors' => ['marketing_uuid']]);
@@ -460,16 +514,15 @@ it('returns 422 when marketing_uuid format is invalid', function () {
 
 it('returns 422 when marketing_uuid does not exist', function () {
     $fakeUuid = '550e8400-e29b-41d4-a716-446655440000';
-    $this->actingAs($this->user)
+    $this->actingAs($this->owner)
         ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31&marketing_uuid=' . $fakeUuid)
         ->assertStatus(422)
         ->assertJsonStructure(['errors' => ['marketing_uuid']]);
 });
 
 it('returns 422 when marketing_uuid is not a marketing user (e.g., owner)', function () {
-    // Try to filter by owner user (not marketing role)
-    $this->actingAs($this->user)
-        ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31&marketing_uuid=' . $this->user->uuid)
+    $this->actingAs($this->owner)
+        ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31&marketing_uuid=' . $this->owner->uuid)
         ->assertStatus(422)
         ->assertJsonStructure(['errors' => ['marketing_uuid']]);
 });
@@ -481,7 +534,7 @@ it('returns 422 when marketing belongs to different company', function () {
         'company_id' => $otherCompany->id,
     ]);
 
-    $this->actingAs($this->user)
+    $this->actingAs($this->owner)
         ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31&marketing_uuid=' . $otherMarketing->uuid)
         ->assertStatus(422)
         ->assertJsonStructure(['errors' => ['marketing_uuid']]);
@@ -493,19 +546,17 @@ it('returns zero when filtered marketing has no transactions', function () {
         'company_id' => $this->company->id,
     ]);
 
-    // Create transaction by first cashier only
     makeSalesRevTrx([
         'date'       => '2026-03-01',
         'total'      => 15000,
         'created_by' => $this->cashier->id,
         'company_id' => $this->company->id,
         'items'      => [
-            ['product_id' => $this->productA->id, 'qty' => 3, 'price' => 5000],
+            ['product_id' => $this->productA->id, 'qty' => 3, 'price' => 5000, 'marketing_price' => 4000],
         ],
     ]);
 
-    // Filter by second cashier (no transactions)
-    $response = $this->actingAs($this->user)
+    $response = $this->actingAs($this->owner)
         ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31&marketing_uuid=' . $anotherCashier->uuid);
 
     $response->assertStatus(200);

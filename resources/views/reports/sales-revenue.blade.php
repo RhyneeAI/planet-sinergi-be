@@ -207,7 +207,8 @@
                 <th class="text-right">Qty</th>
                 <th class="text-right">Subtotal</th>
                 <th class="text-right">Total (Omset)</th>
-                <th class="text-right">Kekurangan</th>
+                <th class="text-right">Kekurangan (CICIL)</th>
+                <th class="text-right">Keuntungan</th>  
             </tr>
         </thead>
         <tbody>
@@ -257,6 +258,9 @@
                                 @else
                                     -
                                 @endif
+                            </td>
+                            <td class="text-right" rowspan="{{ $itemCount }}">
+                                Rp {{ number_format($transaction['profit'], 0, ',', '.') }}
                             </td>
                         @endif
                     </tr>
