@@ -21,6 +21,7 @@ class CustomerTypeRequest extends FormRequest
                 'max:255',
                 Rule::unique('customer_types')
                     ->where('company_id', $this->user()->company_id)
+                    ->withoutTrashed()
                     ->ignore($this->customer_type?->id),
             ],
             'discount' => [

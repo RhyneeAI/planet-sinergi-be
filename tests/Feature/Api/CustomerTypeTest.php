@@ -157,6 +157,37 @@ it('allows same type name in different companies', function () {
         ->assertStatus(201);
 });
 
+it('allows same type name if other company deleted', function () {
+    // Buat customer type dengan company sendiri, lalu soft delete
+    $customerType = CustomerType::factory()->create([
+        'type'       => 'VIP',
+        'company_id' => $this->company->id,
+        'created_by' => $this->user->id,
+    ]);
+    
+    // Soft delete
+    $customerType->delete();
+    
+    // Harus bisa create dengan type yang sama karena sudah dihapus (tanpaTrashed)
+    $this->actingAs($this->user)
+        ->postJson('/api/v1/customer-types', ['type' => 'VIP'])
+        ->assertStatus(201);
+});
+
+it('prevents duplicate type name if still exists (not deleted)', function () {
+    // Buat customer type aktif
+    CustomerType::factory()->create([
+        'type'       => 'VIP',
+        'company_id' => $this->company->id,
+        'created_by' => $this->user->id,
+    ]);
+    
+    // Harus gagal karena type VIP sudah ada (belum dihapus)
+    $this->actingAs($this->user)
+        ->postJson('/api/v1/customer-types', ['type' => 'VIP'])
+        ->assertStatus(422);
+});
+
 it('returns 422 when discount is negative', function () {
     $this->actingAs($this->user)
         ->postJson('/api/v1/customer-types', [
