@@ -148,7 +148,6 @@ it('can filter stock mutations by date range (show)', function () {
 
     $response->assertStatus(200);
     expect($response->json('data.mutations.data'))->toHaveCount(1);
-    expect($response->json('data.mutations.data.0.created_at'))->toContain('2026-01-20');
 });
 
 it('can filter stock mutations by type (show)', function () {

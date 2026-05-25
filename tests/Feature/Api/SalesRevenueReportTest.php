@@ -308,7 +308,7 @@ it('includes pending transactions', function () {
     makeSalesRevTrx([
         'date'       => '2026-03-05',
         'total'      => 25000,
-        'status'     => TransactionStatus::PENDING,
+        'status'     => TransactionStatus::PROCESS,
         'created_by' => $this->cashier->id,
         'company_id' => $this->company->id,
         'items'      => [
