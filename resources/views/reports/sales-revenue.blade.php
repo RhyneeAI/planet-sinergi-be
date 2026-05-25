@@ -223,13 +223,13 @@
                             <td nowrap class="text-center" rowspan="{{ $itemCount }}">{{ $loop->parent->iteration }}</td>
                             <td nowrap rowspan="{{ $itemCount }}">{{ $transaction['transaction_code'] }}</td>
                             <td rowspan="{{ $itemCount }}">{{ $transaction['date'] }}</td>
-                            <td rowspan="{{ $itemCount }}">
+                            <td rowspan="{{ $itemCount }}" @if($transaction['is_cicil']) class="status-{{ str_replace(' ', '-', strtolower($transaction['cicil_info']['status'])) }}" @endif>
                                 {{ $transaction['payment_type'] }}
-                                @if($transaction['is_cicil'])
+                                {{-- @if($transaction['is_cicil'])
                                     <small class="status-{{ str_replace(' ', '-', strtolower($transaction['cicil_info']['status'])) }}">
                                         ({{ $transaction['cicil_info']['status'] }})
                                     </small>
-                                @endif
+                                @endif --}}
                             </td>
                             <td rowspan="{{ $itemCount }}">{{ $transaction['cashier'] }}</td>
                         @endif
@@ -245,8 +245,8 @@
                         @if ($itemIndex === 0)
                             <td nowrap class="text-right" rowspan="{{ $itemCount }}">
                                 @if($transaction['is_cicil'] && $transaction['cicil_info']['remaining_amount'] > 0)
-                                    <span class="text-danger">
-                                        Rp {{ number_format($transaction['total'] - $transaction['cicil_info']['remaining_amount'], 0, ',', '.') }}
+                                    <span class="text-danger text-right">
+                                        Rp {{ number_format($transaction['cicil_info']['paid_amount'], 0, ',', '.') }}
                                     </span>
                                 @else
                                     Rp {{ number_format($transaction['total'], 0, ',', '.') }}
@@ -257,7 +257,7 @@
                             </td>
                             <td nowrap class="text-right" rowspan="{{ $itemCount }}">
                                 @if($transaction['is_cicil'] && $transaction['cicil_info']['remaining_amount'] > 0)
-                                    <span class="text-danger">
+                                    <span class="text-danger text-right">
                                         Rp {{ number_format($transaction['cicil_info']['remaining_amount'], 0, ',', '.') }}
                                     </span>
                                 @else

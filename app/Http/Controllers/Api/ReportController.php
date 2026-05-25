@@ -168,7 +168,7 @@ class ReportController extends Controller
         $details = SalesDetail::with([
                 'product:id,uuid,name,code,base_price,marketing_price,unit_id,sales_price', 
                 'product.unit:id,name',                                         
-                'saleTransaction:id,transaction_code,transaction_date,total,additional_cost,payment_type,created_by',
+                'saleTransaction:id,transaction_code,transaction_date,total,paid,additional_cost,payment_type,created_by',
                 'saleTransaction.createdBy:id,name,role',                   
                 'saleTransaction.installmentPlan:id,sales_transaction_id,paid_amount,total_amount,status',
             ])
@@ -219,13 +219,19 @@ class ReportController extends Controller
             $isOwner = $createdBy->role === Role::OWNER;
             
             // Hitung total keuntungan transaksi
-            $totalProfit = $items->sum(function ($item) use ($isOwner) {
+            $totalProfitFull = $items->sum(function ($item) use ($isOwner) {
                 $basePrice = $item->product->base_price;
                 $profit = $isOwner 
                     ? $item->sell_price - $basePrice 
                     : $item->marketing_price - $basePrice;
                 return $profit * $item->quantity;
             });
+
+            if ($isCicil && $plan && $plan->status !== 'COMPLETED') {
+                $totalProfit = 0;
+            } else {
+                $totalProfit = $totalProfitFull;
+            }           
             
             return [
                 'transaction_code' => $trx->transaction_code,
@@ -249,7 +255,7 @@ class ReportController extends Controller
                         'sales_price'=> $row->product->sales_price ?? '-',
                         'sell_price' => $row->sell_price,
                         'quantity'   => $row->quantity,
-                        'subtotal'   => $row->quantity * $row->sell_price,
+                        'subtotal'   => $row->subtotal,
                         'profit'     => $isOwner 
                             ? ($row->sell_price - $row->product->base_price) * $row->quantity
                             : ($row->marketing_price - $row->product->base_price) * $row->quantity,
@@ -261,7 +267,22 @@ class ReportController extends Controller
         // Grand total
         $grandTotal = [
             'total_qty'       => $details->sum('quantity'),
-            'total_revenue'   => $details->sum(fn($r) => $r->quantity * $r->sell_price),
+            'total_revenue' => $details->groupBy('saleTransaction.id')->sum(function ($items) {
+                $trx = $items->first()->saleTransaction;
+                
+                // Jika PAID atau UNPAID (lunas atau bayar langsung), pakai total
+                if ($trx->transaction_status === TransactionStatus::PAID) {
+                    return $trx->total;
+                }
+                
+                // Jika CICIL, pakai paid_amount (yang sudah dibayar)
+                if ($trx->payment_type === PaymentType::CICIL && $trx->installmentPlan) {
+                    return $trx->installmentPlan->paid_amount;
+                }
+                
+                // Jika PROCESS atau status lain, pakai paid (pembayaran yang sudah masuk)
+                return $trx->paid;
+            }),
             'total_profit'    => $detailTransactions->sum('profit'),
             'total_remaining' => $details
                 ->filter(fn($r) => $r->saleTransaction->payment_type === PaymentType::CICIL)
