@@ -1,38 +1,24 @@
 <?php
 
+use App\Enums\Role;
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        if (Schema::getConnection()->getDriverName() !== 'mysql') {
-            return;
-        }
-
-        DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM(
-            'SUPERADMIN',
-            'OWNER',
-            'ADMIN',
-            'MARKETING',
-            'KASIR',
-            'MANDOR',
-            'KARYAWAN'
-        ) NOT NULL");
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('role');
+            $table->enum('role', Role::values())->after('password');
+        });
     }
 
     public function down(): void
     {
-        if (Schema::getConnection()->getDriverName() !== 'mysql') {
-            return;
-        }
-
-        DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM(
-            'SUPERADMIN',
-            'OWNER',
-            'MARKETING'
-        ) NOT NULL");
+        Schema::table('users', function (Blueprint $table) {
+            $table->enum('role', ['SUPERADMIN', 'OWNER', 'MARKETING'])->change();
+        });
     }
 };

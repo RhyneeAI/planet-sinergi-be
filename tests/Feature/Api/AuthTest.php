@@ -22,7 +22,7 @@ beforeEach(function () {
 
 it('can login with valid credentials', function () {
     $response = $this->postJson('/api/v1/login', [
-        'username' => 'testuser',
+        'phone' => '081234567890',
         'password' => 'password123',
     ]);
 

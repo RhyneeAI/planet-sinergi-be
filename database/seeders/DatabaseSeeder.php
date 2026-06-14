@@ -20,7 +20,6 @@ class DatabaseSeeder extends Seeder
         $this->call([
             CompanySeeder::class,
             UserSeeder::class,
-            OperationalUserSeeder::class,
             UnitSeeder::class,
             CategorySeeder::class,
             SupplierSeeder::class,
@@ -29,6 +28,7 @@ class DatabaseSeeder extends Seeder
             ProductSeeder::class,
             SalesTransactionSeeder::class,
             PurchaseTransactionSeeder::class,
+            OperationalUserSeeder::class,
 
             MarketingCommissionReportSeeder::class,
             SalesRevenueReportSeeder::class,

@@ -16,12 +16,11 @@ class UserFactory extends Factory
         return [
             'uuid'       => fake()->uuid(),
             'name'       => fake()->name(),
-            'username'   => fake()->unique()->userName(),
+            'phone'      => fake()->unique()->numerify('08##########'),
             'email'      => fake()->unique()->safeEmail(),
             'password'   => Hash::make('password'),
-            'role'       => Role::MARKETING, // ← default cashier, bukan random
+            'role'       => Role::OWNER,
             'address'    => fake()->address(),
-            'phone'      => fake()->phoneNumber(),
             'company_id' => Company::factory(),
         ];
     }

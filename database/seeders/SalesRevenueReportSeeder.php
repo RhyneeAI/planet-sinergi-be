@@ -32,10 +32,11 @@ class SalesRevenueReportSeeder extends Seeder
             'code'    => 'TSJ-001',
         ]);
 
+        // Gunakan phone yang belum dipakai
         $owner = User::create([
             'uuid'       => Str::uuid(),
             'name'       => 'Owner Sejahtera',
-            'username'   => 'owner_gp3',
+            'phone'      => '081234567903', // ← ganti
             'email'      => 'owner@sejahtera.com',
             'password'   => Hash::make('owner_gp3'),
             'role'       => Role::OWNER,
@@ -45,7 +46,7 @@ class SalesRevenueReportSeeder extends Seeder
         $cashier = User::create([
             'uuid'       => Str::uuid(),
             'name'       => 'Kasir Sejahtera',
-            'username'   => 'kasir_sejahtera',
+            'phone'      => '081234567904', // ← ganti
             'email'      => 'kasir@sejahtera.com',
             'password'   => Hash::make('password'),
             'role'       => Role::MARKETING,
@@ -55,7 +56,7 @@ class SalesRevenueReportSeeder extends Seeder
         $cashier2 = User::create([
             'uuid'       => Str::uuid(),
             'name'       => 'Kasir Kuda',
-            'username'   => 'kasir_kuda',
+            'phone'      => '081234567905', // ← ganti
             'email'      => 'kasirkuda@sejahtera.com',
             'password'   => Hash::make('password'),
             'role'       => Role::MARKETING,
@@ -141,7 +142,7 @@ class SalesRevenueReportSeeder extends Seeder
                 'discount'   => 0,
                 'created_by' => $cashier->id,
                 'items'      => [
-                    ['code' => 'SJ-007', 'qty' => 10, 'price' => 4000], // Indomie — terlaris
+                    ['code' => 'SJ-007', 'qty' => 10, 'price' => 4000],
                     ['code' => 'SJ-006', 'qty' => 5,  'price' => 6000],
                     ['code' => 'SJ-001', 'qty' => 3,  'price' => 5000],
                 ],
@@ -165,7 +166,7 @@ class SalesRevenueReportSeeder extends Seeder
                 'discount'   => 0,
                 'created_by' => $cashier->id,
                 'items'      => [
-                    ['code' => 'SJ-007', 'qty' => 20, 'price' => 4000], // Indomie banyak
+                    ['code' => 'SJ-007', 'qty' => 20, 'price' => 4000],
                     ['code' => 'SJ-001', 'qty' => 6,  'price' => 5000],
                 ],
             ],
@@ -283,14 +284,15 @@ class SalesRevenueReportSeeder extends Seeder
                 $subtotal = $item['qty'] * $item['price'];
 
                 SalesDetail::create([
-                    'ulid'       => Str::ulid(),
-                    'sale_id'    => $transaction->id,
-                    'product_id' => $product->id,
-                    'quantity'   => $item['qty'],
-                    'sell_price' => $item['price'],
-                    'discount'   => 0,
-                    'subtotal'   => $subtotal,
-                    'company_id' => $company->id,
+                    'ulid'            => Str::ulid(),
+                    'sale_id'         => $transaction->id,
+                    'product_id'      => $product->id,
+                    'quantity'        => $item['qty'],
+                    'sell_price'      => $item['price'],
+                    'marketing_price' => $product->sales_price, // ← tambahkan ini
+                    'discount'        => 0,
+                    'subtotal'        => $subtotal,
+                    'company_id'      => $company->id,
                 ]);
 
                 $product->decrement('stock', $item['qty']);
@@ -298,12 +300,12 @@ class SalesRevenueReportSeeder extends Seeder
         }
 
         $this->command->info('SalesRevenueReportSeeder selesai.');
-        $this->command->info('Company: Toko Sejahtera (login: owner_sejahtera / password)');
+        $this->command->info('Company: Toko Sejahtera');
+        $this->command->info('Owner phone: 081234567893 / password: owner_gp3');
         $this->command->info('Period test: 2026-01-01 s/d 2026-04-30');
         $this->command->info('');
         $this->command->info('Ekspektasi Top Produk (Indomie = ' . (10+15+20+8+12+25+30+20) . ' qty):');
 
-        // Print ekspektasi top produk untuk verifikasi manual
         $expected = [
             'SJ-007 Indomie Goreng'          => 10+15+20+8+12+25+30+20,
             'SJ-001 Sabun Mandi Lifebuoy'    => 3+6+10+12,

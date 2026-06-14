@@ -27,7 +27,7 @@ return new class extends Migration
             $table->softDeletes();
             $table->timestamps();
 
-             $table->unique(['email', 'company_id']); 
+            $table->unique(['email', 'company_id']); 
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

@@ -21,15 +21,16 @@ class StagingSeeder extends Seeder
     public function run(): void
     {
         $company = Company::create([
-            'name'    => 'Toko Sejahtera Staging',
-            'address' => 'Jl. Staging No. 99',
-            'code'    => 'TSS-STAGING',
+            'uuid'     => Str::uuid(),
+            'name'     => 'Toko Sejahtera Staging',
+            'address'  => 'Jl. Staging No. 99',
+            'code'     => 'TSS-STAGING',
         ]);
 
         $owner = User::create([
             'uuid'       => Str::uuid(),
             'name'       => 'Owner Staging',
-            'username'   => 'owner_gp_staging',
+            'phone'      => '081234567901',
             'email'      => 'owner_gp_staging@sejahtera.com',
             'password'   => Hash::make('owner_gp_staging'),
             'role'       => Role::OWNER,
@@ -39,7 +40,7 @@ class StagingSeeder extends Seeder
         $cashier = User::create([
             'uuid'       => Str::uuid(),
             'name'       => 'Kasir Sejahtera',
-            'username'   => 'kasir_gp_staging',
+            'phone'      => '081234567902',
             'email'      => 'kasir_gp_staging@sejahtera.com',
             'password'   => Hash::make('kasir_gp_staging'),
             'role'       => Role::MARKETING,
@@ -47,7 +48,7 @@ class StagingSeeder extends Seeder
         ]);
 
         // ================================
-        // Master Data
+        // Master Data (Optional - uncomment jika perlu)
         // ================================
         // $category = Category::create([
         //     'uuid'       => Str::uuid(),

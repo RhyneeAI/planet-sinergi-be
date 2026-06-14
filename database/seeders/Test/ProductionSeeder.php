@@ -29,7 +29,7 @@ class ProductionSeeder extends Seeder
         User::create([
             'uuid'       => Str::uuid(),
             'name'       => 'Owner Gudang Planet',
-            'username'   => 'gp_owner',
+            'phone'      => '081234567801',
             'email'      => 'owner@gudangplanet.com',
             'password'   => Hash::make('gp_owner'),
             'role'       => Role::OWNER,
@@ -39,7 +39,7 @@ class ProductionSeeder extends Seeder
         User::create([
             'uuid'       => Str::uuid(),
             'name'       => 'Marketing Gudang Planet',
-            'username'   => 'gp_marketing',
+            'phone'      => '081234567802',
             'email'      => 'marketing@gudangplanet.com',
             'password'   => Hash::make('gp_marketing'),
             'role'       => Role::MARKETING,
@@ -61,7 +61,7 @@ class ProductionSeeder extends Seeder
         User::create([
             'uuid'       => Str::uuid(),
             'name'       => 'Owner Gudang Planet 2',
-            'username'   => 'gp2_owner',
+            'phone'      => '081234567803',
             'email'      => 'owner@gudangplanet2.com',
             'password'   => Hash::make('gp2_owner'),
             'role'       => Role::OWNER,
@@ -71,7 +71,7 @@ class ProductionSeeder extends Seeder
         User::create([
             'uuid'       => Str::uuid(),
             'name'       => 'Marketing Gudang Planet 2',
-            'username'   => 'gp2_marketing',
+            'phone'      => '081234567804',
             'email'      => 'marketing@gudangplanet2.com',
             'password'   => Hash::make('gp2_marketing'),
             'role'       => Role::MARKETING,
@@ -93,7 +93,7 @@ class ProductionSeeder extends Seeder
         User::create([
             'uuid'       => Str::uuid(),
             'name'       => 'SuperAdmin GP Test',
-            'username'   => 'gp_superadmin',
+            'phone'      => '081234567805',
             'email'      => 'superadmin@gudangplanet.com',
             'password'   => Hash::make('gp_superadmin'),
             'role'       => Role::SUPERADMIN,
@@ -103,7 +103,7 @@ class ProductionSeeder extends Seeder
         User::create([
             'uuid'       => Str::uuid(),
             'name'       => 'Owner GP Test',
-            'username'   => 'gptest_owner',
+            'phone'      => '081234567806',
             'email'      => 'owner@gudangplanettest.com',
             'password'   => Hash::make('gptest_owner'),
             'role'       => Role::OWNER,
@@ -113,7 +113,7 @@ class ProductionSeeder extends Seeder
         User::create([
             'uuid'       => Str::uuid(),
             'name'       => 'Marketing GP Test',
-            'username'   => 'gptest_marketing',
+            'phone'      => '081234567807',
             'email'      => 'marketing@gudangplanettest.com',
             'password'   => Hash::make('gptest_marketing'),
             'role'       => Role::MARKETING,

@@ -12,7 +12,6 @@ use App\Models\MarketingProduct;
 use App\Models\Product;
 use App\Models\SalesDetail;
 use App\Models\SalesTransaction;
-use App\Models\Supplier;
 use App\Models\Unit;
 use App\Models\User;
 use App\Enums\Role;
@@ -27,84 +26,93 @@ class MarketingCommissionReportSeeder extends Seeder
         // ================================
         // Ambil atau buat Company
         // ================================
-        $company = Company::factory()->create([
-            'uuid'       => (string) Str::uuid(),
-            'name' => 'Toko Maju Jaya',
-            'code' => 'TMJ-001',
-        ]);
+        $company = Company::updateOrCreate(
+            ['code' => 'TMJ-001'],
+            [
+                'uuid'       => (string) Str::uuid(),
+                'name'       => 'Toko Maju Jaya',
+                'code'       => 'TMJ-001',
+            ]
+        );
 
         // ================================
         // Ambil atau buat Owner
         // ================================
-        // $owner = User::where('role', Role::OWNER)
-        //     ->where('company_id', $company->id)
-        //     ->first();
-
-        // if (!$owner) {
-            $owner = User::factory()->owner()->create([
+        $owner = User::updateOrCreate(
+            ['phone' => '081234567890'],
+            [
                 'uuid'       => (string) Str::uuid(),
                 'name'       => 'Owner',
-                'username'   => 'owner_gp2',
+                'phone'      => '081234567890',
                 'email'      => 'owner@example.com',
                 'password'   => Hash::make('owner_gp2'),
+                'role'       => Role::OWNER,
                 'company_id' => $company->id,
-            ]);
-        // }
+            ]
+        );
 
         // ================================
-        // Buat Marketing Users
+        // Buat Marketing Users (dengan phone)
         // ================================
-        $abdillah = User::where('username', 'abdillah')
-            ->where('company_id', $company->id)
-            ->first() ?? User::create([
+        $abdillah = User::updateOrCreate(
+            ['phone' => '081234567891'],
+            [
                 'uuid'       => Str::uuid(),
                 'name'       => 'Abdillah',
-                'username'   => 'abdillah',
+                'phone'      => '081234567891',
                 'email'      => 'abdillah@example.com',
                 'password'   => Hash::make('password'),
                 'role'       => Role::MARKETING,
                 'company_id' => $company->id,
-            ]);
+            ]
+        );
 
-        $ahmad = User::where('username', 'ahmad')
-            ->where('company_id', $company->id)
-            ->first() ?? User::create([
+        $ahmad = User::updateOrCreate(
+            ['phone' => '081234567892'],
+            [
                 'uuid'       => Str::uuid(),
                 'name'       => 'Ahmad',
-                'username'   => 'ahmad',
+                'phone'      => '081234567892',
                 'email'      => 'ahmad@example.com',
                 'password'   => Hash::make('password'),
                 'role'       => Role::MARKETING,
                 'company_id' => $company->id,
-            ]);
+            ]
+        );
 
         // ================================
         // Buat Master Data
         // ================================
-        $category = Category::where('company_id', $company->id)->first()
-            ?? Category::create([
+        $category = Category::firstOrCreate(
+            ['name' => 'Produk Umum', 'company_id' => $company->id],
+            [
                 'uuid'       => Str::uuid(),
                 'name'       => 'Produk Umum',
                 'created_by' => $owner->id,
                 'company_id' => $company->id,
-            ]);
+            ]
+        );
 
-        $unit = Unit::where('company_id', $company->id)->first()
-            ?? Unit::create([
+        $unit = Unit::firstOrCreate(
+            ['name' => 'Pcs', 'company_id' => $company->id],
+            [
                 'uuid'       => Str::uuid(),
                 'name'       => 'Pcs',
                 'created_by' => $owner->id,
                 'company_id' => $company->id,
-            ]);
+            ]
+        );
 
-        $customerType = CustomerType::where('company_id', $company->id)->first()
-            ?? CustomerType::create([
+        $customerType = CustomerType::firstOrCreate(
+            ['type' => 'Regular', 'company_id' => $company->id],
+            [
                 'uuid'       => Str::uuid(),
                 'type'       => 'Regular',
                 'discount'   => 0,
                 'created_by' => $owner->id,
                 'company_id' => $company->id,
-            ]);
+            ]
+        );
 
         // ================================
         // Buat Customers
@@ -113,20 +121,20 @@ class MarketingCommissionReportSeeder extends Seeder
         $customerNames = ['Andi', 'Budi', 'Siti', 'Keysha', 'Zhee', 'Abdi'];
 
         foreach ($customerNames as $name) {
-            $slug = strtolower(str_replace(' ', '_', $name));
-            $customers[$name] = Customer::where('company_id', $company->id)
-                ->whereRaw('LOWER(name) = ?', [strtolower($name)])
-                ->first() ?? Customer::create([
+            $customers[$name] = Customer::firstOrCreate(
+                ['name' => $name, 'company_id' => $company->id],
+                [
                     'uuid'             => Str::uuid(),
                     'name'             => $name,
                     'customer_type_id' => $customerType->id,
                     'created_by'       => $owner->id,
                     'company_id'       => $company->id,
-                ]);
+                ]
+            );
         }
 
         // ================================
-        // Buat Products
+        // Buat Products (dengan marketing_price)
         // ================================
         $productsData = [
             [
@@ -134,6 +142,7 @@ class MarketingCommissionReportSeeder extends Seeder
                 'code'             => 'PRD-001',
                 'base_price'       => 5000,
                 'sales_price'      => 8000,
+                'marketing_price'  => 6500,
                 'stock'            => 500,
             ],
             [
@@ -141,6 +150,7 @@ class MarketingCommissionReportSeeder extends Seeder
                 'code'             => 'PRD-002',
                 'base_price'       => 12000,
                 'sales_price'      => 18000,
+                'marketing_price'  => 15000,
                 'stock'            => 300,
             ],
             [
@@ -148,6 +158,7 @@ class MarketingCommissionReportSeeder extends Seeder
                 'code'             => 'PRD-003',
                 'base_price'       => 8000,
                 'sales_price'      => 12000,
+                'marketing_price'  => 9500,
                 'stock'            => 400,
             ],
             [
@@ -155,6 +166,7 @@ class MarketingCommissionReportSeeder extends Seeder
                 'code'             => 'PRD-004',
                 'base_price'       => 15000,
                 'sales_price'      => 20000,
+                'marketing_price'  => 17000,
                 'stock'            => 200,
             ],
             [
@@ -162,38 +174,36 @@ class MarketingCommissionReportSeeder extends Seeder
                 'code'             => 'PRD-005',
                 'base_price'       => 10000,
                 'sales_price'      => 14000,
+                'marketing_price'  => 12000,
                 'stock'            => 350,
             ],
         ];
 
         $products = [];
         foreach ($productsData as $pd) {
-            $products[$pd['code']] = Product::where('code', $pd['code'])
-                ->where('company_id', $company->id)
-                ->first() ?? Product::create([
+            $products[$pd['code']] = Product::updateOrCreate(
+                ['code' => $pd['code'], 'company_id' => $company->id],
+                [
                     'uuid'            => Str::uuid(),
                     'name'            => $pd['name'],
                     'code'            => $pd['code'],
                     'base_price'      => $pd['base_price'],
                     'sales_price'     => $pd['sales_price'],
-                    'marketing_price' => $pd['marketing_price'],
+                    'marketing_price' => $pd['marketing_price'],  // ← PASTIKAN INI ADA
                     'stock'           => $pd['stock'],
                     'is_active'       => true,
                     'category_id'     => $category->id,
                     'unit_id'         => $unit->id,
                     'created_by'      => $owner->id,
                     'company_id'      => $company->id,
-                ]);
+                ]
+            );
         }
 
         // ================================
         // Assign Marketing Products
         // ================================
-        // Sekarang marketing_price disimpan di Product, bukan MarketingProduct
-        // Hanya perlu membuat relationship antara marketing dan product
-
         foreach ([$abdillah, $ahmad] as $marketing) {
-            // Assign semua products ke setiap marketing
             foreach ($products as $code => $product) {
                 MarketingProduct::firstOrCreate(
                     [
@@ -239,7 +249,7 @@ class MarketingCommissionReportSeeder extends Seeder
             [
                 'marketing'  => $abdillah,
                 'date'       => '2026-03-05',
-                'customer'   => null, // Umum
+                'customer'   => null,
                 'payment'    => PaymentType::QRIS,
                 'discount'   => 5000,
                 'items'      => [
@@ -259,7 +269,6 @@ class MarketingCommissionReportSeeder extends Seeder
                     ['product' => 'PRD-004', 'qty' => 3, 'price' => 18000],
                 ],
             ],
-
             // Ahmad transactions
             [
                 'marketing'  => $ahmad,
@@ -297,7 +306,7 @@ class MarketingCommissionReportSeeder extends Seeder
             [
                 'marketing'  => $ahmad,
                 'date'       => '2026-04-05',
-                'customer'   => null, // Umum
+                'customer'   => null,
                 'payment'    => PaymentType::QRIS,
                 'discount'   => 8000,
                 'items'      => [
@@ -309,13 +318,11 @@ class MarketingCommissionReportSeeder extends Seeder
         ];
 
         foreach ($salesData as $index => $sale) {
-            // Hitung total dari items
             $total = collect($sale['items'])->sum(fn($i) => $i['qty'] * $i['price']);
             $totalAfterDiscount = $total - $sale['discount'];
 
             $trxCode = 'SO-SEED-' . str_pad($index + 1, 4, '0', STR_PAD_LEFT);
 
-            // Skip jika sudah ada
             if (SalesTransaction::where('transaction_code', $trxCode)->exists()) {
                 continue;
             }
@@ -334,23 +341,22 @@ class MarketingCommissionReportSeeder extends Seeder
                 'company_id'         => $company->id,
             ]);
 
-            // Insert SalesDetails
             foreach ($sale['items'] as $item) {
                 $product  = $products[$item['product']];
                 $subtotal = $item['qty'] * $item['price'];
 
                 SalesDetail::create([
-                    'ulid'       => Str::ulid(),
-                    'sale_id'    => $transaction->id,
-                    'product_id' => $product->id,
-                    'quantity'   => $item['qty'],
-                    'sell_price' => $item['price'],
-                    'discount'   => 0,
-                    'subtotal'   => $subtotal,
-                    'company_id' => $company->id,
+                    'ulid'            => Str::ulid(),
+                    'sale_id'         => $transaction->id,
+                    'product_id'      => $product->id,
+                    'quantity'        => $item['qty'],
+                    'sell_price'      => $item['price'],
+                    'marketing_price' => $product->marketing_price, // ← sekarang sudah ada nilainya
+                    'discount'        => 0,
+                    'subtotal'        => $subtotal,
+                    'company_id'      => $company->id,
                 ]);
 
-                // Kurangi stok produk
                 $product->decrement('stock', $item['qty']);
             }
         }
