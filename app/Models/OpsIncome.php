@@ -4,17 +4,17 @@ namespace App\Models;
 
 use App\Enums\OpsSourceType;
 use App\Models\Scopes\CompanyScope;
-use App\Traits\HasUlid;
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class OpsIncome extends Model
 {
-    use HasFactory, SoftDeletes, HasUlid;
+    use HasFactory, SoftDeletes, HasUuid;
 
     protected $fillable = [
-        'ulid',
+        'uuid',
         'name',
         'amount',
         'date',
@@ -55,5 +55,10 @@ class OpsIncome extends Model
     public function transferConfirmation()
     {
         return $this->morphOne(OpsTransferConfirmation::class, 'confirmable');
+    }
+
+    public function editLogs()
+    {
+        return $this->hasMany(OpsEditLog::class, 'loggable_id', 'id')->where('loggable_type', 'ops_incomes');
     }
 }

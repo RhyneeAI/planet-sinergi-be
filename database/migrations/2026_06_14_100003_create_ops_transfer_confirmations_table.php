@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('ops_transfer_confirmations', function (Blueprint $table) {
             $table->id();
-            $table->ulid('ulid')->unique();
+            $table->uuid('uuid')->unique();
             $table->string('confirmable_type', 100);
             $table->unsignedBigInteger('confirmable_id');
             $table->enum('status', ['PENDING', 'CONFIRMED', 'REJECTED'])->default('PENDING');

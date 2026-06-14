@@ -4,16 +4,16 @@ namespace App\Models;
 
 use App\Enums\OpsTransferConfirmationStatus;
 use App\Models\Scopes\CompanyScope;
-use App\Traits\HasUlid;
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class OpsTransferConfirmation extends Model
 {
-    use HasFactory, HasUlid;
+    use HasFactory, HasUuid;
 
     protected $fillable = [
-        'ulid',
+        'uuid',
         'confirmable_type',
         'confirmable_id',
         'status',

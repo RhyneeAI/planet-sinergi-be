@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-use App\Enums\OpsWalletTransactionType;
+use App\Enums\OpsNotificationType;
 use App\Models\Scopes\CompanyScope;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class OpsWalletTransaction extends Model
+class OpsNotification extends Model
 {
     use HasFactory, HasUuid;
 
@@ -16,24 +16,22 @@ class OpsWalletTransaction extends Model
 
     protected $fillable = [
         'uuid',
-        'wallet_id',
+        'user_id',
         'type',
-        'amount',
-        'balance_before',
-        'balance_after',
-        'reference_type',
-        'reference_id',
-        'note',
-        'created_by',
+        'title',
+        'message',
+        'notifiable_type',
+        'notifiable_id',
+        'is_read',
+        'read_at',
         'company_id',
         'created_at',
     ];
 
     protected $casts = [
-        'type' => OpsWalletTransactionType::class,
-        'amount' => 'decimal:2',
-        'balance_before' => 'decimal:2',
-        'balance_after' => 'decimal:2',
+        'type' => OpsNotificationType::class,
+        'is_read' => 'boolean',
+        'read_at' => 'datetime',
         'created_at' => 'datetime',
     ];
 
@@ -48,9 +46,9 @@ class OpsWalletTransaction extends Model
         });
     }
 
-    public function wallet()
+    public function user()
     {
-        return $this->belongsTo(OpsWallet::class, 'wallet_id');
+        return $this->belongsTo(User::class);
     }
 
     public function company()
@@ -58,13 +56,8 @@ class OpsWalletTransaction extends Model
         return $this->belongsTo(Company::class);
     }
 
-    public function createdBy()
+    public function notifiable()
     {
-        return $this->belongsTo(User::class, 'created_by');
-    }
-
-    public function reference()
-    {
-        return $this->morphTo(__FUNCTION__, 'reference_type', 'reference_id');
+        return $this->morphTo();
     }
 }

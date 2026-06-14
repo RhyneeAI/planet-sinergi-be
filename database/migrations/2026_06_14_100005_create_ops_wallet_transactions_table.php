@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('ops_wallet_transactions', function (Blueprint $table) {
             $table->id();
-            $table->ulid('ulid')->unique();
+            $table->uuid('uuid')->unique();
             $table->foreignId('wallet_id')->constrained('ops_wallets')->cascadeOnDelete();
             $table->enum('type', ['CASH', 'TRANSFER']);
             $table->decimal('amount', 15, 2);

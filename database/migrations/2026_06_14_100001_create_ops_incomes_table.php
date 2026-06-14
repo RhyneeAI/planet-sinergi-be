@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('ops_incomes', function (Blueprint $table) {
             $table->id();
-            $table->ulid('ulid')->unique();
+            $table->uuid('uuid')->unique();
             $table->string('name');
             $table->decimal('amount', 15, 2);
             $table->date('date');

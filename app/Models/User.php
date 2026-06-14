@@ -90,6 +90,11 @@ class User extends Authenticatable
         return $this->hasMany(OpsExpense::class, 'mandor_id');
     }
 
+    public function opsNotifications()
+    {
+        return $this->hasMany(OpsNotification::class);
+    }
+
     // Helper methods
     public function isSuperAdmin(): bool
     {
