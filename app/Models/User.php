@@ -75,6 +75,26 @@ class User extends Authenticatable
         return $this->hasMany(StockMutation::class, 'created_by');
     }
 
+    public function opsWallet()
+    {
+        return $this->hasOne(OpsWallet::class, 'mandor_id');
+    }
+
+    public function mandorIncomes()
+    {
+        return $this->hasMany(OpsIncome::class, 'mandor_id');
+    }
+
+    public function mandorExpenses()
+    {
+        return $this->hasMany(OpsExpense::class, 'mandor_id');
+    }
+
+    public function opsNotifications()
+    {
+        return $this->hasMany(OpsNotification::class);
+    }
+
     // Helper methods
     public function isSuperAdmin(): bool
     {

@@ -76,4 +76,19 @@ class Company extends Model
     {
         return $this->hasMany(StockMutation::class);
     }
+
+    public function opsIncomes()
+    {
+        return $this->hasMany(OpsIncome::class);
+    }
+
+    public function opsExpenses()
+    {
+        return $this->hasMany(OpsExpense::class);
+    }
+
+    public function opsWallets()
+    {
+        return $this->hasMany(OpsWallet::class);
+    }
 }
