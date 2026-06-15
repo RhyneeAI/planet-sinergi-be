@@ -1,6 +1,9 @@
 <?php
 
 return [
+    'dashboard' => [
+        'date_filter_must_be_same_month' => 'Date filter must be same month.',
+    ],
     'incomes' => [
         'list' => 'Operational incomes retrieved successfully.',
         'detail' => 'Operational income detail retrieved successfully.',
@@ -8,6 +11,8 @@ return [
         'not_pending' => 'Income is not pending.',
         'updated' => 'Income updated successfully.',
         'deleted' => 'Income deleted successfully.',
+        'store_window_expired' => 'Incomes can only be recorded within the last :days days.',
+        'edit_window_expired' => 'Incomes can only be edited within the last :days days.',
     ],
     'expenses' => [
         'list' => 'Operational expenses retrieved successfully.',
@@ -17,6 +22,7 @@ return [
         'deleted' => 'Expense deleted successfully.',
         'blocked_insufficient_balance' => 'Insufficient virtual balance. Expense blocked.',
         'edit_window_expired' => 'Expenses can only be edited within the last :days days.',
+        'store_window_expired' => 'Expenses can only be recorded within the last :days days.',
         'edit_limit_reached' => 'Edit limit for this expense has been reached.',
     ],
     'confirmations' => [

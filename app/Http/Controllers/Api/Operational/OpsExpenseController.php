@@ -14,6 +14,7 @@ use App\Models\OpsExpense;
 use App\Services\Operational\OpsFileService;
 use App\Services\Operational\OpsNotificationService;
 use App\Services\Operational\OpsWalletService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -65,6 +66,17 @@ class OpsExpenseController extends Controller
 
     public function store(OpsExpenseStoreRequest $request)
     {
+        $editWindowDays = config('operational.expense_edit_window_days');
+        $requestDate = Carbon::parse($request->date)->startOfDay();
+        $limitDate = now()->subDays($editWindowDays)->startOfDay();
+        if ($requestDate->lt($limitDate)) {
+            return response()->json([
+                'success' => false,
+                'message' => __('operational.expenses.store_window_expired', ['days' => $editWindowDays]),
+                'code' => 422,
+            ], 422);
+        }
+
         $user = $request->user();
         $wallet = $this->walletService->getOrCreateWallet($user);
 
@@ -145,7 +157,9 @@ class OpsExpenseController extends Controller
         $editWindowDays = config('operational.expense_edit_window_days');
         // $maxEditCount = config('operational.expense_max_edit_count');
 
-        if ($opsExpense->created_at->lt(now()->subDays($editWindowDays))) {
+        $requestDate = Carbon::parse($request->date)->startOfDay();
+        $limitDate = now()->subDays($editWindowDays)->startOfDay();
+        if ($requestDate->lt($limitDate)) {
             return response()->json([
                 'success' => false,
                 'message' => __('operational.expenses.edit_window_expired', ['days' => $editWindowDays]),

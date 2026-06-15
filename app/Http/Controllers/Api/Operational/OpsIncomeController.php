@@ -14,6 +14,7 @@ use App\Models\OpsTransferConfirmation;
 use App\Models\User;
 use App\Services\Operational\OpsFileService;
 use App\Services\Operational\OpsNotificationService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -56,8 +57,18 @@ class OpsIncomeController extends Controller
 
     public function store(OpsIncomeStoreRequest $request)
     {
-        DB::beginTransaction();
+        $editWindowDays = config('operational.expense_edit_window_days');
+        $requestDate = Carbon::parse($request->date)->startOfDay();
+        $limitDate = now()->subDays($editWindowDays)->startOfDay();
+        if ($requestDate->lt($limitDate)) {
+            return response()->json([
+                'success' => false,
+                'message' => __('operational.incomes.store_window_expired', ['days' => $editWindowDays]),
+                'code' => 422,
+            ], 422);
+        }
 
+        DB::beginTransaction();
         try {
             $mandor = User::where('uuid', $request->mandor_uuid)
                 ->where('company_id', $request->user()->company_id)
@@ -102,8 +113,6 @@ class OpsIncomeController extends Controller
 
     public function show(OpsIncome $opsIncome)
     {
-
-
         return response()->json([
             'success' => true,
             'message' => __('operational.incomes.detail'),
@@ -115,6 +124,17 @@ class OpsIncomeController extends Controller
 
     public function update(OpsIncomeUpdateRequest $request, OpsIncome $opsIncome)
     {
+        $editWindowDays = config('operational.expense_edit_window_days');
+        $requestDate = Carbon::parse($request->date)->startOfDay();
+        $limitDate = now()->subDays($editWindowDays)->startOfDay();
+        if ($requestDate->lt($limitDate)) {
+            return response()->json([
+                'success' => false,
+                'message' => __('operational.incomes.edit_window_expired', ['days' => $editWindowDays]),
+                'code' => 422,
+            ], 422);
+        }
+
         DB::beginTransaction();
         try {
             if ($opsIncome->transferConfirmation->status !== OpsTransferConfirmationStatus::PENDING) {

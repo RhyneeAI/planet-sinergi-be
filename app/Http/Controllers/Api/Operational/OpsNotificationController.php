@@ -26,6 +26,8 @@ class OpsNotificationController extends Controller
         }])
             ->where('user_id', $request->user()->id)
             ->when($request->boolean('unread_only') == true, fn($q) => $q->where('is_read', false))
+            ->when($request->date_from, fn($q, $date) => $q->whereDate('created_at', '>=', $date))
+            ->when($request->date_to, fn($q, $date) => $q->whereDate('created_at', '<=', $date))
             ->orderByDesc('created_at')
             ->paginate($request->input('per_page', 15));
 
@@ -35,6 +37,8 @@ class OpsNotificationController extends Controller
             'data' => OpsNotificationResource::collection($notifications),
             'meta' => [
                 'unread_count' => OpsNotification::where('user_id', $request->user()->id)
+                    ->when($request->date_from, fn($q, $date) => $q->whereDate('created_at', '>=', $date))
+                    ->when($request->date_to, fn($q, $date) => $q->whereDate('created_at', '<=', $date))
                     ->where('is_read', false)
                     ->count(),
             ],

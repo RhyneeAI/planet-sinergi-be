@@ -1,10 +1,18 @@
 <?php
 
 return [
+    'dashboard' => [
+        'date_filter_must_be_same_month' => 'Filter Tanggal harus dalam bulan yang sama.',
+    ],
     'incomes' => [
         'list' => 'Daftar pemasukan operasional berhasil diambil.',
         'detail' => 'Detail pemasukan operasional berhasil diambil.',
         'stored' => 'Pencairan dana berhasil dicatat. Menunggu konfirmasi mandor.',
+        'not_pending' => 'Pencairan dana tidak dalam status PENDING.',
+        'updated' => 'Pencairan dana berhasil diubah.',
+        'deleted' => 'Pencairan dana berhasil dihapus.',
+        'store_window_expired' => 'Pencairan dana hanya dapat dicatat dalam :days hari terakhir.',
+        'edit_window_expired' => 'Pencairan dana hanya dapat diedit dalam :days hari terakhir.',
     ],
     'expenses' => [
         'list' => 'Daftar pengeluaran operasional berhasil diambil.',
@@ -14,6 +22,7 @@ return [
         'deleted' => 'Pengeluaran berhasil dihapus.',
         'blocked_insufficient_balance' => 'Saldo virtual tidak mencukupi. Pengeluaran diblokir.',
         'edit_window_expired' => 'Pengeluaran hanya dapat diedit dalam :days hari terakhir.',
+        'store_window_expired' => 'Pengeluaran hanya dapat dicatat dalam :days hari terakhir.',
         'edit_limit_reached' => 'Batas edit untuk pengeluaran ini sudah tercapai.',
     ],
     'confirmations' => [

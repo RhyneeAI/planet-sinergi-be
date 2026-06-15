@@ -6,14 +6,42 @@ use App\Enums\Role;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Operational\OpsMandorResource;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Builder;
 
 class OpsMandorController extends Controller
 {
     public function index(Request $request)
     {
+        $dateFrom = $request->filled('date_from')
+            ? Carbon::parse($request->date_from)->startOfDay()
+            : today()->startOfDay();
+
+        $dateTo = $request->filled('date_to')
+            ? Carbon::parse($request->date_to)->endOfDay()
+            : today()->endOfDay();
+
         $mandors = User::where('role', Role::MANDOR)
             ->where('is_active', true)
+            ->when($request->boolean('is_dashboard_data'), function ($query) use ($dateFrom, $dateTo) {
+                $query
+                    ->withSum([
+                        'mandorIncomes as total_income' => function (Builder $q) use ($dateFrom, $dateTo) {
+                            $q->whereBetween('date', [$dateFrom, $dateTo]);
+                        }
+                    ], 'amount')
+                    ->withSum([
+                        'mandorExpenses as total_expense' => function (Builder $q) use ($dateFrom, $dateTo) {
+                            $q->whereBetween('date', [$dateFrom, $dateTo]);
+                        }
+                    ], 'amount');
+                // ->withSum([
+                //     'opsWallet as wallet_total' => function (Builder $q) use ($dateFrom, $dateTo) {
+                //         $q->whereBetween('created_at', [$dateFrom, $dateTo]);
+                //     }
+                // ], 'balance');
+            })
             ->when($request->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($search) . '%'])

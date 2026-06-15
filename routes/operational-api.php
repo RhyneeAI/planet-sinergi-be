@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Operational\OpsDashboardController;
 use App\Http\Controllers\Api\Operational\OpsEditLogController;
 use App\Http\Controllers\Api\Operational\OpsExpenseController;
 use App\Http\Controllers\Api\Operational\OpsIncomeController;
@@ -13,6 +14,8 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1/operational')->group(function () {
     Route::middleware(['auth:sanctum'])->group(function () {
         Route::middleware(['role:SUPERADMIN,OWNER,ADMIN,MANDOR'])->group(function () {
+            Route::get('/dashboard-data', [OpsDashboardController::class, 'index']);
+
             Route::prefix('notifications')->group(function () {
                 Route::get('/', [OpsNotificationController::class, 'index']);
                 Route::patch('/read-all', [OpsNotificationController::class, 'markAllAsRead']);
