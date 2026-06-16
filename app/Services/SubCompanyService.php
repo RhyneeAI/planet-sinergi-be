@@ -9,6 +9,7 @@ use App\Models\SubCompany;
 use App\Models\User;
 use App\Services\Operational\OpsWalletService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Validation\ValidationException;
 
 class SubCompanyService
 {
@@ -99,10 +100,154 @@ class SubCompanyService
 
     public function resolveForMandor(string $uuid, User $mandor): SubCompany
     {
-        return SubCompany::where('uuid', $uuid)
+        $subCompany = SubCompany::where('uuid', $uuid)
             ->where('mandor_id', $mandor->id)
             ->where('is_active', true)
-            ->firstOrFail();
+            ->first();
+
+        if (!$subCompany) {
+            throw ValidationException::withMessages([
+                'sub_company_uuid' => [__('operational.validation.sub_company_uuid_not_found')],
+            ]);
+        }
+
+        return $subCompany;
+    }
+
+    public function resolveForMandorRequest(?string $uuid, User $mandor): SubCompany
+    {
+        if ($uuid) {
+            return $this->resolveForMandor($uuid, $mandor);
+        }
+
+        $branches = SubCompany::where('mandor_id', $mandor->id)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        if ($branches->count() === 1) {
+            return $branches->first();
+        }
+
+        if ($branches->isEmpty()) {
+            throw ValidationException::withMessages([
+                'sub_company_uuid' => [__('operational.validation.sub_company_not_assigned')],
+            ]);
+        }
+
+        throw ValidationException::withMessages([
+            'sub_company_uuid' => [__('operational.validation.sub_company_uuid_required_multi')],
+        ]);
+    }
+
+    public function provisionForNewMandor(
+        User $mandor,
+        ?string $subCompanyUuid,
+        ?string $subCompanyName,
+        ?string $subCompanyCode,
+        ?User $createdBy = null,
+    ): SubCompany {
+        if ($mandor->role !== Role::MANDOR) {
+            throw new \InvalidArgumentException('User must have MANDOR role.');
+        }
+
+        if ($subCompanyUuid) {
+            return $this->assignExistingToMandor($subCompanyUuid, $mandor, $mandor->company_id, $createdBy);
+        }
+
+        if ($subCompanyName) {
+            return $this->createNamedForMandor($mandor, $subCompanyName, $subCompanyCode, $createdBy);
+        }
+
+        throw ValidationException::withMessages([
+            'sub_company_uuid' => [__('operational.validation.sub_company_branch_required')],
+            'sub_company_name' => [__('operational.validation.sub_company_branch_required')],
+        ]);
+    }
+
+    public function assignExistingToMandor(
+        string $subCompanyUuid,
+        User $mandor,
+        int $companyId,
+        ?User $createdBy = null,
+    ): SubCompany {
+        $subCompany = SubCompany::where('uuid', $subCompanyUuid)
+            ->where('company_id', $companyId)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$subCompany) {
+            throw ValidationException::withMessages([
+                'sub_company_uuid' => [__('operational.validation.sub_company_uuid_not_found')],
+            ]);
+        }
+
+        if ($subCompany->mandor_id !== $mandor->id) {
+            $currentMandor = User::find($subCompany->mandor_id);
+
+            if ($currentMandor && $currentMandor->is_active) {
+                throw ValidationException::withMessages([
+                    'sub_company_uuid' => [__('operational.validation.sub_company_already_assigned')],
+                ]);
+            }
+
+            $limit = $this->maxSubCompaniesPerMandor($companyId);
+            if ($this->countForMandor($mandor->id) >= $limit) {
+                throw ValidationException::withMessages([
+                    'sub_company_uuid' => [__('operational.sub_companies.limit_reached', ['limit' => $limit])],
+                ]);
+            }
+
+            $subCompany->update([
+                'mandor_id' => $mandor->id,
+                'created_by' => $createdBy?->id ?? $subCompany->created_by,
+            ]);
+        }
+
+        $this->walletService->getOrCreateWallet($mandor, $subCompany->fresh());
+
+        return $subCompany->fresh();
+    }
+
+    public function createNamedForMandor(
+        User $mandor,
+        string $name,
+        ?string $code,
+        ?User $createdBy = null,
+    ): SubCompany {
+        $limit = $this->maxSubCompaniesPerMandor($mandor->company_id);
+        if ($this->countForMandor($mandor->id) >= $limit) {
+            throw ValidationException::withMessages([
+                'sub_company_name' => [__('operational.sub_companies.limit_reached', ['limit' => $limit])],
+            ]);
+        }
+
+        $company = Company::findOrFail($mandor->company_id);
+        $resolvedCode = $code ?: $this->generateUniqueCode($company);
+
+        if (
+            SubCompany::where('company_id', $company->id)
+                ->where('code', $resolvedCode)
+                ->exists()
+        ) {
+            throw ValidationException::withMessages([
+                'sub_company_code' => [__('operational.validation.sub_company_code_unique')],
+            ]);
+        }
+
+        $subCompany = SubCompany::create([
+            'name' => $name,
+            'code' => $resolvedCode,
+            'address' => $mandor->address,
+            'is_active' => true,
+            'mandor_id' => $mandor->id,
+            'company_id' => $company->id,
+            'created_by' => $createdBy?->id,
+        ]);
+
+        $this->walletService->getOrCreateWallet($mandor, $subCompany);
+
+        return $subCompany;
     }
 
     public function resolveForAdmin(string $uuid, int $companyId, ?int $mandorId = null): SubCompany

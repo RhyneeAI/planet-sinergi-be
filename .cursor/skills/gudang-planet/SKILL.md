@@ -249,6 +249,7 @@ Modul operasional mengelola keuangan cabang dengan sistem dompet digital mandor.
 
 | Model                   | Tabel                      | Fungsi                                     |
 | ----------------------- | -------------------------- | ------------------------------------------ |
+| SubCompany            | ops_sub_companies          | Cabang operasional (FK mandor_id)          |
 | OpsIncome               | ops_incomes                | Pemasukan (admin → pusat / admin → mandor) |
 | OpsExpense              | ops_expenses               | Pengeluaran (pusat / cabang mandor)        |
 | OpsWallet               | ops_wallets                | Dompet digital mandor                      |
@@ -301,15 +302,39 @@ Alur **sudah selaras** dengan implementasi `OpsTransferConfirmation` yang ada:
 - Upload bukti/invoice.
 - Field: keterangan, judul, tanggal, bukti.
 
-### Sub-Company (rencana perlu ditambahkan)
+### Sub-Company (sudah diimplementasi)
 
-Saat ini belum ada model `SubCompany`. Perlu ditambahkan karena operasional = manage cabang:
+Model `SubCompany` (`ops_sub_companies`) sudah ada dan dipakai modul operasional:
 
 - `Company` = kantor pusat (milik OWNER).
-- `**SubCompany`** = cabang (**tabel terpisah**, bukan `parent_id` di `companies`).
+- **`SubCompany`** = cabang (tabel terpisah, FK `company_id` + `mandor_id`).
 - Satu **MANDOR bisa kelola banyak cabang** (many sub-companies).
-- **Limit cabang per mandor:** tabel konfigurasi di DB (default maks **5**), **tanpa UI** — cukup seed/config via database.
-- Validasi saat create sub-company: cek jumlah sub-company mandor ≤ limit dari config.
+- **Limit cabang per mandor:** `ops_configurations` key `max_sub_companies_per_mandor` (fallback `config/operational.php`, default **10**).
+- Validasi saat create/assign cabang: cek jumlah sub-company mandor ≤ limit.
+
+**Alur create mandor (wajib pilih cabang):**
+
+- **Opsi A** — assign cabang existing: `{ "sub_company_uuid": "..." }` (hanya jika cabang belum punya mandor aktif).
+- **Opsi B** — buat cabang baru: `{ "sub_company_name": "...", "sub_company_code": "..." }` (code opsional, auto-generate jika kosong).
+- XOR: wajib salah satu, tidak keduanya.
+- Tidak ada endpoint POST manual `/sub-companies` — cabang dibuat lewat create mandor atau seeder.
+
+**Endpoint cabang:**
+
+| Route | Role | Keterangan |
+| ----- | ---- | ---------- |
+| `GET /api/v1/sub-companies` | ADMIN, OWNER, SUPERADMIN, MANDOR | List cabang (legacy, tetap aktif) |
+| `GET /api/v1/operational/sub-companies` | ADMIN, OWNER, SUPERADMIN (+ MANDOR lihat milik sendiri) | List cabang untuk dropdown operasional |
+
+**Wallet mandor (`GET /operational/wallet`):**
+
+- 1 cabang → infer otomatis tanpa query param.
+- Multi cabang → wajib `?sub_company_uuid=...` (422 field `errors.sub_company_uuid`).
+- Belum punya cabang → 422 field `errors.sub_company_uuid`.
+
+**Login mandor:** response `user.sub_companies: [{ uuid, name, code }]`.
+
+**Username:** kolom DB tidak ada; login pakai **phone**. Field `username` di response mandor = slug dari nama (display only). Password awal auto-generate: `{namatanpasasi}{3digit}`.
 
 ---
 
@@ -475,7 +500,7 @@ tests/Feature/Api/Attendance/         # Pest tests
 | Transaksi POS         | **ADMIN tidak bisa transaksi**; KASIR (+ SUPERADMIN) yang transaksi                           |
 | OWNER akses           | **Read-only** di semua modul (GET/rekapitulasi saja)                                          |
 | POS tenancy           | **Langsung ke `Company` saja** — tidak ke SubCompany                                          |
-| SubCompany            | Tabel terpisah; untuk **Operasional & Absensi**; mandor max 5 cabang via config DB            |
+| SubCompany            | Tabel terpisah; untuk **Operasional & Absensi**; mandor max cabang via `ops_configurations` |
 | Backdate operasional  | Max 3 hari — berlaku **semua role & semua jenis** (pemasukan & pengeluaran)                   |
 | Transfer admin→mandor | Admin input **pengeluaran** → mandor **approve/reject pemasukan** (`OpsTransferConfirmation`) |
 | Payroll               | **Manual per bulan** saat Admin memproses — tidak auto-generate draft                         |
@@ -499,7 +524,8 @@ tests/Feature/Api/Attendance/         # Pest tests
 | Operational routes    | `routes/operational-api.php`                                   |
 | Company + scope       | `app/Models/Company.php`, `app/Models/Scopes/CompanyScope.php` |
 | Marketing commission  | `app/Http/Controllers/Api/ReportController.php`                |
-| Ops wallet logic      | `app/Services/Operational/OpsWalletService.php`                |
+| SubCompany            | `app/Models/SubCompany.php`, `app/Services/SubCompanyService.php` |
+| Ops mandor + cabang   | `app/Http/Controllers/Api/Operational/OpsMandorController.php`    |
 | Ops config            | `config/operational.php`                                       |
 | Flowchart operasional | `public/flowchart_operasional.pdf`                             |
 

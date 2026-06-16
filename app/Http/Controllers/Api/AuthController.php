@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\Role;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ForgotPasswordResetRequest;
 use App\Http\Requests\Auth\ForgotPasswordVerifyRequest;
@@ -42,6 +43,10 @@ class AuthController extends Controller
 
         $deviceName = $request->header('User-Agent', 'unknown-device');
         $user->tokens()->where('name', $deviceName)->delete();
+
+        if ($user->role === Role::MANDOR) {
+            $user->load(['subCompanies' => fn ($query) => $query->where('is_active', true)->orderBy('name')]);
+        }
 
         $token = $user->createToken($deviceName)->plainTextToken;
 

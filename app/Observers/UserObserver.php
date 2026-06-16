@@ -14,7 +14,7 @@ class UserObserver
 
     public function created(User $user): void
     {
-        if ($user->role !== Role::MANDOR) {
+        if ($user->role !== Role::MANDOR || User::$skipSubCompanyAutoCreate) {
             return;
         }
 

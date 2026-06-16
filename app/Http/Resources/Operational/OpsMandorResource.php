@@ -13,23 +13,30 @@ class OpsMandorResource extends JsonResource
         $expense = (float) ($this->total_expense ?? 0);
         $balance = max($income - $expense, 0);
 
+        $primarySubCompany = $this->relationLoaded('subCompanies')
+            ? $this->subCompanies->first()
+            : null;
+
+        $hasSubCompany = $primarySubCompany !== null;
+
         return [
             'uuid' => (string) $this->uuid,
             'name' => $this->name,
-            'username' => $this->username,
+            'username' => $this->generatedUsername(),
             'phone' => $this->phone,
             'is_active' => (bool) $this->is_active,
-            'sub_company' => $this->whenLoaded('company', function () {
-                return [
-                    'uuid' => $this->company->uuid,
-                    'name' => $this->company->name,
-                ];
-            }),
-            'sub_company' => $this->whenLoaded('subCompany', function () {
-                return [
-                    'uuid' => $this->subCompany->uuid,
-                    'name' => $this->subCompany->name,
-                ];
+            'has_sub_company' => $hasSubCompany,
+            'sub_company' => $hasSubCompany ? [
+                'uuid' => (string) $primarySubCompany->uuid,
+                'name' => $primarySubCompany->name,
+                'code' => $primarySubCompany->code,
+            ] : null,
+            'sub_companies' => $this->whenLoaded('subCompanies', function () {
+                return $this->subCompanies->map(fn ($subCompany) => [
+                    'uuid' => (string) $subCompany->uuid,
+                    'name' => $subCompany->name,
+                    'code' => $subCompany->code,
+                ])->values();
             }),
             $this->mergeWhen($request->boolean('is_dashboard_data'), [
                 'total_income' => $income,
@@ -38,5 +45,10 @@ class OpsMandorResource extends JsonResource
                 'status' => $balance <= 0 ? 'Saldo Habis' : 'Aktif',
             ]),
         ];
+    }
+
+    protected function generatedUsername(): string
+    {
+        return strtolower(preg_replace('/\s+/', '', $this->name) ?? '');
     }
 }

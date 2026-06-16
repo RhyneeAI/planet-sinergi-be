@@ -15,6 +15,8 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, SoftDeletes, HasUuid;
 
+    public static bool $skipSubCompanyAutoCreate = false;
+
     protected $fillable = [
         'uuid',
         'name',

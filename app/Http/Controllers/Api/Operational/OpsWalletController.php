@@ -58,15 +58,7 @@ class OpsWalletController extends Controller
 
     protected function resolveSubCompany(Request $request)
     {
-        if (!$request->filled('sub_company_uuid')) {
-            abort(response()->json([
-                'success' => false,
-                'message' => __('operational.validation.sub_company_uuid_required'),
-                'code' => 422,
-            ], 422));
-        }
-
-        return $this->subCompanyService->resolveForMandor(
+        return $this->subCompanyService->resolveForMandorRequest(
             $request->query('sub_company_uuid'),
             $request->user()
         );
