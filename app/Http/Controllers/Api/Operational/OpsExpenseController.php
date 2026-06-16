@@ -32,37 +32,17 @@ class OpsExpenseController extends Controller
         protected SubCompanyService $subCompanyService,
     ) {}
 
-    public function index(Request $request)
+    public function adminIndex(Request $request)
     {
-        $orderByKey = in_array($request->input('order_by_key', 'date'), $this->sortableColumns)
-            ? $request->input('order_by_key', 'date')
-            : 'date';
-        $orderByValue = strtoupper($request->input('order_by_value', 'DESC')) === 'ASC' ? 'DESC' : 'ASC';
-
-        $expenses = OpsExpense::with(['mandor', 'subCompany', 'createdBy', 'editLogs'])
-            ->withCount('editLogs')
-            ->when(true, fn ($query) => $this->applySubCompanyFilter($query, $request))
-            ->when($request->date_from, fn($q, $date) => $q->whereDate('date', '>=', $date))
-            ->when($request->date_to, fn($q, $date) => $q->whereDate('date', '<=', $date))
-            ->when(
-                $request->mandor_uuid,
-                fn($q, $uuid) =>
-                $q->whereHas('mandor', fn($m) => $m->where('uuid', $uuid))
-            )
-            ->when($request->search, function ($query, $search) {
-                $query->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($search) . '%']);
-            })
-            ->orderBy($orderByKey, $orderByValue)
-            ->paginate($request->input('per_page', 15));
-
-        return response()->json([
-            'success' => true,
-            'message' => __('operational.expenses.list'),
-            'data' => OpsExpenseResource::collection($expenses),
-        ]);
+        return $this->indexResponse($request);
     }
 
-    public function store(OpsExpenseStoreRequest $request)
+    public function mandorIndex(Request $request)
+    {
+        return $this->indexResponse($request);
+    }
+
+    public function mandorStore(OpsExpenseStoreRequest $request)
     {
         $editWindowDays = config('operational.expense_edit_window_days');
         $requestDate = Carbon::parse($request->date)->startOfDay();
@@ -135,21 +115,19 @@ class OpsExpenseController extends Controller
         }
     }
 
-    public function show(OpsExpense $opsExpense)
+    public function adminShow(OpsExpense $opsExpense)
+    {
+        return $this->showResponse($opsExpense);
+    }
+
+    public function mandorShow(OpsExpense $opsExpense)
     {
         $this->authorizeExpenseAccess($opsExpense);
 
-        return response()->json([
-            'success' => true,
-            'message' => __('operational.expenses.detail'),
-            'data' => new OpsExpenseResource(
-                $opsExpense->load(['mandor', 'subCompany', 'createdBy', 'editLogs'])
-            ),
-        ]);
+        return $this->showResponse($opsExpense);
     }
 
-
-    public function update(OpsExpenseUpdateRequest $request, OpsExpense $opsExpense)
+    public function mandorUpdate(OpsExpenseUpdateRequest $request, OpsExpense $opsExpense)
     {
         $user = $request->user();
         $this->authorizeExpenseAccess($opsExpense, Role::MANDOR);
@@ -234,7 +212,7 @@ class OpsExpenseController extends Controller
         }
     }
 
-    public function destroy(OpsExpense $opsExpense)
+    public function mandorDestroy(OpsExpense $opsExpense)
     {
         DB::beginTransaction();
         try {
@@ -275,6 +253,47 @@ class OpsExpenseController extends Controller
             DB::rollBack();
             throw $th;
         }
+    }
+
+    protected function indexResponse(Request $request)
+    {
+        $orderByKey = in_array($request->input('order_by_key', 'date'), $this->sortableColumns)
+            ? $request->input('order_by_key', 'date')
+            : 'date';
+        $orderByValue = strtoupper($request->input('order_by_value', 'DESC')) === 'ASC' ? 'ASC' : 'DESC';
+
+        $expenses = OpsExpense::with(['mandor', 'subCompany', 'createdBy', 'editLogs'])
+            ->withCount('editLogs')
+            ->when(true, fn ($query) => $this->applySubCompanyFilter($query, $request))
+            ->when($request->date_from, fn($q, $date) => $q->whereDate('date', '>=', $date))
+            ->when($request->date_to, fn($q, $date) => $q->whereDate('date', '<=', $date))
+            ->when(
+                $request->mandor_uuid,
+                fn($q, $uuid) =>
+                $q->whereHas('mandor', fn($m) => $m->where('uuid', $uuid))
+            )
+            ->when($request->search, function ($query, $search) {
+                $query->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($search) . '%']);
+            })
+            ->orderBy($orderByKey, $orderByValue)
+            ->paginate($request->input('per_page', 15));
+
+        return response()->json([
+            'success' => true,
+            'message' => __('operational.expenses.list'),
+            'data' => OpsExpenseResource::collection($expenses),
+        ]);
+    }
+
+    protected function showResponse(OpsExpense $opsExpense)
+    {
+        return response()->json([
+            'success' => true,
+            'message' => __('operational.expenses.detail'),
+            'data' => new OpsExpenseResource(
+                $opsExpense->load(['mandor', 'subCompany', 'createdBy', 'editLogs'])
+            ),
+        ]);
     }
 
     protected function authorizeExpenseAccess(OpsExpense $expense, ?Role $mandorOnly = null): void

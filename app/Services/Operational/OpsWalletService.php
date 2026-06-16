@@ -121,4 +121,40 @@ class OpsWalletService
             __('operational.wallet.adjustment_credit')
         );
     }
+
+    public function adjustIncomeBalance(
+        OpsWallet $wallet,
+        float $oldAmount,
+        float $newAmount,
+        Model $reference,
+        User $actor
+    ): void {
+        $difference = round($newAmount - $oldAmount, 2);
+
+        if ($difference === 0.0) {
+            return;
+        }
+
+        if ($difference > 0) {
+            $this->credit(
+                $wallet,
+                $difference,
+                OpsWalletTransactionType::CASH,
+                $reference,
+                $actor,
+                __('operational.wallet.adjustment_credit')
+            );
+
+            return;
+        }
+
+        $this->debit(
+            $wallet,
+            abs($difference),
+            OpsWalletTransactionType::CASH,
+            $reference,
+            $actor,
+            __('operational.wallet.adjustment_debit')
+        );
+    }
 }

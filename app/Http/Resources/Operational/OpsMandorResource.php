@@ -19,7 +19,18 @@ class OpsMandorResource extends JsonResource
             'username' => $this->username,
             'phone' => $this->phone,
             'is_active' => (bool) $this->is_active,
-
+            'sub_company' => $this->whenLoaded('company', function () {
+                return [
+                    'uuid' => $this->company->uuid,
+                    'name' => $this->company->name,
+                ];
+            }),
+            'sub_company' => $this->whenLoaded('subCompany', function () {
+                return [
+                    'uuid' => $this->subCompany->uuid,
+                    'name' => $this->subCompany->name,
+                ];
+            }),
             $this->mergeWhen($request->boolean('is_dashboard_data'), [
                 'total_income' => $income,
                 'total_expense' => $expense,

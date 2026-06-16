@@ -89,6 +89,11 @@ class User extends Authenticatable
         return $this->hasMany(SubCompany::class, 'mandor_id');
     }
 
+    public function subCompany() 
+    {
+        return $this->belongsTo(SubCompany::class, 'mandor_id');
+    }
+
     public function mandorIncomes()
     {
         return $this->hasMany(OpsIncome::class, 'mandor_id');
