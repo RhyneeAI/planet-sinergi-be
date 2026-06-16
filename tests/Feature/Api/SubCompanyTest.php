@@ -194,5 +194,27 @@ it('includes sub companies in login response for mandor', function () {
         'password' => 'password',
     ])
         ->assertOk()
+        ->assertJsonPath('data.user.sub_company_uuid', $subCompany->uuid)
         ->assertJsonPath('data.user.sub_companies.0.uuid', $subCompany->uuid);
+});
+
+it('returns null sub company uuid on login when mandor has multiple branches', function () {
+    $mandor = User::factory()->mandor()->create([
+        'company_id' => $this->company->id,
+    ]);
+
+    SubCompany::factory()->create([
+        'company_id' => $this->company->id,
+        'mandor_id' => $mandor->id,
+        'name' => 'Cabang Kedua',
+        'code' => 'MJ001-99',
+    ]);
+
+    $this->postJson('/api/v1/login', [
+        'phone' => $mandor->phone,
+        'password' => 'password',
+    ])
+        ->assertOk()
+        ->assertJsonPath('data.user.sub_company_uuid', null)
+        ->assertJsonCount(2, 'data.user.sub_companies');
 });

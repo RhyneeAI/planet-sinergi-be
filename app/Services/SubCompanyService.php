@@ -182,7 +182,7 @@ class SubCompanyService
             ]);
         }
 
-        if ($subCompany->mandor_id !== $mandor->id) {
+        if ((int) $subCompany->mandor_id !== (int) $mandor->id) {
             $currentMandor = User::find($subCompany->mandor_id);
 
             if ($currentMandor && $currentMandor->is_active) {

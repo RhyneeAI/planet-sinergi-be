@@ -8,16 +8,19 @@ use App\Models\OpsWallet;
 use App\Models\OpsWalletTransaction;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Validation\ValidationException;
 
 class OpsWalletService
 {
     public function getOrCreateWallet(User $mandor, SubCompany $subCompany): OpsWallet
     {
-        if ($subCompany->mandor_id !== $mandor->id) {
-            throw new \InvalidArgumentException('Sub company does not belong to mandor.');
+        if ((int) $subCompany->mandor_id !== (int) $mandor->id) {
+            throw ValidationException::withMessages([
+                'sub_company_uuid' => [__('operational.validation.sub_company_not_assigned')],
+            ]);
         }
 
-        return OpsWallet::firstOrCreate(
+        $wallet = OpsWallet::firstOrCreate(
             ['sub_company_id' => $subCompany->id],
             [
                 'mandor_id' => $mandor->id,
@@ -25,6 +28,12 @@ class OpsWalletService
                 'balance' => 0,
             ]
         );
+
+        if ((int) $wallet->mandor_id !== (int) $mandor->id) {
+            $wallet->update(['mandor_id' => $mandor->id]);
+        }
+
+        return $wallet->fresh();
     }
 
     public function credit(

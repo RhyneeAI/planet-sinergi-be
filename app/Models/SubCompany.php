@@ -39,6 +39,7 @@ class SubCompany extends Model
         return $this->belongsTo(Company::class);
     }
 
+    /** Mandor yang mengelola cabang ini (FK mandor_id di tabel cabang). */
     public function mandor()
     {
         return $this->belongsTo(User::class, 'mandor_id');
