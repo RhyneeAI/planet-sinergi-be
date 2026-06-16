@@ -19,7 +19,7 @@ beforeEach(function () {
 
 it('auto creates sub company from company when mandor is created via api', function () {
     $response = $this->actingAs($this->admin)
-        ->postJson('/api/v1/operational/admin/mandors', [
+        ->postJson('/api/v1/operational/mandors', [
             'name' => 'Mandor Baru',
             'phone' => '081234567890',
             'email' => 'mandor@test.com',
@@ -76,7 +76,7 @@ it('requires sub company uuid for mandor wallet endpoint', function () {
     ]);
 
     $this->actingAs($mandor)
-        ->getJson('/api/v1/operational/mandor/wallet')
+        ->getJson('/api/v1/operational/wallet')
         ->assertStatus(422)
         ->assertJsonPath('success', false);
 });
@@ -89,7 +89,7 @@ it('returns wallet for selected sub company', function () {
     $subCompany = SubCompany::where('mandor_id', $mandor->id)->first();
 
     $this->actingAs($mandor)
-        ->getJson('/api/v1/operational/mandor/wallet?sub_company_uuid=' . $subCompany->uuid)
+        ->getJson('/api/v1/operational/wallet?sub_company_uuid=' . $subCompany->uuid)
         ->assertOk()
         ->assertJsonPath('success', true)
         ->assertJsonPath('data.sub_company.uuid', $subCompany->uuid);

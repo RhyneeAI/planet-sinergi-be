@@ -10,59 +10,58 @@ use App\Http\Controllers\Api\Operational\OpsTransferConfirmationController;
 use App\Http\Controllers\Api\Operational\OpsWalletController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('v1/operational')->group(function () {
-    Route::middleware(['auth:sanctum'])->group(function () {
-        Route::middleware(['role:SUPERADMIN,OWNER,ADMIN,MANDOR'])->group(function () {
-            Route::get('mandor/dashboard-data', [OpsDashboardController::class, 'index']);
+Route::prefix('v1/operational')->middleware(['auth:sanctum'])->group(function () {
 
-            Route::prefix('notifications')->group(function () {
-                Route::get('/', [OpsNotificationController::class, 'index']);
-                Route::patch('/read-all', [OpsNotificationController::class, 'markAllAsRead']);
-                Route::patch('/{opsNotification:uuid}/read', [OpsNotificationController::class, 'markAsRead']);
-            });
+    // ─────────────────────────────────────────────
+    // All operational roles: SUPERADMIN, OWNER, ADMIN, MANDOR
+    // ─────────────────────────────────────────────
+    Route::middleware(['role:SUPERADMIN,OWNER,ADMIN,MANDOR'])->group(function () {
 
-            Route::get('/transfer-confirmations', [OpsTransferConfirmationController::class, 'index']);
-            Route::get('/transfer-confirmations/{opsTransferConfirmation:uuid}', [OpsTransferConfirmationController::class, 'show']);
+        Route::get('dashboard/admin', [OpsDashboardController::class, 'adminDashboard']);
+        Route::get('dashboard/mandor', [OpsDashboardController::class, 'mandorDashboard']);
+
+        Route::apiResource('incomes', OpsIncomeController::class)
+            ->parameters(['incomes' => 'opsIncome:uuid']);
+
+        Route::apiResource('expenses', OpsExpenseController::class)
+            ->parameters(['expenses' => 'opsExpense:uuid'])
+            ->only(['index', 'show']);
+
+        Route::prefix('notifications')->group(function () {
+            Route::get('/', [OpsNotificationController::class, 'index']);
+            Route::patch('/read-all', [OpsNotificationController::class, 'markAllAsRead']);
+            Route::patch('/{opsNotification:uuid}/read', [OpsNotificationController::class, 'markAsRead']);
         });
 
-        Route::prefix('admin')->middleware(['role:SUPERADMIN,OWNER,ADMIN'])->group(function () {
-            Route::get('dashboard-data', [OpsDashboardController::class, 'index']);
+        Route::get('transfer-confirmations', [OpsTransferConfirmationController::class, 'index']);
+        Route::get('transfer-confirmations/{opsTransferConfirmation:uuid}', [OpsTransferConfirmationController::class, 'show']);
+    });
 
-            Route::get('/mandors', [OpsMandorController::class, 'index']);
-            Route::post('/mandors', [OpsMandorController::class, 'store']);
+    // ─────────────────────────────────────────────
+    // Admin & owner: SUPERADMIN, OWNER, ADMIN
+    // ─────────────────────────────────────────────
+    Route::middleware(['role:SUPERADMIN,OWNER,ADMIN'])->group(function () {
 
-            Route::get('/incomes', [OpsIncomeController::class, 'adminIndex']);
-            Route::post('/incomes', [OpsIncomeController::class, 'adminStore']);
-            Route::get('/incomes/{opsIncome:uuid}', [OpsIncomeController::class, 'adminShow']);
-            Route::patch('/incomes/{opsIncome:uuid}', [OpsIncomeController::class, 'adminUpdate']);
-            Route::delete('/incomes/{opsIncome:uuid}', [OpsIncomeController::class, 'adminDestroy']);
+        Route::apiResource('mandors', OpsMandorController::class)
+            ->parameters(['mandors' => 'mandor:uuid'])
+            ->only(['index', 'store']);
 
-            Route::get('/expenses', [OpsExpenseController::class, 'adminIndex']);
-            Route::get('/expenses/{opsExpense:uuid}', [OpsExpenseController::class, 'adminShow']);
+        Route::get('edit-logs', [OpsEditLogController::class, 'index']);
+    });
 
-            Route::get('/edit-logs', [OpsEditLogController::class, 'index']);
-        });
+    // ─────────────────────────────────────────────
+    // Mandor only
+    // ─────────────────────────────────────────────
+    Route::middleware(['role:MANDOR'])->group(function () {
 
-        Route::prefix('mandor')->middleware(['role:MANDOR'])->group(function () {
-            Route::get('dashboard-data', [OpsDashboardController::class, 'index']);
+        Route::apiResource('expenses', OpsExpenseController::class)
+            ->parameters(['expenses' => 'opsExpense:uuid'])
+            ->only(['store', 'update', 'destroy']);
 
-            Route::get('/incomes', [OpsIncomeController::class, 'mandorIndex']);
-            Route::post('/incomes', [OpsIncomeController::class, 'mandorStore']);
-            Route::get('/incomes/{opsIncome:uuid}', [OpsIncomeController::class, 'mandorShow']);
-            Route::patch('/incomes/{opsIncome:uuid}', [OpsIncomeController::class, 'mandorUpdate']);
-            Route::delete('/incomes/{opsIncome:uuid}', [OpsIncomeController::class, 'mandorDestroy']);
+        Route::get('wallet', [OpsWalletController::class, 'show']);
+        Route::get('wallet/transactions', [OpsWalletController::class, 'transactions']);
 
-            Route::get('/expenses', [OpsExpenseController::class, 'mandorIndex']);
-            Route::post('/expenses', [OpsExpenseController::class, 'mandorStore']);
-            Route::get('/expenses/{opsExpense:uuid}', [OpsExpenseController::class, 'mandorShow']);
-            Route::patch('/expenses/{opsExpense:uuid}', [OpsExpenseController::class, 'mandorUpdate']);
-            Route::delete('/expenses/{opsExpense:uuid}', [OpsExpenseController::class, 'mandorDestroy']);
-
-            Route::get('/wallet', [OpsWalletController::class, 'show']);
-            Route::get('/wallet/transactions', [OpsWalletController::class, 'transactions']);
-
-            Route::post('/transfer-confirmations/{opsTransferConfirmation:uuid}/confirm', [OpsTransferConfirmationController::class, 'confirm']);
-            Route::post('/transfer-confirmations/{opsTransferConfirmation:uuid}/reject', [OpsTransferConfirmationController::class, 'reject']);
-        });
+        Route::post('transfer-confirmations/{opsTransferConfirmation:uuid}/confirm', [OpsTransferConfirmationController::class, 'confirm']);
+        Route::post('transfer-confirmations/{opsTransferConfirmation:uuid}/reject', [OpsTransferConfirmationController::class, 'reject']);
     });
 });

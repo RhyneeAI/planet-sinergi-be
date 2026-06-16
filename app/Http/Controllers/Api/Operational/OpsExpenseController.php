@@ -32,17 +32,12 @@ class OpsExpenseController extends Controller
         protected SubCompanyService $subCompanyService,
     ) {}
 
-    public function adminIndex(Request $request)
+    public function index(Request $request)
     {
         return $this->indexResponse($request);
     }
 
-    public function mandorIndex(Request $request)
-    {
-        return $this->indexResponse($request);
-    }
-
-    public function mandorStore(OpsExpenseStoreRequest $request)
+    public function store(OpsExpenseStoreRequest $request)
     {
         $editWindowDays = config('operational.expense_edit_window_days');
         $requestDate = Carbon::parse($request->date)->startOfDay();
@@ -115,19 +110,16 @@ class OpsExpenseController extends Controller
         }
     }
 
-    public function adminShow(OpsExpense $opsExpense)
+    public function show(OpsExpense $opsExpense)
     {
+        if (request()->user()->role === Role::MANDOR) {
+            $this->authorizeExpenseAccess($opsExpense);
+        }
+
         return $this->showResponse($opsExpense);
     }
 
-    public function mandorShow(OpsExpense $opsExpense)
-    {
-        $this->authorizeExpenseAccess($opsExpense);
-
-        return $this->showResponse($opsExpense);
-    }
-
-    public function mandorUpdate(OpsExpenseUpdateRequest $request, OpsExpense $opsExpense)
+    public function update(OpsExpenseUpdateRequest $request, OpsExpense $opsExpense)
     {
         $user = $request->user();
         $this->authorizeExpenseAccess($opsExpense, Role::MANDOR);
@@ -212,7 +204,7 @@ class OpsExpenseController extends Controller
         }
     }
 
-    public function mandorDestroy(OpsExpense $opsExpense)
+    public function destroy(OpsExpense $opsExpense)
     {
         DB::beginTransaction();
         try {

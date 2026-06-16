@@ -3,6 +3,8 @@
 return [
     'dashboard' => [
         'date_filter_must_be_same_month' => 'Date filter must be same month.',
+        'admin_summary' => 'Operational dashboard summary retrieved successfully.',
+        'mandor_summary' => 'Mandor dashboard summary retrieved successfully.',
     ],
     'incomes' => [
         'list' => 'Operational incomes retrieved successfully.',

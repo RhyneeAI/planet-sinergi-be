@@ -3,6 +3,8 @@
 return [
     'dashboard' => [
         'date_filter_must_be_same_month' => 'Filter Tanggal harus dalam bulan yang sama.',
+        'admin_summary' => 'Ringkasan dashboard operasional berhasil diambil.',
+        'mandor_summary' => 'Ringkasan dashboard mandor berhasil diambil.',
     ],
     'incomes' => [
         'list' => 'Daftar pemasukan operasional berhasil diambil.',

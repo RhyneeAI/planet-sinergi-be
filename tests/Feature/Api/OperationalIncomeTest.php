@@ -26,7 +26,7 @@ beforeEach(function () {
 
 it('requires mandor and sub company uuid for admin income store', function () {
     $this->actingAs($this->admin)
-        ->postJson('/api/v1/operational/admin/incomes', [
+        ->postJson('/api/v1/operational/incomes', [
             'mandor_uuid' => $this->mandor->uuid,
             'name' => 'Transfer Dana',
             'amount' => 100000,
@@ -38,7 +38,7 @@ it('requires mandor and sub company uuid for admin income store', function () {
 
 it('stores admin income transfer with pending confirmation', function () {
     $response = $this->actingAs($this->admin)
-        ->post('/api/v1/operational/admin/incomes', [
+        ->post('/api/v1/operational/incomes', [
             'mandor_uuid' => $this->mandor->uuid,
             'sub_company_uuid' => $this->subCompany->uuid,
             'name' => 'Transfer Dana',
@@ -60,7 +60,7 @@ it('stores mandor income with only sub company uuid and credits wallet', functio
     expect((float) $wallet->balance)->toBe(0.0);
 
     $response = $this->actingAs($this->mandor)
-        ->post('/api/v1/operational/mandor/incomes', [
+        ->post('/api/v1/operational/incomes', [
             'sub_company_uuid' => $this->subCompany->uuid,
             'name' => 'Pemasukan Cabang',
             'amount' => 150000,
@@ -75,29 +75,6 @@ it('stores mandor income with only sub company uuid and credits wallet', functio
     expect(OpsIncome::where('source_type', OpsSourceType::INTERNAL)->count())->toBe(1);
     expect((float) $wallet->fresh()->balance)->toBe(150000.0);
     expect(OpsTransferConfirmation::count())->toBe(0);
-});
-
-it('forbids mandor from admin income endpoint', function () {
-    $this->actingAs($this->mandor)
-        ->postJson('/api/v1/operational/admin/incomes', [
-            'mandor_uuid' => $this->mandor->uuid,
-            'sub_company_uuid' => $this->subCompany->uuid,
-            'name' => 'Transfer Dana',
-            'amount' => 100000,
-            'date' => now()->toDateString(),
-        ])
-        ->assertForbidden();
-});
-
-it('forbids admin from mandor income endpoint', function () {
-    $this->actingAs($this->admin)
-        ->postJson('/api/v1/operational/mandor/incomes', [
-            'sub_company_uuid' => $this->subCompany->uuid,
-            'name' => 'Pemasukan Cabang',
-            'amount' => 100000,
-            'date' => now()->toDateString(),
-        ])
-        ->assertForbidden();
 });
 
 it('forbids mandor from editing admin transfer income', function () {
@@ -121,7 +98,7 @@ it('forbids mandor from editing admin transfer income', function () {
     ]);
 
     $this->actingAs($this->mandor)
-        ->patchJson('/api/v1/operational/mandor/incomes/' . $income->uuid, [
+        ->patchJson('/api/v1/operational/incomes/' . $income->uuid, [
             'name' => 'Updated',
             'amount' => 100000,
             'date' => now()->toDateString(),
