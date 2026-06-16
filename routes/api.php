@@ -52,39 +52,73 @@ Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
             Route::get('/sub-companies/{subCompany:uuid}', [SubCompanyController::class, 'show']);
         });
 
-        Route::group(['middleware' => ['role:SUPERADMIN,OWNER']], function () {
+        Route::group(['middleware' => ['role:SUPERADMIN,OWNER,MARKETING']], function () {
             Route::apiResource('categories', CategoryController::class)->parameters([
-                'categories' => 'category:uuid'
-            ]);    
-    
+                'categories' => 'category:uuid',
+            ])->only(['index', 'show']);
+
             Route::apiResource('units', UnitController::class)->parameters([
-                'units' => 'unit:uuid'
-            ]);    
+                'units' => 'unit:uuid',
+            ])->only(['index', 'show']);
 
             Route::get('products/generate-code', [ProductController::class, 'generateCode']);
             Route::apiResource('products', ProductController::class)->parameters([
-                'products' => 'product:uuid'
-            ]);
-            
+                'products' => 'product:uuid',
+            ])->only(['index', 'show']);
+
             Route::apiResource('suppliers', SupplierController::class)->parameters([
-                'suppliers' => 'supplier:uuid'
-            ]);
+                'suppliers' => 'supplier:uuid',
+            ])->only(['index', 'show']);
 
             Route::apiResource('customers', CustomerController::class)->parameters([
-                'customers' => 'customer:uuid'
-            ]);
+                'customers' => 'customer:uuid',
+            ])->only(['index', 'show']);
 
             Route::apiResource('customer-types', CustomerTypeController::class)->parameters([
-                'customer-types' => 'customerType:uuid'
-            ]);
+                'customer-types' => 'customerType:uuid',
+            ])->only(['index', 'show']);
 
             Route::apiResource('marketings', MarketingController::class)->parameters([
-                'marketings' => 'marketing:uuid'
-            ]);
+                'marketings' => 'marketing:uuid',
+            ])->only(['index', 'show']);
 
             Route::apiResource('marketing-products', MarketingProductController::class)->parameters([
-                'marketing-products' => 'marketingProduct:uuid'
-            ]);
+                'marketing-products' => 'marketingProduct:uuid',
+            ])->only(['index', 'show']);
+        });
+
+        Route::group(['middleware' => ['role:SUPERADMIN,OWNER']], function () {
+            Route::apiResource('categories', CategoryController::class)->parameters([
+                'categories' => 'category:uuid',
+            ])->except(['index', 'show']);
+
+            Route::apiResource('units', UnitController::class)->parameters([
+                'units' => 'unit:uuid',
+            ])->except(['index', 'show']);
+
+            Route::apiResource('products', ProductController::class)->parameters([
+                'products' => 'product:uuid',
+            ])->except(['index', 'show']);
+
+            Route::apiResource('suppliers', SupplierController::class)->parameters([
+                'suppliers' => 'supplier:uuid',
+            ])->except(['index', 'show']);
+
+            Route::apiResource('customers', CustomerController::class)->parameters([
+                'customers' => 'customer:uuid',
+            ])->except(['index', 'show']);
+
+            Route::apiResource('customer-types', CustomerTypeController::class)->parameters([
+                'customer-types' => 'customerType:uuid',
+            ])->except(['index', 'show']);
+
+            Route::apiResource('marketings', MarketingController::class)->parameters([
+                'marketings' => 'marketing:uuid',
+            ])->except(['index', 'show']);
+
+            Route::apiResource('marketing-products', MarketingProductController::class)->parameters([
+                'marketing-products' => 'marketingProduct:uuid',
+            ])->except(['index', 'show']);
 
             Route::prefix('stock-mutations')->group(function () {
                 Route::post('/', [StockMutationController::class, 'store']);
@@ -94,39 +128,6 @@ Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
         });
 
         Route::group(['middleware' => ['role:SUPERADMIN,OWNER,MARKETING']], function () {
-            Route::apiResource('categories', CategoryController::class)->parameters([
-                'categories' => 'category:uuid'
-            ])->only(['index', 'show']); 
-
-            Route::apiResource('units', UnitController::class)->parameters([
-                'units' => 'unit:uuid'
-            ])->only(['index', 'show']);
-
-            Route::get('products/generate-code', [ProductController::class, 'generateCode']);
-            Route::apiResource('products', ProductController::class)->parameters([
-                'products' => 'product:uuid'
-            ])->only(['index', 'show']);
-
-            Route::apiResource('suppliers', SupplierController::class)->parameters([
-                'suppliers' => 'supplier:uuid'
-            ])->only(['index', 'show']);
-
-            Route::apiResource('customers', CustomerController::class)->parameters([
-                'customers' => 'customer:uuid'
-            ])->only(['index', 'show']);
-
-            Route::apiResource('customer-types', CustomerTypeController::class)->parameters([
-                'customer-types' => 'customerTypes:uuid'
-            ])->only(['index', 'show']);
-
-            Route::apiResource('marketings', MarketingController::class)->parameters([
-                'marketings' => 'marketing:uuid'
-            ])->only(['index', 'show']);
-
-            Route::apiResource('marketing-products', MarketingProductController::class)->parameters([
-                'marketing-products' => 'marketingProduct:uuid'
-            ])->only(['index', 'show']);
-
             Route::prefix('purchase-transactions')->group(function () {
                 Route::get('/', [PurchaseTransactionController::class, 'index']);
                 Route::post('/',[PurchaseTransactionController::class, 'store']);
