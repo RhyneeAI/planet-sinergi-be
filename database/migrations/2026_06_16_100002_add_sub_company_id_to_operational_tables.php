@@ -25,7 +25,9 @@ return new class extends Migration
         });
 
         Schema::table('ops_wallets', function (Blueprint $table) {
+            $table->dropForeign(['mandor_id']);
             $table->dropUnique(['mandor_id']);
+            $table->foreign('mandor_id')->references('id')->on('users')->restrictOnDelete();
 
             $table->foreignId('sub_company_id')
                 ->nullable()
@@ -42,7 +44,10 @@ return new class extends Migration
         Schema::table('ops_wallets', function (Blueprint $table) {
             $table->dropUnique(['sub_company_id']);
             $table->dropConstrainedForeignId('sub_company_id');
+
+            $table->dropForeign(['mandor_id']);
             $table->unique('mandor_id');
+            $table->foreign('mandor_id')->references('id')->on('users')->restrictOnDelete();
         });
 
         Schema::table('ops_expenses', function (Blueprint $table) {
