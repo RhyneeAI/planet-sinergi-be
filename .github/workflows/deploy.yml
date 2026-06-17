@@ -108,20 +108,25 @@ jobs:
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
           set -e
-          rsync -avz --delete \
-            -e "ssh -p ${SSH_PORT:-2223} -o BatchMode=yes -o StrictHostKeyChecking=accept-new" \
-            --exclude '.git' \
-            --exclude '.github' \
-            --exclude '.env' \
-            --exclude '.env.*' \
-            --exclude 'tests' \
-            --exclude 'node_modules' \
-            --exclude 'storage/app/public/*' \
-            --exclude 'storage/logs/*' \
-            --exclude 'storage/framework/cache/data/*' \
-            --exclude 'storage/framework/sessions/*' \
-            --exclude 'storage/framework/views/*' \
-            ./ "${SSH_USER}@${SSH_HOST}:${DEPLOY_PATH}/"
+          SSH_OPTS="-p ${SSH_PORT:-2223} -o BatchMode=yes -o StrictHostKeyChecking=accept-new"
+          REMOTE="${SSH_USER}@${SSH_HOST}"
+
+          # Shared hosting (Rumahweb) usually has no rsync — stream tarball over SSH instead.
+          ssh ${SSH_OPTS} "${REMOTE}" "mkdir -p '${DEPLOY_PATH}'"
+
+          tar czf - \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='.env' \
+            --exclude='.env.*' \
+            --exclude='tests' \
+            --exclude='node_modules' \
+            --exclude='storage/app/public/*' \
+            --exclude='storage/logs/*' \
+            --exclude='storage/framework/cache/data/*' \
+            --exclude='storage/framework/sessions/*' \
+            --exclude='storage/framework/views/*' \
+            . | ssh ${SSH_OPTS} "${REMOTE}" "cd '${DEPLOY_PATH}' && tar xzf -"
 
       - name: Run migrations and cache on server
         env:
