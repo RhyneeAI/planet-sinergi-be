@@ -6,6 +6,7 @@ use App\Enums\Role;
 use App\Http\Controllers\Api\Operational\ReturnsEmptyShowResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Operational\SubCompanyStoreRequest;
+use App\Http\Requests\Operational\SubCompanyUpdateRequest;
 use App\Http\Resources\Operational\OpsMandorResource;
 use App\Http\Resources\SubCompanyResource;
 use App\Models\SubCompany;
@@ -105,6 +106,53 @@ class SubCompanyController extends Controller
             'data' => new SubCompanyResource(
                 $subCompany->load(['mandor', 'createdBy', 'wallet'])
             ),
+        ]);
+    }
+
+    public function update(SubCompanyUpdateRequest $request, string $uuid)
+    {
+        $subCompany = SubCompany::where('uuid', $uuid)->first();
+
+        if (!$subCompany) {
+            return response()->json([
+                'success' => false,
+                'message' => __('operational.validation.sub_company_uuid_not_found'),
+                'code' => 404,
+            ], 404);
+        }
+
+        $subCompany = $this->subCompanyService->updateForAdmin(
+            $subCompany,
+            $request->validated(),
+            $request->user(),
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => __('operational.sub_companies.updated'),
+            'data' => new SubCompanyResource(
+                $subCompany->load(['mandor', 'createdBy', 'wallet'])
+            ),
+        ]);
+    }
+
+    public function destroy(Request $request, string $uuid)
+    {
+        $subCompany = SubCompany::where('uuid', $uuid)->first();
+
+        if (!$subCompany) {
+            return response()->json([
+                'success' => false,
+                'message' => __('operational.validation.sub_company_uuid_not_found'),
+                'code' => 404,
+            ], 404);
+        }
+
+        $this->subCompanyService->deleteForAdmin($subCompany);
+
+        return response()->json([
+            'success' => true,
+            'message' => __('operational.sub_companies.deleted'),
         ]);
     }
 

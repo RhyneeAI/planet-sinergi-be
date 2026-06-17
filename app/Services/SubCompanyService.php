@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
+use App\Enums\OpsTransferConfirmationStatus;
 use App\Enums\Role;
 use App\Models\Company;
 use App\Models\OpsConfiguration;
+use App\Models\OpsIncome;
 use App\Models\SubCompany;
 use App\Models\User;
 use App\Services\Operational\OpsWalletService;
@@ -309,5 +311,77 @@ class SubCompanyService
         }
 
         return $mandor;
+    }
+
+    public function updateForAdmin(SubCompany $subCompany, array $data, User $actor): SubCompany
+    {
+        $updates = [];
+
+        if (array_key_exists('name', $data)) {
+            $updates['name'] = $data['name'];
+        }
+
+        if (array_key_exists('address', $data)) {
+            $updates['address'] = $data['address'];
+        }
+
+        if (array_key_exists('is_active', $data)) {
+            $updates['is_active'] = (bool) $data['is_active'];
+        }
+
+        if (!empty($updates)) {
+            $subCompany->update($updates);
+        }
+
+        if (!empty($data['mandor_uuid'])) {
+            $mandor = $this->resolveMandor($data['mandor_uuid'], $actor->company_id);
+            $this->reassignMandor($subCompany, $mandor, $actor);
+        }
+
+        return $subCompany->fresh();
+    }
+
+    public function reassignMandor(SubCompany $subCompany, User $mandor, ?User $actor = null): SubCompany
+    {
+        if ((int) $subCompany->mandor_id === (int) $mandor->id) {
+            return $subCompany;
+        }
+
+        $limit = $this->maxSubCompaniesPerMandor($mandor->company_id);
+        if ($this->countForMandor($mandor->id) >= $limit) {
+            throw ValidationException::withMessages([
+                'mandor_uuid' => [__('operational.sub_companies.limit_reached', ['limit' => $limit])],
+            ]);
+        }
+
+        $subCompany->update([
+            'mandor_id' => $mandor->id,
+            'created_by' => $actor?->id ?? $subCompany->created_by,
+        ]);
+
+        $this->walletService->getOrCreateWallet($mandor, $subCompany->fresh());
+
+        return $subCompany->fresh();
+    }
+
+    public function hasPendingTransfers(SubCompany $subCompany): bool
+    {
+        return OpsIncome::query()
+            ->where('sub_company_id', $subCompany->id)
+            ->whereHas('transferConfirmation', function ($query) {
+                $query->where('status', OpsTransferConfirmationStatus::PENDING);
+            })
+            ->exists();
+    }
+
+    public function deleteForAdmin(SubCompany $subCompany): void
+    {
+        if ($this->hasPendingTransfers($subCompany)) {
+            throw ValidationException::withMessages([
+                'sub_company_uuid' => [__('operational.sub_companies.has_pending_transfers')],
+            ]);
+        }
+
+        $subCompany->delete();
     }
 }

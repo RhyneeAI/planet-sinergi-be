@@ -54,6 +54,8 @@ Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
 
         Route::middleware(['role:SUPERADMIN,OWNER,ADMIN'])->group(function () {
             Route::post('/sub-companies', [SubCompanyController::class, 'store']);
+            Route::patch('/sub-companies/{uuid}', [SubCompanyController::class, 'update']);
+            Route::delete('/sub-companies/{uuid}', [SubCompanyController::class, 'destroy']);
         });
 
         Route::group(['middleware' => ['role:SUPERADMIN,OWNER,MARKETING']], function () {

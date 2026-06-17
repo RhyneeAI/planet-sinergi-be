@@ -37,19 +37,21 @@ class AppServiceProvider extends ServiceProvider
         ]);
 
         RateLimiter::for('api', function ($request) {
-            if (!app()->environment('testing')) {
-                $method = $request->method();
-
-                if (in_array($method, ['POST'])) {
-                    $limit = Limit::perSecond(1, 6);
-                } else if (in_array($method, ['PUT', 'PATCH', 'DELETE'])) {
-                    $limit = Limit::perSecond(1, 3);
-                } else {
-                    $limit = Limit::perMinute(80);
-                }
-
-                return $limit->by($request->user()?->id ?: $request->ip());
+            if (app()->environment('testing')) {
+                return;
             }
+
+            $key = $request->user()?->id ?: $request->ip();
+
+            if ($request->user()) {
+                return Limit::perMinute(120)->by($key);
+            }
+
+            if (in_array($request->method(), ['POST', 'PUT', 'PATCH', 'DELETE'])) {
+                return Limit::perMinute(30)->by($key);
+            }
+
+            return Limit::perMinute(80)->by($key);
         });
 
         Carbon::macro('shortDiffForHumans', function () {

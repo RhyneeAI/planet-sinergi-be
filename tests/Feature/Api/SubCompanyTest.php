@@ -5,6 +5,8 @@ use App\Models\Company;
 use App\Models\SubCompany;
 use App\Models\OpsWallet;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
     $this->company = Company::factory()->create([
@@ -211,4 +213,102 @@ it('returns null sub company uuid on login when mandor has multiple branches', f
         ->assertOk()
         ->assertJsonPath('data.user.sub_company_uuid', null)
         ->assertJsonCount(2, 'data.user.sub_companies');
+});
+
+it('allows admin to update sub company details', function () {
+    $mandor = User::factory()->mandor()->create([
+        'company_id' => $this->company->id,
+    ]);
+
+    $subCompany = SubCompany::where('mandor_id', $mandor->id)->first();
+
+    $this->actingAs($this->admin)
+        ->patchJson('/api/v1/sub-companies/' . $subCompany->uuid, [
+            'name' => 'Cabang Updated',
+            'address' => 'Alamat Baru',
+            'is_active' => false,
+        ])
+        ->assertOk()
+        ->assertJsonPath('data.name', 'Cabang Updated')
+        ->assertJsonPath('data.address', 'Alamat Baru')
+        ->assertJsonPath('data.is_active', false);
+
+    expect($subCompany->fresh())
+        ->name->toBe('Cabang Updated')
+        ->address->toBe('Alamat Baru')
+        ->is_active->toBeFalse();
+});
+
+it('allows admin to reassign sub company to another mandor', function () {
+    $mandor = User::factory()->mandor()->create([
+        'company_id' => $this->company->id,
+    ]);
+    $otherMandor = User::factory()->mandor()->create([
+        'company_id' => $this->company->id,
+    ]);
+
+    $subCompany = SubCompany::where('mandor_id', $mandor->id)->first();
+
+    $this->actingAs($this->admin)
+        ->patchJson('/api/v1/sub-companies/' . $subCompany->uuid, [
+            'mandor_uuid' => $otherMandor->uuid,
+        ])
+        ->assertOk()
+        ->assertJsonPath('data.mandor.uuid', $otherMandor->uuid);
+
+    expect($subCompany->fresh()->mandor_id)->toBe($otherMandor->id);
+});
+
+it('allows admin to delete sub company without pending transfers', function () {
+    $mandor = User::factory()->mandor()->create([
+        'company_id' => $this->company->id,
+    ]);
+
+    $subCompany = SubCompany::where('mandor_id', $mandor->id)->first();
+
+    $this->actingAs($this->admin)
+        ->deleteJson('/api/v1/sub-companies/' . $subCompany->uuid)
+        ->assertOk()
+        ->assertJsonPath('success', true);
+
+    expect(SubCompany::withTrashed()->find($subCompany->id)?->trashed())->toBeTrue();
+});
+
+it('forbids deleting sub company with pending transfer confirmation', function () {
+    Storage::fake('public');
+
+    $mandor = User::factory()->mandor()->create([
+        'company_id' => $this->company->id,
+    ]);
+    $subCompany = SubCompany::where('mandor_id', $mandor->id)->first();
+
+    $this->actingAs($this->admin)
+        ->postJson('/api/v1/operational/expenses', [
+            'expense_type' => 'MANDOR',
+            'mandor_uuid' => $mandor->uuid,
+            'sub_company_uuid' => $subCompany->uuid,
+            'name' => 'Transfer Dana',
+            'amount' => 100000,
+            'date' => now()->toDateString(),
+            'proof_file' => UploadedFile::fake()->create('proof.jpg', 100, 'image/jpeg'),
+        ])
+        ->assertCreated();
+
+    $this->actingAs($this->admin)
+        ->deleteJson('/api/v1/sub-companies/' . $subCompany->uuid)
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['sub_company_uuid']);
+});
+
+it('forbids mandor from updating sub company', function () {
+    $mandor = User::factory()->mandor()->create([
+        'company_id' => $this->company->id,
+    ]);
+    $subCompany = SubCompany::where('mandor_id', $mandor->id)->first();
+
+    $this->actingAs($mandor)
+        ->patchJson('/api/v1/sub-companies/' . $subCompany->uuid, [
+            'name' => 'Should Fail',
+        ])
+        ->assertForbidden();
 });

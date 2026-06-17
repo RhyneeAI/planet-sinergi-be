@@ -85,6 +85,8 @@ return [
         'detail' => 'Operational branch detail retrieved successfully.',
         'stored' => 'Operational branch and mandor created successfully.',
         'updated' => 'Operational branch updated successfully.',
+        'deleted' => 'Operational branch deleted successfully.',
+        'has_pending_transfers' => 'This branch cannot be deleted while transfer confirmations are still pending.',
         'limit_reached' => 'Mandor has reached the maximum of :limit branches.',
     ],
     'validation' => [

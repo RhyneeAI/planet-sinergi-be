@@ -85,6 +85,8 @@ return [
         'detail' => 'Detail cabang operasional berhasil diambil.',
         'stored' => 'Cabang operasional dan mandor berhasil dibuat.',
         'updated' => 'Cabang operasional berhasil diperbarui.',
+        'deleted' => 'Cabang operasional berhasil dihapus.',
+        'has_pending_transfers' => 'Cabang tidak dapat dihapus karena masih ada transfer yang menunggu konfirmasi.',
         'limit_reached' => 'Mandor sudah mencapai batas maksimal :limit cabang.',
     ],
     'validation' => [
