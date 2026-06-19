@@ -9,6 +9,8 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class OpsIncomeRequest extends FormRequest
 {
+    use ValidatesOperationalProofFiles;
+
     public function authorize(): bool
     {
         return true;
@@ -81,12 +83,7 @@ class OpsIncomeRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'amount' => ['required', 'numeric', 'min:0.01'],
             'date' => ['required', 'date'],
-            'proof_file' => [
-                $isStore ? 'required' : 'nullable',
-                'file',
-                'mimes:jpg,jpeg,png,pdf',
-                'max:10240',
-            ],
+            ...$this->proofFileRules($isStore),
             'note' => ['nullable', 'string'],
             'reason' => ['nullable', 'string'],
         ];
@@ -120,12 +117,7 @@ class OpsIncomeRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'amount' => ['required', 'numeric', 'min:0.01'],
             'date' => ['required', 'date'],
-            'proof_file' => [
-                $isStore ? 'required' : 'nullable',
-                'file',
-                'mimes:jpg,jpeg,png,pdf',
-                'max:10240',
-            ],
+            ...$this->proofFileRules($isStore),
             'note' => ['nullable', 'string'],
             'reason' => ['nullable', 'string'],
         ];
@@ -145,10 +137,7 @@ class OpsIncomeRequest extends FormRequest
             'amount.min' => __('operational.validation.amount_min'),
             'date.required' => __('operational.validation.date_required'),
             'date.date' => __('operational.validation.date_invalid'),
-            'proof_file.required' => __('operational.validation.proof_file_required'),
-            'proof_file.file' => __('operational.validation.proof_file_file'),
-            'proof_file.mimes' => __('operational.validation.proof_file_invalid'),
-            'proof_file.max' => __('operational.validation.proof_file_max'),
+            ...$this->proofFileMessages(),
             'note.string' => __('operational.validation.note_invalid'),
         ];
     }

@@ -122,6 +122,27 @@ it('stores mandor income with only sub company uuid and credits wallet', functio
     expect(OpsTransferConfirmation::count())->toBe(0);
 });
 
+it('stores mandor income with up to three proof images', function () {
+    $response = $this->actingAs($this->mandor)
+        ->post('/api/v1/operational/incomes', [
+            'sub_company_uuid' => $this->subCompany->uuid,
+            'name' => 'Pemasukan Multi Bukti',
+            'amount' => 90000,
+            'date' => now()->toDateString(),
+            'proof_files' => [
+                UploadedFile::fake()->create('proof-1.jpg', 100, 'image/jpeg'),
+                UploadedFile::fake()->create('proof-2.jpg', 100, 'image/jpeg'),
+                UploadedFile::fake()->create('proof-3.jpg', 100, 'image/jpeg'),
+            ],
+        ], ['Accept' => 'application/json']);
+
+    $response->assertCreated()
+        ->assertJsonCount(3, 'data.proof_files');
+
+    expect($response->json('data.proof_file'))->toBeString()->not->toBeEmpty();
+    expect(OpsIncome::first()->proof_files)->toHaveCount(3);
+});
+
 it('allows mandor to update own internal branch income', function () {
     $incomeResponse = $this->actingAs($this->mandor)
         ->post('/api/v1/operational/incomes', [
@@ -155,7 +176,7 @@ it('allows mandor to update income by record mandor id after branch reassignment
         'name' => 'Pemasukan Lama',
         'amount' => 120000,
         'date' => now()->toDateString(),
-        'proof_file' => 'proofs/test.jpg',
+        'proof_files' => ['proofs/test.jpg'],
         'source_type' => OpsSourceType::INTERNAL,
         'mandor_id' => $this->mandor->id,
         'sub_company_id' => $this->subCompany->id,
@@ -188,7 +209,7 @@ it('allows current branch mandor to update income after branch reassignment', fu
         'name' => 'Pemasukan Cabang',
         'amount' => 90000,
         'date' => now()->toDateString(),
-        'proof_file' => 'proofs/test.jpg',
+        'proof_files' => ['proofs/test.jpg'],
         'source_type' => OpsSourceType::INTERNAL,
         'mandor_id' => $this->mandor->id,
         'sub_company_id' => $this->subCompany->id,
@@ -218,7 +239,7 @@ it('forbids mandor from editing admin transfer income', function () {
         'name' => 'Transfer Admin',
         'amount' => 100000,
         'date' => now()->toDateString(),
-        'proof_file' => 'proofs/test.jpg',
+        'proof_files' => ['proofs/test.jpg'],
         'source_type' => OpsSourceType::MANDOR,
         'mandor_id' => $this->mandor->id,
         'sub_company_id' => $this->subCompany->id,

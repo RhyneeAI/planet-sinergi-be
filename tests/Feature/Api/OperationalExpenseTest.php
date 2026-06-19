@@ -61,7 +61,7 @@ it('allows mandor to update expense by record mandor id even after branch reassi
         'name' => 'Pengeluaran Lama',
         'amount' => 80000,
         'date' => now()->toDateString(),
-        'proof_file' => 'proofs/test.jpg',
+        'proof_files' => ['proofs/test.jpg'],
         'expense_type' => OpsExpenseType::INTERNAL,
         'mandor_id' => $this->mandor->id,
         'sub_company_id' => $this->subCompany->id,

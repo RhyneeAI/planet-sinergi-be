@@ -18,7 +18,7 @@ class OpsIncome extends Model
         'name',
         'amount',
         'date',
-        'proof_file',
+        'proof_files',
         'note',
         'source_type',
         'mandor_id',
@@ -30,6 +30,7 @@ class OpsIncome extends Model
     protected $casts = [
         'date' => 'date',
         'amount' => 'decimal:2',
+        'proof_files' => 'array',
         'source_type' => OpsSourceType::class,
     ];
 

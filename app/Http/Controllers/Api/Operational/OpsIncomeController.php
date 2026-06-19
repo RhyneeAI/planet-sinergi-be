@@ -21,6 +21,7 @@ class OpsIncomeController extends Controller
 {
     use ReturnsEmptyShowResponse;
     use ScopesOperationalBySubCompany;
+    use HandlesOperationalProofFiles;
 
     protected array $sortableColumns = ['name', 'date', 'amount', 'source_type'];
 
@@ -126,7 +127,7 @@ class OpsIncomeController extends Controller
             'name' => $request->name,
             'amount' => $request->amount,
             'date' => $request->date,
-            'proof_file' => $this->fileService->storeProof($request->file('proof_file')),
+            'proof_files' => $this->storeProofFilesFromRequest($request),
             'note' => $request->note,
             'source_type' => OpsSourceType::INTERNAL,
             'mandor_id' => $mandorId,
@@ -156,7 +157,7 @@ class OpsIncomeController extends Controller
                 'name' => $request->name,
                 'amount' => $request->amount,
                 'date' => $request->date,
-                'proof_file' => $this->fileService->storeProof($request->file('proof_file')),
+                'proof_files' => $this->storeProofFilesFromRequest($request),
                 'note' => $request->note,
                 'source_type' => OpsSourceType::INTERNAL,
                 'mandor_id' => $user->id,
@@ -219,12 +220,11 @@ class OpsIncomeController extends Controller
             'sub_company_id' => $subCompanyId,
         ];
 
-        if ($request->hasFile('proof_file')) {
-            $payload['proof_file'] = $this->fileService->storeProof($request->file('proof_file'));
-            $this->fileService->deleteProof($opsIncome->proof_file);
+        if ($proofFiles = $this->replaceProofFilesOnUpdate($request, $opsIncome)) {
+            $payload['proof_files'] = $proofFiles;
         }
 
-        $oldData = $opsIncome->only(['name', 'amount', 'date', 'proof_file', 'note']);
+        $oldData = $this->auditablePayload($opsIncome);
 
         $opsIncome->update($payload);
 
@@ -233,7 +233,7 @@ class OpsIncomeController extends Controller
             'loggable_id' => $opsIncome->id,
             'reason' => $request->reason ?? '-',
             'old_data' => $oldData,
-            'new_data' => $opsIncome->only(['name', 'amount', 'date', 'proof_file', 'note']),
+            'new_data' => $this->auditablePayload($opsIncome),
             'edited_by' => $request->user()->id,
             'company_id' => $companyId,
         ]);
@@ -279,7 +279,7 @@ class OpsIncomeController extends Controller
 
         DB::beginTransaction();
         try {
-            $oldData = $opsIncome->only(['name', 'amount', 'date', 'proof_file', 'note']);
+            $oldData = $this->auditablePayload($opsIncome);
 
             $updateData = [
                 'name' => $request->name,
@@ -289,9 +289,8 @@ class OpsIncomeController extends Controller
                 'sub_company_id' => $subCompany->id,
             ];
 
-            if ($request->hasFile('proof_file')) {
-                $updateData['proof_file'] = $this->fileService->storeProof($request->file('proof_file'));
-                $this->fileService->deleteProof($opsIncome->proof_file);
+            if ($proofFiles = $this->replaceProofFilesOnUpdate($request, $opsIncome)) {
+                $updateData['proof_files'] = $proofFiles;
             }
 
             $opsIncome->update($updateData);
@@ -301,7 +300,7 @@ class OpsIncomeController extends Controller
                 'loggable_id' => $opsIncome->id,
                 'reason' => $request->reason ?? '-',
                 'old_data' => $oldData,
-                'new_data' => $opsIncome->only(['name', 'amount', 'date', 'proof_file', 'note']),
+                'new_data' => $this->auditablePayload($opsIncome),
                 'edited_by' => $user->id,
                 'company_id' => $user->company_id,
             ]);
@@ -335,9 +334,7 @@ class OpsIncomeController extends Controller
             return $response;
         }
 
-        if ($opsIncome->proof_file) {
-            $this->fileService->deleteProof($opsIncome->proof_file);
-        }
+        $this->deleteRecordProofs($opsIncome);
 
         $opsIncome->delete();
 
@@ -374,9 +371,7 @@ class OpsIncomeController extends Controller
                 ], 422);
             }
 
-            if ($opsIncome->proof_file) {
-                $this->fileService->deleteProof($opsIncome->proof_file);
-            }
+            $this->deleteRecordProofs($opsIncome);
 
             $this->walletService->debit(
                 $wallet,

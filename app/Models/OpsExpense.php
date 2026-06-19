@@ -18,7 +18,7 @@ class OpsExpense extends Model
         'name',
         'amount',
         'date',
-        'proof_file',
+        'proof_files',
         'note',
         'expense_type',
         'mandor_id',
@@ -31,6 +31,7 @@ class OpsExpense extends Model
     protected $casts = [
         'date' => 'date',
         'amount' => 'decimal:2',
+        'proof_files' => 'array',
         'expense_type' => OpsExpenseType::class,
     ];
 

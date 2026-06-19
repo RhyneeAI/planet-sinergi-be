@@ -8,6 +8,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class OpsIncomeResource extends JsonResource
 {
+    use MapsOperationalProofFiles;
+
     public function toArray(Request $request): array
     {
         $fileService = app(OpsFileService::class);
@@ -17,7 +19,7 @@ class OpsIncomeResource extends JsonResource
             'name' => $this->name,
             'amount' => (float) $this->amount,
             'date' => $this->date?->toDateString(),
-            'proof_file' => $fileService->url($this->proof_file),
+            ...$this->mapProofFiles($fileService),
             'note' => $this->note,
             'source_type' => $this->source_type?->value,
             'mandor' => $this->whenLoaded('mandor', fn() => [

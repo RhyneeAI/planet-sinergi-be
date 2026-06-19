@@ -14,7 +14,7 @@ return new class extends Migration
             $table->string('name');
             $table->decimal('amount', 15, 2);
             $table->date('date');
-            $table->string('proof_file')->nullable();
+            $table->json('proof_files')->nullable();
             $table->text('note')->nullable();
             $table->enum('expense_type', ['INTERNAL', 'MANDOR']);
             $table->foreignId('mandor_id')->nullable()->constrained('users')->nullOnDelete();

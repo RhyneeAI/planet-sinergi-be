@@ -26,6 +26,7 @@ class OpsExpenseController extends Controller
 {
     use ReturnsEmptyShowResponse;
     use ScopesOperationalBySubCompany;
+    use HandlesOperationalProofFiles;
 
     protected array $sortableColumns = ['name', 'date', 'amount', 'expense_type'];
 
@@ -115,14 +116,14 @@ class OpsExpenseController extends Controller
     {
         $companyId = $request->user()->company_id;
         $expenseType = OpsExpenseType::from($request->expense_type);
-        $proofPath = $this->fileService->storeProof($request->file('proof_file'));
+        $proofFiles = $this->storeProofFilesFromRequest($request);
 
         if ($expenseType === OpsExpenseType::INTERNAL) {
             $expense = OpsExpense::create([
                 'name' => $request->name,
                 'amount' => $request->amount,
                 'date' => $request->date,
-                'proof_file' => $proofPath,
+                'proof_files' => $proofFiles,
                 'note' => $request->note,
                 'expense_type' => OpsExpenseType::INTERNAL,
                 'created_by' => $request->user()->id,
@@ -151,7 +152,7 @@ class OpsExpenseController extends Controller
                 'name' => $request->name,
                 'amount' => $request->amount,
                 'date' => $request->date,
-                'proof_file' => $proofPath,
+                'proof_files' => $proofFiles,
                 'note' => $request->note,
                 'expense_type' => OpsExpenseType::MANDOR,
                 'mandor_id' => $mandor->id,
@@ -164,7 +165,7 @@ class OpsExpenseController extends Controller
                 'name' => $request->name,
                 'amount' => $request->amount,
                 'date' => $request->date,
-                'proof_file' => $proofPath,
+                'proof_files' => $proofFiles,
                 'note' => $request->note,
                 'source_type' => OpsSourceType::MANDOR,
                 'mandor_id' => $mandor->id,
@@ -226,7 +227,7 @@ class OpsExpenseController extends Controller
                 'name' => $request->name,
                 'amount' => $request->amount,
                 'date' => $request->date,
-                'proof_file' => $this->fileService->storeProof($request->file('proof_file')),
+                'proof_files' => $this->storeProofFilesFromRequest($request),
                 'note' => $request->note,
                 'expense_type' => OpsExpenseType::INTERNAL,
                 'mandor_id' => $user->id,
@@ -276,7 +277,7 @@ class OpsExpenseController extends Controller
 
     protected function updateAdminInternal(OpsExpenseRequest $request, OpsExpense $opsExpense)
     {
-        $oldData = $opsExpense->only(['name', 'amount', 'date', 'proof_file', 'note']);
+        $oldData = $this->auditablePayload($opsExpense);
 
         $updateData = [
             'name' => $request->name,
@@ -285,9 +286,8 @@ class OpsExpenseController extends Controller
             'note' => $request->note,
         ];
 
-        if ($request->hasFile('proof_file')) {
-            $updateData['proof_file'] = $this->fileService->storeProof($request->file('proof_file'));
-            $this->fileService->deleteProof($opsExpense->proof_file);
+        if ($proofFiles = $this->replaceProofFilesOnUpdate($request, $opsExpense)) {
+            $updateData['proof_files'] = $proofFiles;
         }
 
         $opsExpense->update($updateData);
@@ -297,7 +297,7 @@ class OpsExpenseController extends Controller
             'loggable_id' => $opsExpense->id,
             'reason' => $request->reason ?? '-',
             'old_data' => $oldData,
-            'new_data' => $opsExpense->only(['name', 'amount', 'date', 'proof_file', 'note']),
+            'new_data' => $this->auditablePayload($opsExpense),
             'edited_by' => $request->user()->id,
             'company_id' => $request->user()->company_id,
         ]);
@@ -316,7 +316,7 @@ class OpsExpenseController extends Controller
         $opsExpense->loadMissing('transferIncome.transferConfirmation');
         $income = $opsExpense->transferIncome;
 
-        $oldData = $opsExpense->only(['name', 'amount', 'date', 'proof_file', 'note']);
+        $oldData = $this->auditablePayload($opsExpense);
 
         $updateData = [
             'name' => $request->name,
@@ -325,9 +325,8 @@ class OpsExpenseController extends Controller
             'note' => $request->note,
         ];
 
-        if ($request->hasFile('proof_file')) {
-            $updateData['proof_file'] = $this->fileService->storeProof($request->file('proof_file'));
-            $this->fileService->deleteProof($opsExpense->proof_file);
+        if ($proofFiles = $this->replaceProofFilesOnUpdate($request, $opsExpense)) {
+            $updateData['proof_files'] = $proofFiles;
         }
 
         DB::beginTransaction();
@@ -342,9 +341,9 @@ class OpsExpenseController extends Controller
                     'note' => $request->note,
                 ];
 
-                if (isset($updateData['proof_file'])) {
-                    $this->fileService->deleteProof($income->proof_file);
-                    $incomeUpdate['proof_file'] = $updateData['proof_file'];
+                if (isset($updateData['proof_files'])) {
+                    $this->fileService->deleteProofs($income->proof_files ?? []);
+                    $incomeUpdate['proof_files'] = $updateData['proof_files'];
                 }
 
                 $income->update($incomeUpdate);
@@ -355,7 +354,7 @@ class OpsExpenseController extends Controller
                 'loggable_id' => $opsExpense->id,
                 'reason' => $request->reason ?? '-',
                 'old_data' => $oldData,
-                'new_data' => $opsExpense->only(['name', 'amount', 'date', 'proof_file', 'note']),
+                'new_data' => $this->auditablePayload($opsExpense),
                 'edited_by' => $request->user()->id,
                 'company_id' => $request->user()->company_id,
             ]);
@@ -406,7 +405,7 @@ class OpsExpenseController extends Controller
         DB::beginTransaction();
 
         try {
-            $oldData = $opsExpense->only(['name', 'amount', 'date', 'proof_file', 'note']);
+            $oldData = $this->auditablePayload($opsExpense);
 
             $updateData = [
                 'name' => $request->name,
@@ -415,9 +414,8 @@ class OpsExpenseController extends Controller
                 'note' => $request->note,
             ];
 
-            if ($request->hasFile('proof_file')) {
-                $updateData['proof_file'] = $this->fileService->storeProof($request->file('proof_file'));
-                $this->fileService->deleteProof($opsExpense->proof_file);
+            if ($proofFiles = $this->replaceProofFilesOnUpdate($request, $opsExpense)) {
+                $updateData['proof_files'] = $proofFiles;
             }
 
             $opsExpense->update($updateData);
@@ -427,7 +425,7 @@ class OpsExpenseController extends Controller
                 'loggable_id' => $opsExpense->id,
                 'reason' => $request->reason ?? '-',
                 'old_data' => $oldData,
-                'new_data' => $opsExpense->only(['name', 'amount', 'date', 'proof_file', 'note']),
+                'new_data' => $this->auditablePayload($opsExpense),
                 'edited_by' => $user->id,
                 'company_id' => $user->company_id,
             ]);
@@ -467,9 +465,7 @@ class OpsExpenseController extends Controller
                 $opsExpense->loadMissing('transferIncome.transferConfirmation');
                 $income = $opsExpense->transferIncome;
 
-                if ($opsExpense->proof_file) {
-                    $this->fileService->deleteProof($opsExpense->proof_file);
-                }
+                $this->deleteRecordProofs($opsExpense);
 
                 if ($income) {
                     $income->transferConfirmation?->delete();
@@ -490,9 +486,7 @@ class OpsExpenseController extends Controller
             }
         }
 
-        if ($opsExpense->proof_file) {
-            $this->fileService->deleteProof($opsExpense->proof_file);
-        }
+        $this->deleteRecordProofs($opsExpense);
 
         $opsExpense->delete();
 
@@ -526,7 +520,7 @@ class OpsExpenseController extends Controller
                 ], 422);
             }
 
-            $this->fileService->deleteProof($opsExpense->proof_file);
+            $this->deleteRecordProofs($opsExpense);
 
             $subCompany = $opsExpense->subCompany;
             $wallet = $this->walletService->getOrCreateWallet($opsExpense->mandor, $subCompany);
