@@ -28,10 +28,10 @@ class AbsDashboardController extends Controller
             ->get();
 
         $presentToday = $todayAttendances
-            ->filter(fn ($attendance) => $attendance->status?->countsForPayroll())
+            ->filter(fn($attendance) => $attendance->status?->countsForPayroll())
             ->count();
         $lateToday = $todayAttendances
-            ->filter(fn ($attendance) => in_array($attendance->status?->value, ['terlambat', 'terlambat_pulang_awal'], true))
+            ->filter(fn($attendance) => in_array($attendance->status?->value, ['terlambat', 'terlambat_pulang_awal'], true))
             ->count();
 
         $checkedInIds = $todayAttendances->pluck('user_id')->unique();
@@ -62,6 +62,55 @@ class AbsDashboardController extends Controller
                 ];
             });
 
+        $period = $request->input('period', 'weekly');
+        if ($period === 'monthly') {
+            $startDate = Carbon::now(config('absence.timezone'))->startOfMonth();
+            $endDate = Carbon::now(config('absence.timezone'))->endOfMonth();
+
+            $attendanceChart = AbsAttendance::query()
+                ->where('company_id', $companyId)
+                ->whereBetween('date', [$startDate, $endDate])
+                ->selectRaw('DATE(date) as label, COUNT(*) as total')
+                ->groupBy('date')
+                ->orderBy('date')
+                ->pluck('total', 'label');
+
+            $chart = collect();
+
+            for ($date = $startDate->copy(); $date <= $endDate; $date->addDay()) {
+                $label = $date->toDateString();
+
+                $chart->push([
+                    'label' => $date->format('d M'),
+                    'date' => $label,
+                    'present' => (int) ($attendanceChart[$label] ?? 0),
+                ]);
+            }
+        } else {
+            $startDate = Carbon::now(config('absence.timezone'))->startOfWeek();
+            $endDate = Carbon::now(config('absence.timezone'))->endOfWeek();
+
+            $attendanceChart = AbsAttendance::query()
+                ->where('company_id', $companyId)
+                ->whereBetween('date', [$startDate, $endDate])
+                ->selectRaw('DATE(date) as label, COUNT(*) as total')
+                ->groupBy('date')
+                ->orderBy('date')
+                ->pluck('total', 'label');
+
+            $chart = collect();
+
+            for ($date = $startDate->copy(); $date <= $endDate; $date->addDay()) {
+                $label = $date->toDateString();
+
+                $chart->push([
+                    'label' => $date->translatedFormat('D'),
+                    'date' => $label,
+                    'present' => (int) ($attendanceChart[$label] ?? 0),
+                ]);
+            }
+        }
+
         return response()->json([
             'success' => true,
             'message' => __('absence.dashboard.summary'),
@@ -70,12 +119,16 @@ class AbsDashboardController extends Controller
                 'present_today' => $presentToday,
                 'late_today' => $lateToday,
                 'not_yet_absent_count' => max(0, $activeEmployees - $checkedInIds->count()),
-                'not_yet_absent' => $notYetAbsent->map(fn ($u) => [
+                'not_yet_absent' => $notYetAbsent->map(fn($u) => [
                     'uuid' => $u->uuid,
                     'name' => $u->name,
                     'sub_company' => $u->absEmployeeProfile?->subCompany?->name,
                 ]),
                 'sub_companies' => $subCompanies,
+                'attendance_chart' => [
+                    'period' => $period,
+                    'items' => $chart,
+                ],
             ],
         ]);
     }
