@@ -91,7 +91,7 @@ it('admin can manage jabatan via operational api', function () {
 });
 
 it('employee can check in within sub company radius', function () {
-    $photo = UploadedFile::fake()->image('selfie.jpg');
+    $photo = UploadedFile::fake()->create('selfie.jpg', 100);
 
     $this->actingAs($this->employee)
         ->postJson('/api/v1/abs/me/attendance/check-in', [
@@ -105,7 +105,7 @@ it('employee can check in within sub company radius', function () {
 });
 
 it('employee check in is blocked outside sub company radius', function () {
-    $photo = UploadedFile::fake()->image('selfie.jpg');
+    $photo = UploadedFile::fake()->create('selfie.jpg', 100);
 
     $this->actingAs($this->employee)
         ->postJson('/api/v1/abs/me/attendance/check-in', [
