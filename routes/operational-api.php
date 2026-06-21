@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Operational\OpsIncomeController;
 use App\Http\Controllers\Api\Operational\OpsJabatanController;
 use App\Http\Controllers\Api\Operational\OpsMandorController;
 use App\Http\Controllers\Api\Operational\OpsNotificationController;
+use App\Http\Controllers\Api\Operational\OpsReportController;
 use App\Http\Controllers\Api\Operational\OpsTransferConfirmationController;
 use App\Http\Controllers\Api\Operational\OpsWalletController;
 use Illuminate\Support\Facades\Route;
@@ -44,6 +45,8 @@ Route::prefix('v1/operational')->middleware(['auth:sanctum'])->group(function ()
         Route::get('jabatans', [OpsJabatanController::class, 'index']);
         Route::get('jabatans/{absJabatan:uuid}', [OpsJabatanController::class, 'show']);
         Route::get('edit-logs', [OpsEditLogController::class, 'index']);
+
+        Route::get('reports/income-expense', [OpsReportController::class, 'incomeExpenseReport']);
     });
 
     Route::middleware(['role:SUPERADMIN,ADMIN'])->group(function () {

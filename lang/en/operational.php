@@ -106,6 +106,9 @@ return [
         'has_pending_transfers' => 'This branch cannot be deleted while transfer confirmations are still pending.',
         'limit_reached' => 'Mandor has reached the maximum of :limit branches.',
     ],
+    'report' => [
+        'income_expense_report' => 'Income and expense report retrieved successfully.',
+    ],
     'validation' => [
         'mandor_uuid_required' => 'Mandor is required.',
         'mandor_uuid_string' => 'Mandor must be a string.',
@@ -155,6 +158,11 @@ return [
         'payment_method_required' => 'Payment method is required.',
         'payment_method_invalid' => 'Payment method is invalid. Choose TRANSFER or CASH.',
 
+        'start_date_required' => 'Start date is required.',
+        'start_date_invalid' => 'Start date is invalid.',
+        'start_date_before_end' => 'Start date must be before or equal to end date.',
+        'end_date_required' => 'End date is required.',
+        'end_date_invalid' => 'End date is invalid.',
         'confirmed_amount_required' => 'Confirmed amount is required.',
         'confirmed_amount_numeric' => 'Confirmed amount must be a number.',
         'confirmed_amount_min' => 'Confirmed amount must be at least 0.',

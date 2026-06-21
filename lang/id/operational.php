@@ -106,6 +106,9 @@ return [
         'has_pending_transfers' => 'Cabang tidak dapat dihapus karena masih ada transfer yang menunggu konfirmasi.',
         'limit_reached' => 'Mandor sudah mencapai batas maksimal :limit cabang.',
     ],
+    'report' => [
+        'income_expense_report' => 'Laporan pemasukan dan pengeluaran berhasil diambil.',
+    ],
     'validation' => [
         'mandor_uuid_required' => 'Mandor wajib dipilih.',
         'mandor_uuid_string' => 'Mandor tidak valid.',
@@ -154,6 +157,11 @@ return [
         'payment_method_required' => 'Metode pembayaran wajib dipilih.',
         'payment_method_invalid' => 'Metode pembayaran tidak valid. Pilih TRANSFER atau CASH.',
 
+        'start_date_required' => 'Tanggal awal wajib diisi.',
+        'start_date_invalid' => 'Tanggal awal tidak valid.',
+        'start_date_before_end' => 'Tanggal awal harus sebelum atau sama dengan tanggal akhir.',
+        'end_date_required' => 'Tanggal akhir wajib diisi.',
+        'end_date_invalid' => 'Tanggal akhir tidak valid.',
         'confirmed_amount_required' => 'Nominal konfirmasi wajib diisi.',
         'mandor_proof_required' => 'Bukti rekening wajib diupload.',
         'mandor_proof_file_max' => 'Bukti rekening tidak boleh lebih dari 10MB.',
