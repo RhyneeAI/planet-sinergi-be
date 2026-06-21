@@ -48,22 +48,33 @@ class OpsReportController extends Controller
 
     protected function buildReportData(OpsReportRequest $request): array
     {
-        $companyId = $request->user()->company_id;
-        $startDate = Carbon::parse($request->start_date)->startOfDay();
-        $endDate   = Carbon::parse($request->end_date)->endOfDay();
+        $companyId  = $request->user()->company_id;
+        $startDate  = Carbon::parse($request->start_date)->startOfDay();
+        $endDate    = Carbon::parse($request->end_date)->endOfDay();
+        $mandorUuid = $request->mandor_uuid;
 
-        $saldoAwalIncome  = OpsIncome::whereDate('date', '<', $startDate)->sum('amount');
-        $saldoAwalExpense = OpsExpense::whereDate('date', '<', $startDate)->sum('amount');
+        $incomeQuery   = OpsIncome::query();
+        $expenseQuery  = OpsExpense::query();
+
+        if ($mandorUuid) {
+            $mandorId = User::where('uuid', $mandorUuid)->where('company_id', $companyId)->value('id');
+            $incomeQuery->where('mandor_id', $mandorId);
+            $expenseQuery->where('mandor_id', $mandorId);
+        }
+
+        $saldoAwalIncome  = (clone $incomeQuery)->whereDate('date', '<', $startDate)->sum('amount');
+        $saldoAwalExpense = (clone $expenseQuery)->whereDate('date', '<', $startDate)->sum('amount');
         $saldoAwal        = (float) $saldoAwalIncome - (float) $saldoAwalExpense;
 
-        $saldoAkhirIncome  = OpsIncome::whereDate('date', '<=', $endDate)->sum('amount');
-        $saldoAkhirExpense = OpsExpense::whereDate('date', '<=', $endDate)->sum('amount');
+        $saldoAkhirIncome  = (clone $incomeQuery)->whereDate('date', '<=', $endDate)->sum('amount');
+        $saldoAkhirExpense = (clone $expenseQuery)->whereDate('date', '<=', $endDate)->sum('amount');
         $saldoAkhir        = (float) $saldoAkhirIncome - (float) $saldoAkhirExpense;
 
         $mandors = User::where('company_id', $companyId)
             ->where('role', Role::MANDOR)
             ->where('is_active', true)
             ->orderBy('name')
+            ->when($mandorUuid, fn($q) => $q->where('uuid', $mandorUuid))
             ->get();
 
         $groups = collect();
@@ -90,21 +101,23 @@ class OpsReportController extends Controller
             }
         }
 
-        $internalIncomes  = $this->internalIncomes($startDate, $endDate);
-        $internalExpenses = $this->internalExpenses($startDate, $endDate);
+        if (!$mandorUuid) {
+            $internalIncomes  = $this->internalIncomes($startDate, $endDate);
+            $internalExpenses = $this->internalExpenses($startDate, $endDate);
 
-        if ($internalIncomes->isNotEmpty() || $internalExpenses->isNotEmpty()) {
-            $totalInternalIncome  = (float) $internalIncomes->sum('amount');
-            $totalInternalExpense = (float) $internalExpenses->sum('amount');
+            if ($internalIncomes->isNotEmpty() || $internalExpenses->isNotEmpty()) {
+                $totalInternalIncome  = (float) $internalIncomes->sum('amount');
+                $totalInternalExpense = (float) $internalExpenses->sum('amount');
 
-            $groups->push([
-                'mandor'        => null,
-                'total_income'  => $totalInternalIncome,
-                'total_expense' => $totalInternalExpense,
-                'remaining'     => $totalInternalIncome - $totalInternalExpense,
-                'incomes'       => $internalIncomes,
-                'expenses'      => $internalExpenses,
-            ]);
+                $groups->push([
+                    'mandor'        => null,
+                    'total_income'  => $totalInternalIncome,
+                    'total_expense' => $totalInternalExpense,
+                    'remaining'     => $totalInternalIncome - $totalInternalExpense,
+                    'incomes'       => $internalIncomes,
+                    'expenses'      => $internalExpenses,
+                ]);
+            }
         }
 
         $totalPeriodIncome  = $groups->sum('total_income');
