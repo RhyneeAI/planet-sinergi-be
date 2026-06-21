@@ -278,60 +278,11 @@ class OpsReportController extends Controller
 
     protected function generateXlsx($request, array $data): string
     {
-        $rows = collect();
-
-        foreach ($data['groups'] as $group) {
-            $mandorName  = $group['mandor'] ? $group['mandor']['name'] : 'PUSAT (Internal)';
-            $cabangNama  = $group['sub_companies']
-                ? $group['sub_companies']->pluck('name')->implode(', ')
-                : '-';
-
-            foreach ($group['incomes'] as $income) {
-                $rows->push([
-                    $mandorName,
-                    $income['date'],
-                    $income['name'],
-                    'Pemasukan',
-                    $cabangNama,
-                    $income['payment_method'],
-                    (float) $income['amount'],
-                    0,
-                    $income['note'] ?? '',
-                ]);
-            }
-
-            foreach ($group['expenses'] as $expense) {
-                $rows->push([
-                    $mandorName,
-                    $expense['date'],
-                    $expense['name'],
-                    'Pengeluaran',
-                    $cabangNama,
-                    $expense['payment_method'],
-                    0,
-                    (float) $expense['amount'],
-                    $expense['note'] ?? '',
-                ]);
-            }
-        }
-
-        $headings = [
-            'Mandor/Cabang',
-            'Tanggal',
-            'Nama Transaksi',
-            'Tipe',
-            'Cabang',
-            'Metode Pembayaran',
-            'Pemasukan',
-            'Pengeluaran',
-            'Catatan',
-        ];
-
         $filename    = 'laporan-operasional-' . now()->format('YmdHis') . '.xlsx';
         $storagePath = 'reports/operational/' . $filename;
 
         Excel::store(
-            new OpsIncomeExpenseExport($headings, $rows, 'Laporan Operasional'),
+            new OpsIncomeExpenseExport($data, 'Laporan Operasional'),
             $storagePath,
             'public',
         );
