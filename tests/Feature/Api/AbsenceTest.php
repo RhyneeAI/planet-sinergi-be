@@ -29,8 +29,8 @@ beforeEach(function () {
         'name' => 'Cabang Pusat',
         'code' => 'GP-01',
         'address' => 'Jl. Test',
-        'latitude' => -6.200000,
-        'longitude' => 106.816666,
+        'latitude' => -6.8266492915813215,
+        'longitude' => 107.14791799479002,
         'radius_meter' => 500,
         'is_active' => true,
         'mandor_id' => $this->mandor->id,
@@ -96,8 +96,9 @@ it('employee can check in within sub company radius', function () {
     $this->actingAs($this->employee)
         ->postJson('/api/v1/abs/me/attendance/check-in', [
             'photo' => $photo,
-            'latitude' => -6.200000,
-            'longitude' => 106.816666,
+            'latitude' => -6.826577731426878,
+            'longitude' => 107.14796351338576,
+            'late_reason' => 'test'
         ])
         ->assertStatus(201)
         ->assertJsonPath('success', true);
