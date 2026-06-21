@@ -3,17 +3,20 @@
 namespace App\Http\Controllers\Api\Pos;
 
 use App\Enums\PosInstallmentStatus;
-use App\Enums\PosTransactionStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Pos\InstallmentPaymentRequest;
 use App\Http\Resources\Pos\PurchaseInstallmentPlanResource;
 use App\Models\PosPurchaseInstallmentPlan;
+use App\Services\Pos\PosInstallmentService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class PurchaseInstallmentController extends Controller
 {
+    public function __construct(
+        protected PosInstallmentService $installmentService,
+    ) {}
+
     public function index(Request $request)
     {
         $plans = PosPurchaseInstallmentPlan::with(['supplier', 'purchaseTransaction'])
@@ -53,81 +56,31 @@ class PurchaseInstallmentController extends Controller
 
     public function pay(InstallmentPaymentRequest $request, PosPurchaseInstallmentPlan $purchaseInstallmentPlan)
     {
-        if ($purchaseInstallmentPlan->status === PosInstallmentStatus::COMPLETED) {
-            return response()->json([
-                'success' => false,
-                'message' => __('installments.already_completed'),
-                'code'    => 422,
-            ], 422);
-        }
-
-        $remaining  = $purchaseInstallmentPlan->remainingAmount();
-        $paidAmount = (float) $request->paid_amount;
-
-        if ($paidAmount > $remaining) {
-            return response()->json([
-                'success' => false,
-                'message' => __('installments.overpaid', ['remaining' => $remaining]),
-                'code'    => 422,
-            ], 422);
-        }
-
-        DB::beginTransaction();
-
         try {
-            $nextNumber = $purchaseInstallmentPlan->payments()->count() + 1;
+            $plan = $this->installmentService->payPurchase(
+                plan: $purchaseInstallmentPlan,
+                paidAmount: (float) $request->paid_amount,
+                notes: $request->notes,
+                user: $request->user(),
+            );
 
-            $purchaseInstallmentPlan->payments()->create([
-                'ulid'                         => Str::ulid(),
-                'purchase_installment_plan_id' => $purchaseInstallmentPlan->id,
-                'installment_number'           => $nextNumber,
-                'paid_amount'                  => $paidAmount,
-                'paid_date'                    => now()->toDateString(),
-                'notes'                        => $request->notes,
-                'created_by'                   => $request->user()->id,
-                'company_id'                   => $request->user()->company_id,
-            ]);
-
-            $newPaidAmount = $purchaseInstallmentPlan->paid_amount + $paidAmount;
-            $isCompleted   = $newPaidAmount >= $purchaseInstallmentPlan->total_amount;
-
-            $newStatus = match(true) {
-                $isCompleted => PosInstallmentStatus::COMPLETED,
-                default => PosInstallmentStatus::ACTIVE,
-            };
-
-            $purchaseInstallmentPlan->update([
-                'paid_amount' => $newPaidAmount,
-                'status'      => $newStatus,
-            ]);
-
-            if ($isCompleted) {
-                $purchaseInstallmentPlan->purchaseTransaction->update([
-                    'transaction_status' => PosTransactionStatus::PAID,
-                    'paid'               => $purchaseInstallmentPlan->total_amount,
-                ]);
-            } else {
-                $purchaseInstallmentPlan->purchaseTransaction()->update([
-                    'transaction_status'    => PosTransactionStatus::PROCESS,
-                    'paid'                  => $newPaidAmount,
-                ]);
-            }
-
-            DB::commit();
+            $isCompleted = $plan->status === PosInstallmentStatus::COMPLETED;
 
             return response()->json([
                 'success' => true,
                 'message' => $isCompleted
                     ? __('installments.completed')
                     : __('installments.payment_recorded'),
-                'data'    => new PurchaseInstallmentPlanResource(
-                    $purchaseInstallmentPlan->fresh()->load(['supplier', 'purchaseTransaction', 'payments'])
-                ),
+                'data'    => new PurchaseInstallmentPlanResource($plan),
             ]);
 
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            throw $e;
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'errors'  => $e->errors(),
+                'code'    => 422,
+            ], 422);
         }
     }
 }

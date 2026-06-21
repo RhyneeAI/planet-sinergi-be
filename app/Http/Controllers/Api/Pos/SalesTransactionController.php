@@ -2,28 +2,22 @@
 
 namespace App\Http\Controllers\Api\Pos;
 
-use App\Enums\PosInstallmentStatus;
-use App\Enums\PosPaymentType;
-use App\Enums\Role;
-use App\Enums\PosStockMutationType;
 use App\Enums\PosTransactionStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Pos\SalesTransactionRequest;
 use App\Http\Resources\Pos\SalesTransactionResource;
-use App\Models\PosMarketingProduct;
-use App\Models\PosProduct;
-use App\Models\PosSalesDetail;
 use App\Models\PosSalesTransaction;
-use App\Models\PosStockMutation;
-use App\Models\PosSalesInstallmentPlan;
-use Carbon\Carbon;
+use App\Services\Pos\PosSalesService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class SalesTransactionController extends Controller
 {
     protected array $sortableColumns = ['transaction_code', 'transaction_date', 'transaction_status'];
+
+    public function __construct(
+        protected PosSalesService $salesService,
+    ) {}
 
     public function index(Request $request)
     {
@@ -67,140 +61,27 @@ class SalesTransactionController extends Controller
 
     public function store(SalesTransactionRequest $request)
     {
-        DB::beginTransaction();
-
         try {
-            $customerId  = $request->getCustomerId();
-            $discount    = $request->discount ?? 0;
-            $items       = $request->items;
-
-            // Resolve semua product sekaligus — hindari N+1
-            $productUuids = collect($items)->pluck('product_uuid');
-            $products     = PosProduct::whereIn('uuid', $productUuids)
-                ->where('company_id', $request->user()->company_id)
-                ->get()
-                ->keyBy('uuid');
-
-            if ($products->count() !== $productUuids->unique()->count()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => __('sales_transactions.validation.item_product_not_found'),
-                    'code'    => 422,
-                ], 422);
-            }
-
-            // Validasi stok cukup untuk semua item sekaligus
-            foreach ($items as $item) {
-                $product = $products->get($item['product_uuid']);
-                if ($product->stock < $item['quantity']) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => __('sales_transactions.validation.insufficient_stock', [
-                            'product' => $product->name,
-                            'stock'   => $product->stock,
-                        ]),
-                        'code' => 422,
-                    ], 422);
-                }
-            }
-
-            $companyCode = $request->user()->company->code;
-            $datePrefix = now()->format('Ymd'); 
-            $prefix = "SO-{$companyCode}{$datePrefix}";
-
-            $lastTransaction = PosSalesTransaction::where('transaction_code', 'like', $prefix . '%')->orderBy('id', 'desc')->first();
-            if ($lastTransaction) {
-                $lastNumber = (int) substr($lastTransaction->transaction_code, -4);
-                $sequence = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
-            } else {
-                $sequence = '001';
-            }
-
-            $transactionCode = $prefix . $sequence;
-
-            $transaction = PosSalesTransaction::create([
-                'transaction_code'   => $transactionCode,
-                'transaction_date'   => Carbon::parse($request->transaction_date)->format('Y-m-d H:i:s'),
-                'discount'           => $discount,
-                'additional_cost'      => $request->additional_cost ?? 0,    
-                'additional_cost_note' => $request->additional_cost_note,    
-                'total'              => $request->total,
-                'paid'               => $request->payment_type === PosPaymentType::CICIL->value ? 0 : $request->paid,
-                'payment_type'       => $request->payment_type,
-                'transaction_status' => $request->payment_type === PosPaymentType::CICIL->value
-                                                                ? PosTransactionStatus::UNPAID  
-                                                                : PosTransactionStatus::PAID,
-                'customer_id'        => $customerId,
-                'created_by'         => $request->user()->id,
-                'company_id'         => $request->user()->company_id,
-            ]);
-
-            foreach ($items as $item) {
-                /** @var Product $product */
-                $product     = $products->get($item['product_uuid']);
-                $itemDiscount = $item['discount'] ?? 0;
-
-                // Harga dari request sell_price, marketing_price
-                $sellPrice = $item['sell_price'];
-                $marketingPrice = $item['marketing_price'];
-
-                $subtotal    = $item['quantity'] * ($sellPrice - $itemDiscount);
-                $stockBefore = $product->stock;
-                $stockAfter  = $stockBefore - $item['quantity'];
-
-                $detail = PosSalesDetail::create([
-                    'sale_id'           => $transaction->id,
-                    'product_id'        => $product->id,
-                    'quantity'          => $item['quantity'],
-                    'sell_price'        => $sellPrice,
-                    'marketing_price'   => $marketingPrice,
-                    'discount'          => $itemDiscount,
-                    'subtotal'          => $subtotal,
-                    'company_id'        => $request->user()->company_id,
-                ]);
-
-                $product->update(['stock' => $stockAfter]);
-
-                PosStockMutation::create([
-                    'type'         => PosStockMutationType::SALES_OUT,
-                    'quantity'     => $item['quantity'],
-                    'stock_before' => $stockBefore,
-                    'stock_after'  => $stockAfter,
-                    'notes'        => "Penjualan #{$transactionCode}",
-                    'product_id'   => $product->id,
-                    'company_id'   => $request->user()->company_id,
-                    'reference_id' => $detail->id,
-                    'created_by'   => $request->user()->id,
-                ]);
-            }
-
-            if ($request->payment_type === PosPaymentType::CICIL->value) {
-                PosSalesInstallmentPlan::create([
-                    'ulid'                 => Str::ulid(),
-                    'sales_transaction_id' => $transaction->id,
-                    'customer_id'          => $customerId,
-                    'total_amount'         => $request->total,
-                    'paid_amount'          => 0,
-                    'tenor'                => $request->tenor,
-                    'start_date'           => now()->toDateString(),
-                    'status'               => PosInstallmentStatus::ACTIVE,
-                    'company_id'           => $request->user()->company_id,
-                ]);
-            }
-
-            DB::commit();
+            $transaction = $this->salesService->store(
+                data: array_merge($request->validated(), [
+                    'customer_id' => $request->getCustomerId(),
+                ]),
+                user: $request->user(),
+            );
 
             return response()->json([
                 'success' => true,
                 'message' => __('sales_transactions.stored'),
-                'data'    => new SalesTransactionResource(
-                    $transaction->load(['customer', 'createdBy', 'details', 'details.product'])
-                ),
+                'data'    => new SalesTransactionResource($transaction),
             ], 201);
 
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            throw $e;
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'errors'  => $e->errors(),
+                'code'    => 422,
+            ], 422);
         }
     }
 
@@ -215,65 +96,24 @@ class SalesTransactionController extends Controller
         ]);
     }
 
-    public function cancel(PosSalesTransaction $salesTransaction)
+    public function cancel(Request $request, PosSalesTransaction $salesTransaction)
     {
-        if ($salesTransaction->transaction_status === PosTransactionStatus::CANCEL) {
-            return response()->json([
-                'success' => false,
-                'message' => __('sales_transactions.already_cancelled'),
-                'code'    => 422,
-            ], 422);
-        }
-
-        if ($salesTransaction->transaction_status !== PosTransactionStatus::PAID) {
-            return response()->json([
-                'success' => false,
-                'message' => __('sales_transactions.cannot_cancel'),
-                'code'    => 422,
-            ], 422);
-        }
-
-        DB::beginTransaction();
-
         try {
-            $salesTransaction->update([
-                'transaction_status' => PosTransactionStatus::CANCEL,
-            ]);
-
-            // Rollback stok per detail — ADJUST_IN karena stok dikembalikan
-            foreach ($salesTransaction->details as $detail) {
-                $product     = $detail->product;
-                $stockBefore = $product->stock;
-                $stockAfter  = $stockBefore + $detail->quantity;
-
-                $product->update(['stock' => $stockAfter]);
-
-                PosStockMutation::create([
-                    'type'         => PosStockMutationType::ADJUST_IN,
-                    'quantity'     => $detail->quantity,
-                    'stock_before' => $stockBefore,
-                    'stock_after'  => $stockAfter,
-                    'notes'        => "Pembatalan penjualan #{$salesTransaction->transaction_code}",
-                    'product_id'   => $product->id,
-                    'company_id'   => $salesTransaction->company_id,
-                    'reference_id' => $detail->id,
-                    'created_by'   => request()->user()->id,
-                ]);
-            }
-
-            DB::commit();
+            $transaction = $this->salesService->cancel($salesTransaction, $request->user());
 
             return response()->json([
                 'success' => true,
                 'message' => __('sales_transactions.cancelled'),
-                'data'    => new SalesTransactionResource(
-                    $salesTransaction->load(['customer', 'createdBy', 'details', 'details.product'])
-                ),
+                'data'    => new SalesTransactionResource($transaction),
             ]);
 
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            throw $e;
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'errors'  => $e->errors(),
+                'code'    => 422,
+            ], 422);
         }
     }
 }

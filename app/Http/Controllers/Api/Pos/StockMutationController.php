@@ -8,20 +8,24 @@ use App\Http\Requests\Pos\StockMutationRequest;
 use App\Http\Resources\Pos\StockMutationResource;
 use App\Models\PosProduct;
 use App\Models\PosStockMutation;
+use App\Services\Pos\PosStockMutationService;
 use Illuminate\Http\Request;
 
 class StockMutationController extends Controller
 {
+    public function __construct(
+        protected PosStockMutationService $stockMutationService,
+    ) {}
+
     public function index(Request $request)
     {
         $sortableColumns = ['product_name', 'created_at'];
-        
+
         $orderByKey = in_array($request->input('order_by_key', 'product_name'), $sortableColumns)
             ? $request->input('order_by_key', 'product_name')
             : 'product_name';
         $orderByValue = strtoupper($request->input('order_by_value', 'ASC')) === 'DESC' ? 'DESC' : 'ASC';
 
-        // Ambil product_id unik dari stock_mutations
         $query = PosStockMutation::query()
             ->when($request->date_from, function ($query, $dateFrom) {
                 $query->whereDate('created_at', '>=', $dateFrom);
@@ -39,15 +43,12 @@ class StockMutationController extends Controller
 
         $productIds = $query->distinct()->pluck('product_id');
 
-        $products = PosProduct::with(['category', 'unit']) 
+        $products = PosProduct::with(['category', 'unit'])
             ->whereIn('id', $productIds);
 
-        // Sorting by product name
         if ($orderByKey === 'product_name') {
             $products->orderBy('name', $orderByValue);
-        }
-        // Sorting by created_at (ambil created_at terbaru dari mutasi)
-        elseif ($orderByKey === 'created_at') {
+        } elseif ($orderByKey === 'created_at') {
             $products->orderBy(
                 PosStockMutation::select('created_at')
                     ->whereColumn('product_id', 'products.id')
@@ -62,7 +63,7 @@ class StockMutationController extends Controller
         return response()->json([
             'success' => true,
             'message' => __('stock_mutations.product_list'),
-            'data' => StockMutationResource::collection($products), // Pastikan resource bisa handle eager loading
+            'data' => StockMutationResource::collection($products),
             'meta' => [
                 'current_page' => $products->currentPage(),
                 'per_page' => $products->perPage(),
@@ -74,17 +75,16 @@ class StockMutationController extends Controller
 
     public function store(StockMutationRequest $request)
     {
-        // Cari product berdasarkan UUID
         $product = PosProduct::where('company_id', $request->user()->company_id)
-            ->where('uuid', $request->product_uuid) 
+            ->where('uuid', $request->product_uuid)
             ->firstOrFail();
 
-        $stockBefore = $product->stock;
-        
+        $stockBefore = (int) $product->stock;
+
         $allowedTypes = [PosStockMutationType::ADJUST_IN, PosStockMutationType::ADJUST_OUT, PosStockMutationType::OPNAME];
-        
+
         $type = PosStockMutationType::tryFrom($request->type);
-        
+
         if (!$type || !in_array($type, $allowedTypes)) {
             return response()->json([
                 'success' => false,
@@ -92,11 +92,11 @@ class StockMutationController extends Controller
                 'code' => 422,
             ], 422);
         }
-        
+
         $stockAfter = match ($type) {
-            PosStockMutationType::ADJUST_IN => $stockBefore + $request->quantity,
-            PosStockMutationType::ADJUST_OUT => $stockBefore - $request->quantity,
-            PosStockMutationType::OPNAME => $request->quantity,
+            PosStockMutationType::ADJUST_IN => $stockBefore + (int) $request->quantity,
+            PosStockMutationType::ADJUST_OUT => $stockBefore - (int) $request->quantity,
+            PosStockMutationType::OPNAME => (int) $request->quantity,
             default => $stockBefore,
         };
 
@@ -108,19 +108,19 @@ class StockMutationController extends Controller
             ], 422);
         }
 
-        $product->update(['stock' => $stockAfter]);
+        $this->stockMutationService->adjustStock($product, $stockAfter);
 
-        $stockMutation = PosStockMutation::create([
-            'type' => $type,
-            'quantity' => $request->quantity,
-            'stock_before' => $stockBefore,
-            'stock_after' => $stockAfter,
-            'notes' => $request->notes,
-            'product_id' => $product->id, 
-            'company_id' => $request->user()->company_id,
-            'reference_id' => null,
-            'created_by' => $request->user()->id,
-        ]);
+        $stockMutation = $this->stockMutationService->create(
+            product: $product,
+            type: $type,
+            quantity: (int) $request->quantity,
+            stockBefore: $stockBefore,
+            stockAfter: $stockAfter,
+            notes: $request->notes,
+            companyId: $request->user()->company_id,
+            reference: null,
+            createdBy: $request->user()->id,
+        );
 
         $stockMutation->load(['product', 'creator']);
 
@@ -133,11 +133,11 @@ class StockMutationController extends Controller
 
     public function show(Request $request, PosProduct $product)
     {
-        $type = $request->input('type'); 
+        $type = $request->input('type');
         $dateFrom = $request->input('date_from');
         $dateTo = $request->input('date_to');
         $search = $request->input('search');
-        
+
         $orderByKey = in_array($request->input('order_by_key', 'created_at'), ['created_at', 'type', 'quantity'])
             ? $request->input('order_by_key', 'created_at')
             : 'created_at';
@@ -168,8 +168,8 @@ class StockMutationController extends Controller
             'success' => true,
             'message' => __('stock_mutations.list'),
             'data' => [
-                'product' => new StockMutationResource($product), 
-                'mutations' => new StockMutationResource($stockMutations), 
+                'product' => new StockMutationResource($product),
+                'mutations' => new StockMutationResource($stockMutations),
             ],
         ]);
     }

@@ -3,17 +3,20 @@
 namespace App\Http\Controllers\Api\Pos;
 
 use App\Enums\PosInstallmentStatus;
-use App\Enums\PosTransactionStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Pos\InstallmentPaymentRequest;
 use App\Http\Resources\Pos\SalesInstallmentPlanResource;
 use App\Models\PosSalesInstallmentPlan;
+use App\Services\Pos\PosInstallmentService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class SalesInstallmentController extends Controller
 {
+    public function __construct(
+        protected PosInstallmentService $installmentService,
+    ) {}
+
     public function index(Request $request)
     {
         $plans = PosSalesInstallmentPlan::with(['customer', 'salesTransaction', 'salesTransaction.createdBy'])
@@ -53,99 +56,31 @@ class SalesInstallmentController extends Controller
 
     public function pay(InstallmentPaymentRequest $request, PosSalesInstallmentPlan $salesInstallmentPlan)
     {
-        // Cek apakah sudah lunas
-        if ($salesInstallmentPlan->status === PosInstallmentStatus::COMPLETED) {
-            return response()->json([
-                'success' => false,
-                'message' => __('installments.already_completed'),
-                'code'    => 422,
-            ], 422);
-        }
-
-        $remaining   = $salesInstallmentPlan->remainingAmount();
-        $paidAmount  = (float) $request->paid_amount;
-        $isOverdue   = $salesInstallmentPlan->isOverdue();
-
-        // Jika overdue (tenor habis), wajib bayar penuh sisa
-        if ($isOverdue && $paidAmount < $remaining) {
-            return response()->json([
-                'success' => false,
-                'message' => __('installments.must_pay_full', ['remaining' => $remaining]),
-                'code'    => 422,
-            ], 422);
-        }
-
-        // Tidak boleh bayar melebihi sisa
-        if ($paidAmount > $remaining) {
-            return response()->json([
-                'success' => false,
-                'message' => __('installments.overpaid', ['remaining' => $remaining]),
-                'code'    => 422,
-            ], 422);
-        }
-
-        DB::beginTransaction();
-
         try {
-            // Hitung installment_number berikutnya
-            $nextNumber = $salesInstallmentPlan->payments()->count() + 1;
+            $plan = $this->installmentService->paySales(
+                plan: $salesInstallmentPlan,
+                paidAmount: (float) $request->paid_amount,
+                notes: $request->notes,
+                user: $request->user(),
+            );
 
-            // Buat payment record
-            $salesInstallmentPlan->payments()->create([
-                'ulid'                      => Str::ulid(),
-                'sales_installment_plan_id' => $salesInstallmentPlan->id,
-                'installment_number'        => $nextNumber,
-                'paid_amount'               => $paidAmount,
-                'paid_date'                 => now()->toDateString(),
-                'notes'                     => $request->notes,
-                'created_by'                => $request->user()->id,
-                'company_id'                => $request->user()->company_id,
-            ]);
-
-            // Update paid_amount di plan
-            $newPaidAmount = $salesInstallmentPlan->paid_amount + $paidAmount;
-            $isCompleted   = $newPaidAmount >= $salesInstallmentPlan->total_amount;
-
-            // Tentukan status baru
-            $newStatus = match(true) {
-                $isCompleted => PosInstallmentStatus::COMPLETED,
-                $salesInstallmentPlan->isOverdue() => PosInstallmentStatus::OVERDUE,
-                default => PosInstallmentStatus::ACTIVE,
-            };
-
-            $salesInstallmentPlan->update([
-                'paid_amount' => $newPaidAmount,
-                'status'      => $newStatus,
-            ]);
-
-            // Jika lunas, update SalesTransaction status
-            if ($isCompleted) {
-                $salesInstallmentPlan->salesTransaction->update([
-                    'transaction_status' => PosTransactionStatus::PAID,
-                    'paid'               => $salesInstallmentPlan->total_amount,
-                ]);
-            } else {
-                $salesInstallmentPlan->salesTransaction->update([
-                    'transaction_status' => PosTransactionStatus::PROCESS,
-                    'paid'               => $newPaidAmount
-                ]);
-            }
-
-            DB::commit();
+            $isCompleted = $plan->status === PosInstallmentStatus::COMPLETED;
 
             return response()->json([
                 'success' => true,
                 'message' => $isCompleted
                     ? __('installments.completed')
                     : __('installments.payment_recorded'),
-                'data'    => new SalesInstallmentPlanResource(
-                    $salesInstallmentPlan->fresh()->load(['customer', 'salesTransaction', 'salesTransaction.createdBy', 'payments'])
-                ),
+                'data'    => new SalesInstallmentPlanResource($plan),
             ]);
 
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            throw $e;
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'errors'  => $e->errors(),
+                'code'    => 422,
+            ], 422);
         }
     }
 }
