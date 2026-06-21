@@ -12,12 +12,17 @@ use App\Http\Requests\SalesRevenueRequest;
 use App\Models\SalesDetail;
 use App\Models\SalesTransaction;
 use App\Models\User;
+use App\Services\ExportService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 
 class ReportController extends Controller
 {
+    public function __construct(
+        protected ExportService $exportService,
+    ) {}
+
     public function marketingCommission(MarketingCommissionRequest $request)
     {
         $companyId   = $request->user()->company_id;
@@ -120,6 +125,21 @@ class ReportController extends Controller
             'to'   => Carbon::parse($request->date_to)->format('d M Y'),
         ];
 
+        // Cache check
+        $cacheFilters = $request->only(['date_from', 'date_to', 'marketing_uuid']);
+        $cached = $this->exportService->resolveCache($request, 'marketing-commission', $cacheFilters, 'pdf', 'pos/marketing-commission');
+        if ($cached) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Laporan komisi marketing berhasil dibuat.',
+                'data'    => [
+                    'period'       => $period,
+                    'grand_total'  => $grandTotals,
+                    'download_url' => $cached['download_url'],
+                ],
+            ]);
+        }
+
         $pdf = Pdf::loadView('reports.marketing-commission', [
             'report'      => $report,
             'period'      => $period,
@@ -130,6 +150,8 @@ class ReportController extends Controller
         $storagePath = 'reports/pos/marketing-commission/' . $filename;
 
         FileHelper::saveFile($storagePath, $pdf->output());
+
+        $this->exportService->saveCacheAlias($request, 'marketing-commission', $request->only(['date_from', 'date_to', 'marketing_uuid']), 'pdf', 'pos/marketing-commission', $storagePath);
 
         return response()->json([
             'success' => true,
@@ -294,6 +316,21 @@ class ReportController extends Controller
             'to'   => Carbon::parse($request->date_to)->format('d M Y'),
         ];
 
+        // Cache check
+        $cacheFilters = $request->only(['date_from', 'date_to', 'marketing_uuid']);
+        $cached = $this->exportService->resolveCache($request, 'sales-revenue', $cacheFilters, 'pdf', 'pos/revenue');
+        if ($cached) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Laporan omset penjualan berhasil dibuat.',
+                'data'    => [
+                    'period'       => $period,
+                    'grand_total'  => $grandTotal,
+                    'download_url' => $cached['download_url'],
+                ],
+            ]);
+        }
+
         $pdf = Pdf::loadView('reports.sales-revenue', [
             'top_products' => $topProducts,
             'details'      => $detailTransactions,
@@ -305,6 +342,8 @@ class ReportController extends Controller
         $storagePath = 'reports/pos/revenue/' . $filename;
 
         FileHelper::saveFile($storagePath, $pdf->output());
+
+        $this->exportService->saveCacheAlias($request, 'sales-revenue', $cacheFilters, 'pdf', 'pos/revenue', $storagePath);
 
         return response()->json([
             'success' => true,

@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\CustomerTypeController;
+use App\Http\Controllers\Api\ExportController;
 use App\Http\Controllers\Api\HomeController;
 use App\Http\Controllers\Api\MarketingController;
 use App\Http\Controllers\Api\MarketingProductController;
@@ -166,6 +167,8 @@ Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
                 Route::get('/sales-revenue',        [ReportController::class, 'salesRevenue']);
             });
         });
+
+        Route::get('/exports/{token}', [ExportController::class, 'status'])->name('exports.status');
             
     });
 });

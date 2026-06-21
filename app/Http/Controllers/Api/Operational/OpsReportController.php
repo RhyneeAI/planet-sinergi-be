@@ -10,6 +10,7 @@ use App\Http\Requests\Operational\OpsReportRequest;
 use App\Models\OpsExpense;
 use App\Models\OpsIncome;
 use App\Models\User;
+use App\Services\ExportService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -18,6 +19,10 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class OpsReportController extends Controller
 {
+    public function __construct(
+        protected ExportService $exportService,
+    ) {}
+
     public function incomeExpenseReport(OpsReportRequest $request)
     {
         $data = $this->buildReportData($request);
@@ -259,6 +264,20 @@ class OpsReportController extends Controller
 
     protected function generatePdf($request, array $data): string
     {
+        $cached = $this->exportService->resolveCache(
+            $request,
+            'income-expense-pdf',
+            $request->all(),
+            'pdf',
+            'operational'
+        );
+        if ($cached) {
+            return $cached['download_url'];
+        }
+
+        $filename = 'income-expense-' . now()->format('YmdHis') . '.pdf';
+        $storagePath = 'reports/operational/' . $filename;
+
         $pdf = Pdf::loadView('reports.operational.income-expense', [
             'period'         => $data['period'],
             'saldo_awal'     => $data['saldo_awal'],
@@ -269,20 +288,32 @@ class OpsReportController extends Controller
             'total_remaining'=> $data['total_remaining'],
         ])->setPaper('a4', 'landscape');
 
-        $filename    = 'income-expense-' . now()->format('YmdHis') . '.pdf';
-        $storagePath = 'reports/operational/' . $filename;
-
         FileHelper::saveFile($storagePath, $pdf->output());
+
+        $this->exportService->saveCacheAlias($request, 'income-expense-pdf', $request->all(), 'pdf', 'operational', $storagePath);
 
         return FileHelper::downloadUrl($storagePath);
     }
 
     protected function generateXlsx($request, array $data): string
     {
-        $filename    = 'income-expense-' . now()->format('YmdHis') . '.xlsx';
+        $cached = $this->exportService->resolveCache(
+            $request,
+            'income-expense-xlsx',
+            $request->all(),
+            'xlsx',
+            'operational'
+        );
+        if ($cached) {
+            return $cached['download_url'];
+        }
+
+        $filename = 'income-expense-' . now()->format('YmdHis') . '.xlsx';
         $storagePath = 'reports/operational/' . $filename;
 
         FileHelper::saveExcel(new OpsIncomeExpenseExport($data, 'Laporan Operasional'), $storagePath);
+
+        $this->exportService->saveCacheAlias($request, 'income-expense-xlsx', $request->all(), 'xlsx', 'operational', $storagePath);
 
         return FileHelper::downloadUrl($storagePath);
     }

@@ -31,6 +31,11 @@ class FileHelper
         return Storage::disk($disk)->delete($path);
     }
 
+    public static function fileExists(string $path, string $disk = 'public'): bool
+    {
+        return Storage::disk($disk)->exists($path);
+    }
+
     public static function exportResponse(string $path, string $filename, ?int $totalRows = null): array
     {
         return [
