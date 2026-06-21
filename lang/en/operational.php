@@ -109,6 +109,7 @@ return [
     'report' => [
         'income_expense_report' => 'Income and expense report retrieved successfully.',
         'download_ready' => 'Report files are ready for download.',
+        'no_data' => 'No data found for the selected period.',
     ],
     'validation' => [
         'mandor_uuid_required' => 'Mandor is required.',
@@ -159,6 +160,7 @@ return [
         'payment_method_required' => 'Payment method is required.',
         'payment_method_invalid' => 'Payment method is invalid. Choose TRANSFER or CASH.',
 
+        'download_type_invalid' => 'Download type must be PDF or EXCEL.',
         'start_date_required' => 'Start date is required.',
         'start_date_invalid' => 'Start date is invalid.',
         'start_date_before_end' => 'Start date must be before or equal to end date.',

@@ -109,6 +109,7 @@ return [
     'report' => [
         'income_expense_report' => 'Laporan pemasukan dan pengeluaran berhasil diambil.',
         'download_ready' => 'File laporan siap diunduh.',
+        'no_data' => 'Tidak ada data untuk periode yang dipilih.',
     ],
     'validation' => [
         'mandor_uuid_required' => 'Mandor wajib dipilih.',
@@ -158,6 +159,7 @@ return [
         'payment_method_required' => 'Metode pembayaran wajib dipilih.',
         'payment_method_invalid' => 'Metode pembayaran tidak valid. Pilih TRANSFER atau CASH.',
 
+        'download_type_invalid' => 'Tipe download harus PDF atau EXCEL.',
         'start_date_required' => 'Tanggal awal wajib diisi.',
         'start_date_invalid' => 'Tanggal awal tidak valid.',
         'start_date_before_end' => 'Tanggal awal harus sebelum atau sama dengan tanggal akhir.',

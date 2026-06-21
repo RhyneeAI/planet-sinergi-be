@@ -32,18 +32,34 @@ class OpsReportController extends Controller
     {
         $data = $this->buildReportData($request);
 
-        $pdfUrl = $this->generatePdf($request, $data);
-        $xlsxUrl = $this->generateXlsx($request, $data);
+        if ($data['groups']->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => __('operational.report.no_data'),
+                'code'    => 404,
+            ], 404);
+        }
 
-        return response()->json([
+        $type  = $request->download_type;
+        $types = $type ? [$type] : ['PDF', 'EXCEL'];
+
+        $response = [
             'success' => true,
             'message' => __('operational.report.download_ready'),
             'data'    => [
                 'period' => $data['period'],
-                'pdf_download_url'  => $pdfUrl,
-                'xlsx_download_url' => $xlsxUrl,
             ],
-        ]);
+        ];
+
+        if (in_array('PDF', $types)) {
+            $response['data']['pdf_download_url'] = $this->generatePdf($request, $data);
+        }
+
+        if (in_array('EXCEL', $types)) {
+            $response['data']['xlsx_download_url'] = $this->generateXlsx($request, $data);
+        }
+
+        return response()->json($response);
     }
 
     protected function buildReportData(OpsReportRequest $request): array
@@ -232,9 +248,9 @@ class OpsReportController extends Controller
             'saldo_awal'     => $data['saldo_awal'],
             'saldo_akhir'    => $data['saldo_akhir'],
             'groups'         => $data['groups'],
-            'total_income'    => $data['total_income'],
-            'total_expense'   => $data['total_expense'],
-            'total_remaining' => $data['total_remaining'],
+            'total_income'   => $data['total_income'],
+            'total_expense'  => $data['total_expense'],
+            'total_remaining'=> $data['total_remaining'],
         ])->setPaper('a4', 'landscape');
 
         $filename    = 'laporan-operasional-' . now()->format('YmdHis') . '.pdf';
