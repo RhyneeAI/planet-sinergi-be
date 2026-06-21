@@ -26,6 +26,9 @@ class DatabaseSeeder extends Seeder
             AbsShiftSeeder::class,
             AbsEmployeeProfileSeeder::class,
 
+            // Operasional: dummy incomes & expenses untuk testing report
+            OpsIncomeExpenseSeeder::class,
+
             // Laporan: company terpisah, data transaksi fokus
             MarketingCommissionReportSeeder::class,
             SalesRevenueReportSeeder::class,
