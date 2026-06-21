@@ -49,12 +49,19 @@ beforeEach(function () {
 });
 
 it('admin can list attendances', function () {
-    AbsAttendance::factory()->count(3)->create([
-        'user_id' => $this->employee->id,
-        'sub_company_id' => $this->subCompany->id,
-        'abs_shift_id' => $this->shift->id,
-        'company_id' => $this->company->id,
-    ]);
+    AbsAttendance::factory()
+        ->count(3)
+        ->sequence(
+            ['date' => now()->subDay()],
+            ['date' => now()->subDays(2)],
+            ['date' => now()->subDays(3)],
+        )
+        ->create([
+            'user_id' => $this->employee->id,
+            'sub_company_id' => $this->subCompany->id,
+            'abs_shift_id' => $this->shift->id,
+            'company_id' => $this->company->id,
+        ]);
 
     $this->actingAs($this->admin)
         ->getJson('/api/v1/abs/attendances')
