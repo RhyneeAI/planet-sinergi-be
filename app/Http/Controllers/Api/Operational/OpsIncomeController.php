@@ -134,7 +134,7 @@ class OpsIncomeController extends Controller
             'amount' => $request->amount,
             'date' => $request->date,
             'payment_method' => $request->payment_method,
-            'proof_files' => $this->storeProofFilesFromRequest($request, 'income'),
+            'proof_files' => $this->storeProofFilesFromRequest($request, 'income', 'admin'),
             'note' => $request->note,
             'source_type' => OpsSourceType::INTERNAL,
             'mandor_id' => $mandorId,
@@ -165,7 +165,7 @@ class OpsIncomeController extends Controller
                 'amount' => $request->amount,
                 'date' => $request->date,
                 'payment_method' => $request->payment_method,
-                'proof_files' => $this->storeProofFilesFromRequest($request, 'income'),
+            'proof_files' => $this->storeProofFilesFromRequest($request, 'income', 'mandor'),
                 'note' => $request->note,
                 'source_type' => OpsSourceType::INTERNAL,
                 'mandor_id' => $user->id,
@@ -229,7 +229,7 @@ class OpsIncomeController extends Controller
             'sub_company_id' => $subCompanyId,
         ];
 
-        if ($proofFiles = $this->replaceProofFilesOnUpdate($request, $opsIncome, 'income')) {
+        if ($proofFiles = $this->replaceProofFilesOnUpdate($request, $opsIncome, 'income', 'admin')) {
             $payload['proof_files'] = $proofFiles;
         }
 
@@ -299,7 +299,7 @@ class OpsIncomeController extends Controller
                 'sub_company_id' => $subCompany->id,
             ];
 
-            if ($proofFiles = $this->replaceProofFilesOnUpdate($request, $opsIncome, 'income')) {
+            if ($proofFiles = $this->replaceProofFilesOnUpdate($request, $opsIncome, 'income', 'mandor')) {
                 $updateData['proof_files'] = $proofFiles;
             }
 

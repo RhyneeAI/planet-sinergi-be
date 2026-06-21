@@ -9,8 +9,15 @@ return [
     'max_sub_companies_per_mandor' => (int) env('OPS_MAX_SUB_COMPANIES_PER_MANDOR', 10),
     'proof_disk'               => 'public',
     'proof_directories'        => [
-        'income'   => 'operational/proofs/incomes',
-        'expense'  => 'operational/proofs/expenses',
-        'transfer' => 'operational/proofs/transfers',
+        'admin' => [
+            'income'   => 'operational/proofs/admin/incomes',
+            'expense'  => 'operational/proofs/admin/expenses',
+            'transfer' => 'operational/proofs/admin/transfers',
+        ],
+        'mandor' => [
+            'income'   => 'operational/proofs/mandor/incomes',
+            'expense'  => 'operational/proofs/mandor/expenses',
+            'transfer' => 'operational/proofs/mandor/transfers',
+        ],
     ],
 ];

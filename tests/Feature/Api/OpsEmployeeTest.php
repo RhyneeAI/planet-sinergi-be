@@ -96,7 +96,7 @@ it('admin can deactivate employee', function () {
         ->assertOk()
         ->assertJsonPath('success', true);
 
-    expect($employee->fresh()->is_active)->toBe(0);
+    expect($employee->fresh()->is_active)->toBeFalse();
 });
 
 it('admin can reset employee password', function () {

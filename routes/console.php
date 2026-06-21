@@ -11,3 +11,8 @@ Artisan::command('inspire', function () {
 // Clean old reports every day at 2 AM
 Schedule::command('reports:clean --days=1')->dailyAt('02:00');
 Schedule::command('telescope:prune --hours=48')->daily();
+
+// Queue worker for async exports (Redis) — runs every minute
+Schedule::command('queue:work redis --stop-when-empty --max-time=55')
+    ->everyMinute()
+    ->withoutOverlapping();

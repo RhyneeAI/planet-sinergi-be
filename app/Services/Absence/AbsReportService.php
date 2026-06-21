@@ -3,6 +3,7 @@
 namespace App\Services\Absence;
 
 use App\Exports\AbsReportExport;
+use App\Helpers\FileHelper;
 use App\Models\AbsAttendance;
 use App\Models\AbsBonus;
 use App\Models\AbsDeduction;
@@ -140,21 +141,13 @@ class AbsReportService
         return $request->input('mode') === 'export';
     }
 
-    public function storeXlsxExport(Request $request, string $filename, array $headers, Collection $rows): array
+    public function storeXlsxExport(Request $request, string $subfolder, string $filename, array $headers, Collection $rows): array
     {
-        $storagePath = 'reports/abs/' . $filename;
+        $storagePath = 'reports/' . $subfolder . '/' . $filename;
 
-        Excel::store(
-            new AbsReportExport($headers, $rows),
-            $storagePath,
-            'public',
-        );
+        FileHelper::saveExcel(new AbsReportExport($headers, $rows), $storagePath);
 
-        return [
-            'filename' => $filename,
-            'download_url' => $request->getSchemeAndHttpHost() . '/storage/' . $storagePath,
-            'total_rows' => $rows->count(),
-        ];
+        return FileHelper::exportResponse($storagePath, $filename, $rows->count());
     }
 
     public function formatStatusLabel(?string $value): string

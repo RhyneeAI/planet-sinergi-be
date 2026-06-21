@@ -38,6 +38,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'role' => Role::class,
+        'is_active' => 'boolean',
     ];
 
     protected static function booted(): void

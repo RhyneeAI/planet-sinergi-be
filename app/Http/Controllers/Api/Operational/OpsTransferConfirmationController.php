@@ -183,7 +183,7 @@ class OpsTransferConfirmationController extends Controller
     {
         $files = $request->file('mandor_proof_files');
 
-        return $this->fileService->storeProofs(is_array($files) ? $files : [$files], 'transfer');
+        return $this->fileService->storeProofs(is_array($files) ? $files : [$files], 'transfer', 'mandor');
     }
 
     protected function authorizeConfirmationAccess(

@@ -7,10 +7,10 @@ use Illuminate\Support\Facades\Storage;
 
 class OpsFileService
 {
-    public function storeProof(UploadedFile $file, string $type = 'income'): string
+    public function storeProof(UploadedFile $file, string $type = 'income', string $role = 'admin'): string
     {
         return $file->store(
-            config("operational.proof_directories.{$type}", 'operational/proofs'),
+            config("operational.proof_directories.{$role}.{$type}", 'operational/proofs'),
             config('operational.proof_disk')
         );
     }
@@ -19,9 +19,9 @@ class OpsFileService
      * @param  array<int, UploadedFile>  $files
      * @return array<int, string>
      */
-    public function storeProofs(array $files, string $type = 'income'): array
+    public function storeProofs(array $files, string $type = 'income', string $role = 'admin'): array
     {
-        return array_map(fn (UploadedFile $file) => $this->storeProof($file, $type), $files);
+        return array_map(fn (UploadedFile $file) => $this->storeProof($file, $type, $role), $files);
     }
 
     public function url(?string $path): ?string

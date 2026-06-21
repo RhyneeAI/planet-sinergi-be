@@ -12,11 +12,13 @@ use App\Http\Resources\Absence\AbsReportBonusResource;
 use App\Http\Resources\Absence\AbsReportDeductionResource;
 use App\Http\Resources\Operational\OpsEmployeeResource;
 use App\Services\Absence\AbsReportService;
+use App\Services\ExportService;
 
 class AbsReportController extends Controller
 {
     public function __construct(
         protected AbsReportService $reportService,
+        protected ExportService $exportService,
     ) {}
 
     public function attendance(AbsAttendanceReportRequest $request)
@@ -24,13 +26,36 @@ class AbsReportController extends Controller
         $query = $this->reportService->attendanceQuery($request);
 
         if ($this->reportService->isExportMode($request)) {
+            $cached = $this->exportService->resolveCache($request, 'attendance', $request->all(), 'xlsx', 'absence/attendance');
+            if ($cached) {
+                return response()->json([
+                    'success' => true,
+                    'message' => __('absence.reports.attendance_exported'),
+                    'data' => $cached,
+                ]);
+            }
+
             $records = $query->get();
+            $rows = $this->reportService->attendanceExportRows($records);
+            $filename = 'attendance-' . now()->format('YmdHis') . '.xlsx';
+
+            $queued = $this->exportService->enqueueOrFallback($request, 'xlsx', 'absence/attendance', $filename, [
+                'headers' => ['No', 'Tanggal', 'Karyawan', 'Cabang', 'Shift', 'Status', 'Jam Masuk', 'Jam Keluar', 'Alasan Terlambat', 'Alasan Pulang Awal'],
+                'rows' => $rows->toArray(),
+            ]);
+            if ($queued) {
+                return response()->json(['success' => true, 'data' => $queued]);
+            }
+
             $export = $this->reportService->storeXlsxExport(
                 $request,
-                'laporan-absensi-' . now()->format('YmdHis') . '.xlsx',
+                'absence/attendance',
+                $filename,
                 ['No', 'Tanggal', 'Karyawan', 'Cabang', 'Shift', 'Status', 'Jam Masuk', 'Jam Keluar', 'Alasan Terlambat', 'Alasan Pulang Awal'],
-                $this->reportService->attendanceExportRows($records),
+                $rows,
             );
+
+            $this->exportService->saveCacheAlias($request, 'attendance', $request->all(), 'xlsx', 'absence/attendance', "reports/absence/attendance/{$filename}");
 
             return response()->json([
                 'success' => true,
@@ -53,13 +78,36 @@ class AbsReportController extends Controller
         $query = $this->reportService->payrollQuery($request);
 
         if ($this->reportService->isExportMode($request)) {
+            $cached = $this->exportService->resolveCache($request, 'payroll', $request->all(), 'xlsx', 'absence/payroll');
+            if ($cached) {
+                return response()->json([
+                    'success' => true,
+                    'message' => __('absence.reports.payroll_exported'),
+                    'data' => $cached,
+                ]);
+            }
+
             $records = $query->get();
+            $rows = $this->reportService->payrollExportRows($records);
+            $filename = 'payroll-' . now()->format('YmdHis') . '.xlsx';
+
+            $queued = $this->exportService->enqueueOrFallback($request, 'xlsx', 'absence/payroll', $filename, [
+                'headers' => ['No', 'Periode', 'Karyawan', 'Tarif Harian', 'Total Hari', 'Gaji Kotor', 'Total Bonus', 'Total Potongan', 'Gaji Bersih', 'Status'],
+                'rows' => $rows->toArray(),
+            ]);
+            if ($queued) {
+                return response()->json(['success' => true, 'data' => $queued]);
+            }
+
             $export = $this->reportService->storeXlsxExport(
                 $request,
-                'laporan-payroll-' . now()->format('YmdHis') . '.xlsx',
+                'absence/payroll',
+                $filename,
                 ['No', 'Periode', 'Karyawan', 'Tarif Harian', 'Total Hari', 'Gaji Kotor', 'Total Bonus', 'Total Potongan', 'Gaji Bersih', 'Status'],
-                $this->reportService->payrollExportRows($records),
+                $rows,
             );
+
+            $this->exportService->saveCacheAlias($request, 'payroll', $request->all(), 'xlsx', 'absence/payroll', "reports/absence/payroll/{$filename}");
 
             return response()->json([
                 'success' => true,
@@ -82,13 +130,36 @@ class AbsReportController extends Controller
         $query = $this->reportService->deductionsQuery($request);
 
         if ($this->reportService->isExportMode($request)) {
+            $cached = $this->exportService->resolveCache($request, 'deductions', $request->all(), 'xlsx', 'absence/deduction');
+            if ($cached) {
+                return response()->json([
+                    'success' => true,
+                    'message' => __('absence.reports.deductions_exported'),
+                    'data' => $cached,
+                ]);
+            }
+
             $records = $query->get();
+            $rows = $this->reportService->deductionsExportRows($records);
+            $filename = 'deduction-' . now()->format('YmdHis') . '.xlsx';
+
+            $queued = $this->exportService->enqueueOrFallback($request, 'xlsx', 'absence/deduction', $filename, [
+                'headers' => ['No', 'Tanggal', 'Karyawan', 'Cabang', 'Periode Payroll', 'Alasan', 'Nominal', 'Dibuat Oleh'],
+                'rows' => $rows->toArray(),
+            ]);
+            if ($queued) {
+                return response()->json(['success' => true, 'data' => $queued]);
+            }
+
             $export = $this->reportService->storeXlsxExport(
                 $request,
-                'laporan-pemotongan-' . now()->format('YmdHis') . '.xlsx',
+                'absence/deduction',
+                $filename,
                 ['No', 'Tanggal', 'Karyawan', 'Cabang', 'Periode Payroll', 'Alasan', 'Nominal', 'Dibuat Oleh'],
-                $this->reportService->deductionsExportRows($records),
+                $rows,
             );
+
+            $this->exportService->saveCacheAlias($request, 'deductions', $request->all(), 'xlsx', 'absence/deduction', "reports/absence/deduction/{$filename}");
 
             return response()->json([
                 'success' => true,
@@ -111,13 +182,36 @@ class AbsReportController extends Controller
         $query = $this->reportService->bonusesQuery($request);
 
         if ($this->reportService->isExportMode($request)) {
+            $cached = $this->exportService->resolveCache($request, 'bonuses', $request->all(), 'xlsx', 'absence/bonus');
+            if ($cached) {
+                return response()->json([
+                    'success' => true,
+                    'message' => __('absence.reports.bonuses_exported'),
+                    'data' => $cached,
+                ]);
+            }
+
             $records = $query->get();
+            $rows = $this->reportService->bonusesExportRows($records);
+            $filename = 'bonus-' . now()->format('YmdHis') . '.xlsx';
+
+            $queued = $this->exportService->enqueueOrFallback($request, 'xlsx', 'absence/bonus', $filename, [
+                'headers' => ['No', 'Tanggal', 'Karyawan', 'Cabang', 'Periode Payroll', 'Alasan', 'Nominal', 'Dibuat Oleh'],
+                'rows' => $rows->toArray(),
+            ]);
+            if ($queued) {
+                return response()->json(['success' => true, 'data' => $queued]);
+            }
+
             $export = $this->reportService->storeXlsxExport(
                 $request,
-                'laporan-bonus-' . now()->format('YmdHis') . '.xlsx',
+                'absence/bonus',
+                $filename,
                 ['No', 'Tanggal', 'Karyawan', 'Cabang', 'Periode Payroll', 'Alasan', 'Nominal', 'Dibuat Oleh'],
-                $this->reportService->bonusesExportRows($records),
+                $rows,
             );
+
+            $this->exportService->saveCacheAlias($request, 'bonuses', $request->all(), 'xlsx', 'absence/bonus', "reports/absence/bonus/{$filename}");
 
             return response()->json([
                 'success' => true,
@@ -140,13 +234,36 @@ class AbsReportController extends Controller
         $query = $this->reportService->employeesQuery($request);
 
         if ($this->reportService->isExportMode($request)) {
+            $cached = $this->exportService->resolveCache($request, 'employees', $request->all(), 'xlsx', 'absence/employee');
+            if ($cached) {
+                return response()->json([
+                    'success' => true,
+                    'message' => __('absence.reports.employees_exported'),
+                    'data' => $cached,
+                ]);
+            }
+
             $records = $query->get();
+            $rows = $this->reportService->employeesExportRows($records);
+            $filename = 'employee-' . now()->format('YmdHis') . '.xlsx';
+
+            $queued = $this->exportService->enqueueOrFallback($request, 'xlsx', 'absence/employee', $filename, [
+                'headers' => ['No', 'Karyawan', 'Nomor Telepon', 'Cabang', 'Jabatan', 'Status', 'Shift'],
+                'rows' => $rows->toArray(),
+            ]);
+            if ($queued) {
+                return response()->json(['success' => true, 'data' => $queued]);
+            }
+
             $export = $this->reportService->storeXlsxExport(
                 $request,
-                'laporan-karyawan-' . now()->format('YmdHis') . '.xlsx',
+                'absence/employee',
+                $filename,
                 ['No', 'Karyawan', 'Nomor Telepon', 'Cabang', 'Jabatan', 'Status', 'Shift'],
-                $this->reportService->employeesExportRows($records),
+                $rows,
             );
+
+            $this->exportService->saveCacheAlias($request, 'employees', $request->all(), 'xlsx', 'absence/employee', "reports/absence/employee/{$filename}");
 
             return response()->json([
                 'success' => true,
