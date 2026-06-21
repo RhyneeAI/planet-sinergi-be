@@ -12,11 +12,14 @@ class OpsTransferConfirmationResource extends JsonResource
     {
         $fileService = app(OpsFileService::class);
 
+        $mandorProofUrls = $fileService->urls($this->mandor_proof_files ?? []);
+
         return [
             'uuid' => (string) $this->uuid,
             'status' => $this->status?->value,
             'confirmed_amount' => $this->confirmed_amount !== null ? (float) $this->confirmed_amount : null,
-            'mandor_proof_file' => $fileService->url($this->mandor_proof_file),
+            'mandor_proof_files' => $mandorProofUrls,
+            'mandor_proof_file' => $mandorProofUrls[0] ?? null,
             'confirmed_at' => $this->confirmed_at?->toISOString(),
             'note' => $this->note,
             'confirmed_by' => $this->whenLoaded('confirmedBy', fn() => [

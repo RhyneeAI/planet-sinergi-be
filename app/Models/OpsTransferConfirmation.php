@@ -18,7 +18,7 @@ class OpsTransferConfirmation extends Model
         'confirmable_id',
         'status',
         'confirmed_amount',
-        'mandor_proof_file',
+        'mandor_proof_files',
         'confirmed_at',
         'note',
         'confirmed_by',
@@ -29,6 +29,7 @@ class OpsTransferConfirmation extends Model
         'status' => OpsTransferConfirmationStatus::class,
         'confirmed_amount' => 'decimal:2',
         'confirmed_at' => 'datetime',
+        'mandor_proof_files' => 'array',
     ];
 
     protected static function booted(): void

@@ -116,7 +116,7 @@ class OpsTransferConfirmationController extends Controller
             $opsTransferConfirmation->update([
                 'status' => OpsTransferConfirmationStatus::CONFIRMED,
                 'confirmed_amount' => $confirmedAmount,
-                'mandor_proof_file' => $this->fileService->storeProof($request->file('mandor_proof_file'), 'transfer'),
+                'mandor_proof_files' => $this->storeMandorProofFiles($request),
                 'confirmed_at' => now(),
                 'note' => $request->note,
                 'confirmed_by' => $user->id,
@@ -177,6 +177,21 @@ class OpsTransferConfirmationController extends Controller
                 $opsTransferConfirmation->fresh()->load(['confirmable.subCompany', 'confirmable.mandor', 'confirmedBy'])
             ),
         ]);
+    }
+
+    protected function storeMandorProofFiles(Request $request): array
+    {
+        if ($request->hasFile('mandor_proof_files')) {
+            $files = $request->file('mandor_proof_files');
+
+            return $this->fileService->storeProofs(is_array($files) ? $files : [$files], 'transfer');
+        }
+
+        if ($request->hasFile('mandor_proof_file')) {
+            return [$this->fileService->storeProof($request->file('mandor_proof_file'), 'transfer')];
+        }
+
+        return [];
     }
 
     protected function authorizeConfirmationAccess(

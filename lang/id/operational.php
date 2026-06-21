@@ -167,6 +167,7 @@ return [
         'end_date_invalid' => 'Tanggal akhir tidak valid.',
         'confirmed_amount_required' => 'Nominal konfirmasi wajib diisi.',
         'mandor_proof_required' => 'Bukti rekening wajib diupload.',
-        'mandor_proof_file_max' => 'Bukti rekening tidak boleh lebih dari 10MB.',
+        'mandor_proof_max' => 'Maksimal 3 file bukti rekening.',
+        'mandor_proof_file_max' => 'Setiap file bukti rekening tidak boleh lebih dari 10MB.',
     ],
 ];

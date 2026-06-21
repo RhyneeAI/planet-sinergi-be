@@ -170,8 +170,9 @@ return [
         'confirmed_amount_numeric' => 'Confirmed amount must be a number.',
         'confirmed_amount_min' => 'Confirmed amount must be at least 0.',
         'mandor_proof_required' => 'Bank proof is required.',
+        'mandor_proof_max' => 'Maximum 3 bank proof files allowed.',
         'mandor_proof_file_file' => 'Bank proof must be a file.',
         'mandor_proof_file_invalid' => 'Invalid bank proof format.',
-        'mandor_proof_file_max' => 'Bank proof must not exceed 10MB.',
+        'mandor_proof_file_max' => 'Each bank proof must not exceed 10MB.',
     ],
 ];
