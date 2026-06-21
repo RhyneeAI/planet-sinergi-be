@@ -4,7 +4,7 @@ namespace App\Http\Requests\Absence;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class AbsPayrollReportRequest extends FormRequest
+class AbsEmployeeReportRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -15,9 +15,8 @@ class AbsPayrollReportRequest extends FormRequest
     {
         return [
             'mode' => ['sometimes', 'nullable', 'in:export,data'],
-            'month' => ['sometimes', 'integer', 'min:1', 'max:12'],
-            'year' => ['sometimes', 'integer', 'min:2000', 'max:2100'],
-            'employee_uuid' => ['sometimes', 'nullable', 'uuid'],
+            'jabatan_uuid' => ['sometimes', 'nullable', 'uuid'],
+            'sub_company_uuid' => ['sometimes', 'nullable', 'uuid'],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:200'],
         ];
     }

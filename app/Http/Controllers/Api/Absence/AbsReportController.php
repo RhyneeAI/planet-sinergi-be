@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Api\Absence;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Absence\AbsAttendanceReportRequest;
+use App\Http\Requests\Absence\AbsEmployeeReportRequest;
 use App\Http\Requests\Absence\AbsPayrollReportRequest;
 use App\Http\Resources\Absence\AbsAttendanceResource;
 use App\Http\Resources\Absence\AbsPayrollPeriodResource;
 use App\Http\Resources\Absence\AbsReportDeductionResource;
+use App\Http\Resources\Operational\OpsEmployeeResource;
 use App\Services\Absence\AbsReportService;
 
 class AbsReportController extends Controller
@@ -100,6 +102,35 @@ class AbsReportController extends Controller
             'success' => true,
             'message' => __('absence.reports.deductions'),
             'data' => AbsReportDeductionResource::collection($records),
+        ]);
+    }
+
+    public function employees(AbsEmployeeReportRequest $request)
+    {
+        $query = $this->reportService->employeesQuery($request);
+
+        if ($this->reportService->isExportMode($request)) {
+            $records = $query->get();
+            $export = $this->reportService->storeXlsxExport(
+                $request,
+                'laporan-karyawan-' . now()->format('YmdHis') . '.xlsx',
+                ['No', 'Karyawan', 'Nomor Telepon', 'Cabang', 'Jabatan', 'Status', 'Shift'],
+                $this->reportService->employeesExportRows($records),
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => __('absence.reports.employees_exported'),
+                'data' => $export,
+            ]);
+        }
+
+        $records = $query->paginate($request->input('per_page', 50));
+
+        return response()->json([
+            'success' => true,
+            'message' => __('absence.reports.employees'),
+            'data' => OpsEmployeeResource::collection($records),
         ]);
     }
 }

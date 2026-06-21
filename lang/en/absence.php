@@ -66,6 +66,8 @@ return [
         'payroll_exported' => 'Payroll report exported successfully.',
         'deductions' => 'Deduction report retrieved successfully.',
         'deductions_exported' => 'Deduction report exported successfully.',
+        'employees' => 'Employees report retrieved successfully',
+        'employees_exported' => 'Employees report exported successfully'
     ],
     'validation' => [
         'branch_uuid_not_found' => 'Branch not found.',

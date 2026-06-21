@@ -36,6 +36,7 @@ Route::prefix('v1/abs')->middleware(['throttle:api'])->group(function () {
             Route::get('/reports/attendance', [AbsReportController::class, 'attendance']);
             Route::get('/reports/payroll', [AbsReportController::class, 'payroll']);
             Route::get('/reports/deductions', [AbsReportController::class, 'deductions']);
+            Route::get('/reports/employees', [AbsReportController::class, 'employees']);
         });
 
         Route::middleware(['role:SUPERADMIN,ADMIN'])->group(function () {

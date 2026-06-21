@@ -6,9 +6,11 @@ use App\Exports\AbsReportExport;
 use App\Models\AbsAttendance;
 use App\Models\AbsDeduction;
 use App\Models\AbsPayrollPeriod;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -90,6 +92,26 @@ class AbsReportService
             ->orderByDesc('created_at');
     }
 
+    public function employeesQuery(Request $request): Builder
+    {
+        return User::with([
+            'absEmployeeProfile.jabatan',
+            'absEmployeeProfile.subCompany',
+            'absEmployeeProfile.shift'
+        ])
+            ->when($request->jabatan_uuid, function ($q, $uuid) {
+                $q->whereHas('absEmployeeProfile.jabatan', function ($p0) use ($uuid) {
+                    $p0->where('uuid', $uuid);
+                });
+            })
+            ->when($request->sub_company_uuid, function ($q, $uuid) {
+                $q->whereHas('absEmployeeProfile.subCompany', function ($p0) use ($uuid) {
+                    $p0->where('uuid', $uuid);
+                });
+            })
+            ->orderBy('name', 'ASC');
+    }
+
     public function isExportMode(Request $request): bool
     {
         return $request->input('mode') === 'export';
@@ -169,6 +191,23 @@ class AbsReportService
                 $record->reason,
                 (float) $record->amount,
                 $record->createdBy?->name,
+            ];
+        });
+    }
+
+    public function employeesExportRows(Collection $records): Collection
+    {
+        return $records->map(function (User $record, $index) {
+            $employeeProfile = $record->absEmployeeProfile;
+
+            return [
+                $index + 1,
+                $record->name,
+                $record->phone,
+                $employeeProfile?->subCompany?->name,
+                $employeeProfile?->jabatan?->name,
+                $record->is_active ? 'Aktif' : 'Tidak Aktif',
+                $employeeProfile?->shift?->name
             ];
         });
     }

@@ -66,6 +66,8 @@ return [
         'payroll_exported' => 'Laporan payroll berhasil diekspor.',
         'deductions' => 'Laporan pemotongan gaji berhasil diambil.',
         'deductions_exported' => 'Laporan pemotongan gaji berhasil diekspor.',
+        'employees' => 'Laporan karyawan berhasil diambil',
+        'employees_exported' => 'Laporan karyawan berhasil diekspor'
     ],
     'validation' => [
         'branch_uuid_not_found' => 'Cabang tidak ditemukan.',
