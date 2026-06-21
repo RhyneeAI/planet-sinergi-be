@@ -62,6 +62,11 @@
     @foreach ($groups as $group)
         <div class="mandor-section">
             <div class="mandor-name">{{ $group['mandor'] ? $group['mandor']['name'] : 'PUSAT (Internal)' }}</div>
+            <div style="margin-bottom: 8px; font-size: 10px;">
+                <span>Saldo Awal: <strong>Rp {{ number_format($group['saldo_awal'], 0, ',', '.') }}</strong></span>
+                &nbsp;|&nbsp;
+                <span>Saldo Akhir: <strong>Rp {{ number_format($group['saldo_akhir'], 0, ',', '.') }}</strong></span>
+            </div>
 
             @if ($group['incomes']->isNotEmpty())
                 <table>

@@ -95,9 +95,43 @@ class OpsReportController extends Controller
 
         $groups = collect();
 
+        // Pusat (internal) ditempatkan paling awal
+        if (!$mandorUuid) {
+            $internalIncomes  = $this->internalIncomes($startDate, $endDate);
+            $internalExpenses = $this->internalExpenses($startDate, $endDate);
+
+            $internalSaldoAwalIncome  = OpsIncome::whereNull('mandor_id')->whereDate('date', '<', $startDate)->sum('amount');
+            $internalSaldoAwalExpense = OpsExpense::whereNull('mandor_id')->whereDate('date', '<', $startDate)->sum('amount');
+
+            $internalSaldoAkhirIncome  = OpsIncome::whereNull('mandor_id')->whereDate('date', '<=', $endDate)->sum('amount');
+            $internalSaldoAkhirExpense = OpsExpense::whereNull('mandor_id')->whereDate('date', '<=', $endDate)->sum('amount');
+
+            if ($internalIncomes->isNotEmpty() || $internalExpenses->isNotEmpty()) {
+                $totalInternalIncome  = (float) $internalIncomes->sum('amount');
+                $totalInternalExpense = (float) $internalExpenses->sum('amount');
+
+                $groups->push([
+                    'mandor'        => null,
+                    'saldo_awal'    => (float) $internalSaldoAwalIncome - (float) $internalSaldoAwalExpense,
+                    'saldo_akhir'   => (float) $internalSaldoAkhirIncome - (float) $internalSaldoAkhirExpense,
+                    'total_income'  => $totalInternalIncome,
+                    'total_expense' => $totalInternalExpense,
+                    'remaining'     => $totalInternalIncome - $totalInternalExpense,
+                    'incomes'       => $internalIncomes,
+                    'expenses'      => $internalExpenses,
+                ]);
+            }
+        }
+
         foreach ($mandors as $mandor) {
             $incomes = $this->mandorIncomes($mandor->id, $startDate, $endDate);
             $expenses = $this->mandorExpenses($mandor->id, $startDate, $endDate);
+
+            $mandorSaldoAwalIncome  = OpsIncome::where('mandor_id', $mandor->id)->whereDate('date', '<', $startDate)->sum('amount');
+            $mandorSaldoAwalExpense = OpsExpense::where('mandor_id', $mandor->id)->whereDate('date', '<', $startDate)->sum('amount');
+
+            $mandorSaldoAkhirIncome  = OpsIncome::where('mandor_id', $mandor->id)->whereDate('date', '<=', $endDate)->sum('amount');
+            $mandorSaldoAkhirExpense = OpsExpense::where('mandor_id', $mandor->id)->whereDate('date', '<=', $endDate)->sum('amount');
 
             if ($incomes->isNotEmpty() || $expenses->isNotEmpty()) {
                 $totalIncome  = (float) $incomes->sum('amount');
@@ -108,30 +142,13 @@ class OpsReportController extends Controller
                         'uuid' => $mandor->uuid,
                         'name' => $mandor->name,
                     ],
+                    'saldo_awal'    => (float) $mandorSaldoAwalIncome - (float) $mandorSaldoAwalExpense,
+                    'saldo_akhir'   => (float) $mandorSaldoAkhirIncome - (float) $mandorSaldoAkhirExpense,
                     'total_income'  => $totalIncome,
                     'total_expense' => $totalExpense,
                     'remaining'     => $totalIncome - $totalExpense,
                     'incomes'       => $incomes,
                     'expenses'      => $expenses,
-                ]);
-            }
-        }
-
-        if (!$mandorUuid) {
-            $internalIncomes  = $this->internalIncomes($startDate, $endDate);
-            $internalExpenses = $this->internalExpenses($startDate, $endDate);
-
-            if ($internalIncomes->isNotEmpty() || $internalExpenses->isNotEmpty()) {
-                $totalInternalIncome  = (float) $internalIncomes->sum('amount');
-                $totalInternalExpense = (float) $internalExpenses->sum('amount');
-
-                $groups->push([
-                    'mandor'        => null,
-                    'total_income'  => $totalInternalIncome,
-                    'total_expense' => $totalInternalExpense,
-                    'remaining'     => $totalInternalIncome - $totalInternalExpense,
-                    'incomes'       => $internalIncomes,
-                    'expenses'      => $internalExpenses,
                 ]);
             }
         }
