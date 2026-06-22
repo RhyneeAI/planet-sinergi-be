@@ -3,7 +3,7 @@ name: gudang-planet
 description: Backend Laravel multi-modul (POS, Operasional, Absensi) untuk Gudang Planet. Gunakan skill ini saat mengembangkan fitur, refactor, atau debug di project ini — termasuk role/permission, pricing marketing MLM, modul operasional cabang (wallet, transfer, payment_method, batas waktu input/edit), dan absensi dengan geofencing + payroll.
 ---
 
-# Gudang Planet — Project Skill (v1.3)
+# Gudang Planet — Project Skill (v1.7)
 
 ## Ringkasan Project
 
@@ -12,9 +12,9 @@ description: Backend Laravel multi-modul (POS, Operasional, Absensi) untuk Gudan
 
 | Modul           | Status                  | Route prefix                       | Table prefix       | Namespace                                          |
 | --------------- | ----------------------- | ---------------------------------- | ------------------ | -------------------------------------------------- |
-| **POS**         | Aktif (sedang direvisi) | `/api/v1/`*                        | *(tanpa prefix)*   | `App\Http\Controllers\Api\`                        |
-| **Operasional** | Sudah diimplementasi    | `/api/v1/operational/`*            | `ops_`             | `App\Http\Controllers\Api\Operational\`            |
-| **Absensi**     | Belum ada (greenfield)  | `/api/v1/attendance/`* *(rencana)* | `att_` *(rencana)* | `App\Http\Controllers\Api\Attendance\` *(rencana)* |
+| **POS**         | Aktif (v2)              | `/api/v1/pos/`*                    | `pos_`             | `App\Http\Controllers\Api\Pos\`                    |
+| **Operasional** | Aktif                   | `/api/v1/operational/`*            | `ops_`             | `App\Http\Controllers\Api\Operational\`            |
+| **Absensi**     | Aktif (mulai v1.7)      | `/api/v1/abs/`*                    | `abs_`             | `App\Http\Controllers\Api\Absensi\`                |
 
 
 **Stack:** Laravel Sanctum (auth), Pest (testing), DomPDF + Maatwebsite Excel (laporan), Laravel Telescope (monitoring dev).
@@ -29,8 +29,11 @@ enum Role: string
     case SUPERADMIN = 'SUPERADMIN';
     case OWNER = 'OWNER';
     case ADMIN = 'ADMIN';
-    case MARKETING_LEADER = 'MARKETING_LEADER';
+    case HRD = 'HRD';
+    case MANAJER_GUDANG = 'MANAJER_GUDANG';
+    case MARKETING_LEAD = 'MARKETING_LEAD';
     case MARKETING = 'MARKETING';
+    case MARKETING_TETAP = 'MARKETING_TETAP';
     case KASIR = 'KASIR';
     case MANDOR = 'MANDOR';
     case KARYAWAN = 'KARYAWAN';
@@ -60,14 +63,17 @@ enum Role: string
 | SUPERADMIN       | Full + Telescope                          | Full                                         | Full                       |
 | OWNER            | **Read-only** rekapitulasi                | **Read-only** rekapitulasi                   | **Read-only** rekapitulasi |
 | ADMIN            | Master data (no transaksi POS)            | Pemasukan/pengeluaran pusat, audit mandor    | Konfigurasi, penggajian    |
-| MARKETING_LEADER | Diinput admin, dapat komisi MLM           | —                                            | Absen (jika pegawai)       |
-| MARKETING        | Diinput admin, dapat komisi MLM           | —                                            | Absen (jika pegawai)       |
-| KASIR            | **Satu-satunya role transaksi penjualan** | —                                            | Absen (jika pegawai)       |
+| HRD              | —                                         | Input karyawan, lihat lembur & kasbon        | **Full** (lembur, kasbon, payroll lihat) |
+| MANAJER_GUDANG   | Produk, kategori, stok, laporan           | —                                            | —                          |
+| MARKETING_LEAD   | Transaksi + laporan commission            | —                                            | —                          |
+| MARKETING        | Transaksi + laporan commission (sendiri)  | —                                            | —                          |
+| MARKETING_TETAP  | Transaksi (no commission report)          | —                                            | —                          |
+| KASIR            | **Satu-satunya role transaksi penjualan** | —                                            | —                          |
 | MANDOR           | —                                         | Pemasukan/pengeluaran cabang, dompet digital | Absen (jika pegawai)       |
 | KARYAWAN         | —                                         | —                                            | Absen                      |
 
 
-**Absensi:** Berlaku untuk semua role **kecuali** OWNER dan SUPERADMIN.
+**Absensi:** Berlaku untuk semua role **kecuali** OWNER, SUPERADMIN, MARKETING, dan MARKETING_TETAP.
 
 ---
 
@@ -116,117 +122,79 @@ Gunakan `__('module.key')` untuk i18n (`lang/en/`, `lang/id/`).
 
 **POS nginduk langsung ke `Company` (kantor pusat) — bukan SubCompany.**
 
-- Semua entitas POS (`products`, `sales_transactions`, `customers`, dll.) hanya punya `company_id`.
+- Semua entitas POS (`products`, `sales_transactions`, dll.) hanya punya `company_id`.
 - Tidak ada relasi ke sub-company / cabang.
-- User POS (KASIR, ADMIN, MARKETING, dll.) terikat ke `company_id` pusat.
+- User POS (KASIR, MANAJER_GUDANG, MARKETING, dll.) terikat ke `company_id` pusat.
 
-### Status Saat Ini
+### Status Saat Ini (v2 — mulai v1.7)
 
-Modul POS sudah berjalan dengan entitas: products, categories, units, suppliers, customers, stock mutations, purchase/sales transactions, installments, marketing products, dan laporan komisi.
+**Perubahan v1.7:**
+
+#### 1. Pricing — 4 Level
+
+| Field             | Deskripsi                                               |
+| ----------------- | ------------------------------------------------------- |
+| `base_price`      | Modal perusahaan                                        |
+| `leader_price`    | Harga jual perusahaan ke LEAD_MARKETING / MARKETING_TETAP |
+| `marketing_price` | Harga untuk MARKETING lepas                             |
+| `sell_price`      | Harga jual akhir (bisa diubah FE saat transaksi)        |
+
+**Profit Flow (contoh: base=20k, leader=25k, marketing=26k, sell=30k):**
+
+| Skenario                | Company   | LEAD_MARKETING | MARKETING |
+| ----------------------- | --------- | -------------- | --------- |
+| Dijual MARKETING        | 5k (25-20) | 1k (26-25)     | 4k (30-26) |
+| Dijual MARKETING_LEAD   | 5k (25-20) | 5k (30-25)     | —         |
+| Dijual MARKETING_TETAP  | 5k (25-20) | —              | —         |
+| Dijual KASIR            | 5k (25-20) | —              | —         |
+
+#### 2. Transaksi Penjualan
+
+- **Customer:** nullable (tidak wajib pilih)
+- **Marketing:** wajib pilih (`marketing_id`)
+- **Profit fields baru** di `pos_sales_details`: `company_profit`, `lead_profit`, `marketing_profit`
+- Discount, biaya opsional, custom sell_price tetap ada
+
+#### 3. Piutang v2 (`pos_receivables`)
+
+- No installment / tenor — hanya DP + pelunasan langsung
+- Installment lama (`pos_installments`) tetap berjalan
+
+#### 4. Retur Penjualan (`pos_returns`)
+
+- KASIR input → MANAJER_GUDANG proses; stok otomatis dikembalikan
+
+#### 5. Module Config (disabled modules)
+
+`pos_customer`, `pos_purchase`, `pos_installment` → disabled via `config/modules.php` (endpoint return 410)
+
+#### 6. Laporan
+
+- **Marketing commission:** scope MARKETING_LEAD + MARKETING saja
+- **Kartu stok:** `GET /api/v1/pos/stock-card/{productId}`
+- **Sales report:** disesuaikan profit per role
+
+#### 7. MARKETING tidak punya akses ke aplikasi POS
 
 **File kunci:**
+- Routes: `routes/pos-api.php`
+- Controllers: `app/Http/Controllers/Api/Pos/`
+- Models: `app/Models/Pos`* (PosProduct, PosSalesTransaction, dll.)
+- Laporan: `app/Http/Controllers/Api/Pos/PosReportController.php`
+- Services: `app/Services/Pos/`
 
-- Routes: `routes/api.php`
-- Controllers: `app/Http/Controllers/Api/`
-- Models: `app/Models/` (Product, SalesTransaction, MarketingProduct, dll.)
-- Laporan: `app/Http/Controllers/Api/ReportController.php`
+### Role & Akses POS
 
-### Perubahan Direncanakan (v1)
-
-#### 1. Pricing Marketing — 4 Level (Model MLM)
-
-**v1 (legacy):** Product punya 3 harga + fitur **edit harga per transaksi** (`sell_price` bebas di cart).
-
-**v2 (target):** Hapus edit harga per transaksi. Hanya **4 harga default** per product:
-
-
-| Level                  | Field             | Deskripsi                                               |
-| ---------------------- | ----------------- | ------------------------------------------------------- |
-| Harga Modal Perusahaan | `base_price`      | Biaya dasar perusahaan                                  |
-| Harga Marketing Leader | `leader_price`    | Floor price leader                                      |
-| Harga Marketing        | `marketing_price` | Floor price marketing bawah                             |
-| Harga Jual             | `sell_price`      | Harga jual default product *(bukan edit per line item)* |
-
-
-> Field `sales_price` lama digantikan/direstruktur menjadi `leader_price` + `sell_price` sesuai migrasi v2.
-
-**Alur keuntungan (MLM) — sudah dikonfirmasi:**
-
-
-| Penerima             | Rumus margin                     | Kapan dapat                                                                   |
-| -------------------- | -------------------------------- | ----------------------------------------------------------------------------- |
-| **Perusahaan**       | `leader_price − base_price`      | **Selalu** (termasuk saat leader yang terkait transaksi)                      |
-| **Marketing Leader** | `leader_price − marketing_price` | Saat leader terkait transaksi **atau** marketing bawah yang terkait transaksi |
-| **Marketing**        | `sell_price − marketing_price`   | Hanya saat **marketing bawah** (role MARKETING) yang terkait transaksi        |
-
-
-**Saat MARKETING_LEADER terkait transaksi:**
-
-- Perusahaan tetap dapat margin `leader_price − base_price`.
-- Leader dapat margin `leader_price − marketing_price`.
-- Marketing bawah **tidak** dapat bagian.
-
-#### 1b. Hierarki Marketing (tetap)
-
-Setiap user role **MARKETING** wajib punya `**leader_id`** (FK → user role MARKETING_LEADER). Hierarki fixed, bukan pilih leader per transaksi.
-
-```
-users
-├── role = MARKETING_LEADER  (leader_id = null)
-└── role = MARKETING         (leader_id → MARKETING_LEADER)
-```
-
-Saat transaksi penjualan, kasir **wajib pilih marketing** (MARKETING atau MARKETING_LEADER). Sistem resolve komisi dari role + `leader_id` terkait user tersebut.
-
-#### 2. Perubahan Actor Transaksi
-
-
-| Sebelum                                      | Sesudah (v2)                                                                |
-| -------------------------------------------- | --------------------------------------------------------------------------- |
-| Role MARKETING melakukan transaksi penjualan | Role **KASIR** (+ SUPERADMIN) melakukan transaksi                           |
-| Admin ikut transaksi                         | **ADMIN tidak bisa transaksi** (POS maupun operasional transaksi penjualan) |
-| Marketing self-service                       | Marketing & Marketing Leader **hanya diinput oleh Admin** (CRUD user)       |
-
-
-**Siapa boleh transaksi POS:**
-
-
-| Role                         | Transaksi                                         |
-| ---------------------------- | ------------------------------------------------- |
-| SUPERADMIN                   | ✅ Full                                            |
-| OWNER                        | ❌ Read-only (rekapitulasi saja)                   |
-| ADMIN                        | ❌ **Tidak bisa transaksi**                        |
-| KASIR                        | ✅ Penjualan (dan transaksi POS lain sesuai route) |
-| MARKETING / MARKETING_LEADER | ❌ Tidak transaksi                                 |
-
-
-**Alur penjualan v2:**
-
-1. Kasir login → buat transaksi penjualan.
-2. **Wajib pilih marketing** (user MARKETING atau MARKETING_LEADER).
-3. Harga diambil dari 4 default product — **tidak ada edit harga per line item**.
-4. Sistem hitung komisi dari hierarki `leader_id` + role marketing terpilih.
-5. Alur cart, payment, installment **tetap sama** — perubahan signifikan di actor (KASIR), pricing 4 level, dan hierarki MLM.
-
-#### 3. Perubahan Laporan
-
-Laporan perlu disesuaikan dengan model MLM 4 level:
-
-- `ReportController::marketingCommission` — perlu breakdown per level (perusahaan, leader, marketing).
-- `ReportController::salesRevenue` — mungkin perlu dimensi baru per marketing leader vs marketing.
-- View PDF: `resources/views/reports/`
-
-#### 4. Route & Middleware (rencana)
-
-```
-role:SUPERADMIN,OWNER,ADMIN     → master data CRUD, marketings CRUD (OWNER: read-only mutasi)
-role:SUPERADMIN,KASIR           → transaksi penjualan & pembelian (ADMIN excluded)
-role:SUPERADMIN,OWNER           → rekapitulasi/laporan (OWNER: GET/read-only saja)
-```
-
-**OWNER read-only:** Tidak ada endpoint mutasi (POST/PATCH/DELETE) untuk OWNER — hanya GET/rekapitulasi. Implement via middleware atau route group terpisah.
-
-> **Catatan implementasi:** Role `KASIR`, `MARKETING_LEADER` sudah ada di enum tapi **belum dipakai di route**. Perlu update middleware di `routes/api.php`.
+| Role                         | Transaksi | Produk | Stok | Laporan Marketing |
+| ---------------------------- | --------- | ------ | ---- | ----------------- |
+| SUPERADMIN                   | ✅ Full    | ✅      | ✅    | ✅                 |
+| MANAJER_GUDANG               | ❌         | ✅ CRUD | ✅    | ❌                 |
+| KASIR                        | ✅         | ❌      | ❌    | ❌                 |
+| MARKETING_LEAD               | ✅         | ❌      | ❌    | ✅                 |
+| MARKETING                    | ✅         | ❌      | ❌    | ✅ (diri sendiri)  |
+| MARKETING_TETAP              | ✅         | ❌      | ❌    | ❌ (bonus via absensi) |
+| ADMIN                        | ❌         | ✅      | ❌    | ❌                 |
+| OWNER                        | ❌         | ❌      | ❌    | Read-only          |
 
 ---
 
@@ -408,93 +376,121 @@ Model `SubCompany` (`sub_companies`) sudah ada dan dipakai modul operasional:
 
 **Username:** kolom DB tidak ada; login pakai **phone**. Field `username` di response mandor = slug dari nama (display only). Password awal auto-generate: `{namatanpasasi}{3digit}`.
 
+### Operasional — Perubahan v1.7
+
+#### Employee Management
+
+| Endpoint | Method | Auth | Notes |
+|---|---|---|---|
+| `/api/v1/operational/employees` | GET | ADMIN, HRD, SUPERADMIN | Semua user |
+| `/api/v1/operational/employees` | POST | ADMIN, HRD, SUPERADMIN | Create user (tidak bisa create Superadmin/Owner) |
+| `/api/v1/operational/employees/{uuid}` | GET | ADMIN, HRD, SUPERADMIN | Detail + riwayat kasbon + lembur + gaji |
+| `/api/v1/operational/employees/{uuid}/toggle-active` | PUT | ADMIN, SUPERADMIN | Aktif/nonaktifkan user |
+
+#### Lembur & Kasbon (Read-only)
+
+| Endpoint | Method | Auth |
+|---|---|---|
+| `/api/v1/operational/overtimes` | GET | ADMIN, HRD, SUPERADMIN |
+| `/api/v1/operational/loans` | GET | ADMIN, HRD, SUPERADMIN |
+
+#### Edit Log Jabatan
+
+Saat salary `AbsJabatan` berubah → insert ke `ops_edit_logs` (`loggable_type: 'abs_jabatans'`).
+
 ---
 
-## Modul 3: Absensi (Greenfield)
+## Modul 3: Absensi (Aktif mulai v1.7)
 
-Modul absensi **belum ada** di codebase. Ikuti pola operasional sebagai referensi implementasi.
-
-### Konvensi Rencana
-
+### Prefix & Konvensi
 
 | Aspek                | Konvensi                                                       |
 | -------------------- | -------------------------------------------------------------- |
-| Route prefix         | `/api/v1/attendance/`*                                         |
-| Table prefix         | `att_`                                                         |
-| Model prefix         | `Att*`                                                         |
-| Namespace controller | `App\Http\Controllers\Api\Attendance\`                         |
-| Config               | `config/attendance.php`                                        |
-| Routes file          | `routes/attendance-api.php` (daftarkan di `bootstrap/app.php`) |
+| Route prefix         | `/api/v1/abs/`*                                                |
+| Table prefix         | `abs_`                                                         |
+| Model prefix         | `Abs`*                                                         |
+| Namespace controller | `App\Http\Controllers\Api\Absensi\`                            |
+| Config               | `config/absensi.php`                                           |
+| Routes file          | `routes/absensi-api.php` (daftarkan di `bootstrap/app.php`)    |
 
+### Entitas (Existing)
 
-### Entitas Rencana
+| Model              | Tabel                  | Fungsi                                     |
+| ------------------ | ---------------------- | ------------------------------------------ |
+| AbsEmployeeProfile | abs_employee_profiles  | Profil karyawan (jabatan, shift, cabang)   |
+| AbsJabatan         | abs_jabatans           | Jabatan + salary                           |
+| AbsShift           | abs_shifts             | Shift kerja                                |
+| AbsAttendance      | abs_attendances        | Record absensi harian                      |
+| AbsEmployeePayroll | abs_employee_payrolls  | Penggajian bulanan                         |
 
+### Entitas Baru (v1.7)
 
-| Model (rencana) | Fungsi                                                                                                                 |
-| --------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| AttSubCompany   | Cabang — **tabel terpisah** (mirip Company + lat, long, radius, toleransi keterlambatan). FK `mandor_id`, `company_id` |
-| AttPosition     | Jabatan (salary/hari, jadwal hari kerja, jam kerja from-to)                                                            |
-| AttWorkSchedule | Parent data jadwal harian (auto-generate by system)                                                                    |
-| AttAttendance   | Record absensi (foto, lokasi, jam masuk/keluar, status)                                                                |
-| AttPayroll      | Riwayat penggajian bulanan                                                                                             |
-| AttPayrollItem  | Detail slip gaji (bonus, potongan manual)                                                                              |
+#### `abs_overtimes` — Lembur
 
+| Field | Type | Notes |
+|---|---|---|
+| user_id | FK → users | |
+| date | date | |
+| start_time | time | |
+| end_time | time | |
+| reason | text | |
+| status | enum | `pending`, `approved`, `rejected` |
+| approved_by | FK → users, nullable | HRD yg ACC |
 
-### Perluas Company
+**Alur:** Karyawan/HRD input batch → HRD ACC → data approved dipakai payroll.
+**API:** CRUD + approve/reject — hanya HRD & Admin.
 
-Tambahkan ke `companies` (kantor pusat):
+#### `abs_loans` — Kasbon
 
-- `latitude`, `longitude`, `radius` (meter)
-- `late_tolerance` (menit keterlambatan)
+| Field | Type | Notes |
+|---|---|---|
+| user_id | FK → users | |
+| amount | decimal | |
+| reason | text | |
+| tenor_months | int | 1–4 |
+| monthly_installment | decimal | amount / tenor |
+| remaining_balance | decimal | |
+| status | enum | `pending`, `approved`, `rejected`, `paid` |
+| approved_by | FK → users, nullable | |
 
-Sub-company punya field yang sama.
+**Alur:** HRD input → ACC → potong gaji bulanan via payroll.
 
-### Alur Absensi
+#### `custom_configurations` — Config Global
+
+| Field | Type |
+|---|---|
+| key | string unique |
+| value | text |
+| company_id | FK |
+
+**Seed:** `overtime_hourly_rate` = 25000
+
+### Employee List + Detail (HRD)
+
+| Endpoint | Notes |
+|---|---|
+| `GET /abs/employees` | Semua user (Owner, Superadmin, dll) |
+| `GET /abs/employees/{uuid}` | Profil + riwayat kasbon + lembur + gaji |
+
+### Rule Akses
+
+- **HRD** bisa lihat payroll history (read-only), tidak bisa create/update
+- **MARKETING** dan **MARKETING_TETAP** tidak absensi & payroll (bukan karyawan tetap)
+
+### Alur Absensi (Existing — tidak berubah)
 
 ```
-1. User login (role selain OWNER/SUPERADMIN)
-2. Sistem cek: pegawai kantor pusat (Company) atau cabang (SubCompany)?
-3. User pilih kategori: Izin | Sakit | Hadir (default, tidak perlu pilihan di BE)
-4. Validasi geofencing (status Hadir):
-   - Ambil lat/long + radius dari Company atau SubCompany user
-   - Cek apakah lokasi user dalam radius
-   - Di luar radius → **BLOCK** (tidak bisa absen, tanpa approval manual)
-5. Jika valid → absen dengan foto + keterangan (opsional)
-6. Simpan: lokasi user, jam masuk, jam keluar
-7. Jam masuk: **WAJIB**
-8. Jam keluar: **boleh kosong/ditolerir** jika lupa (khusus status Hadir)
-9. Cek jam kerja dari jabatan → jika belum memenuhi: PERINGATAN saja (tidak block), catat kekurangan jam
-10. Status approval: field ada, default APPROVED
+1. User login (role selain OWNER/SUPERADMIN/MARKETING/MARKETING_TETAP)
+2. Sistem cek: pegawai pusat (Company) atau cabang (SubCompany)
+3. Validasi geofencing → block jika luar radius
+4. Absen dengan foto; jam masuk wajib, jam keluar boleh kosong
+5. Approval default APPROVED
 ```
 
-### Konfigurasi Awal (Admin)
+### Sistem Penggajian (Existing — tidak berubah)
 
-1. Set lat, long, radius, toleransi keterlambatan di Company/SubCompany.
-2. Buat master **Jabatan** (AttPosition):
-  - Salary per hari
-  - Jadwal hari kerja (Senin–Jumat, dll.)
-  - Jam kerja (from–to, total jam)
-  - System auto-generate parent schedule per hari
-3. Saat create user: pilih **role** + **jabatan** (strict **1 user = 1 jabatan**) + assign ke Company atau SubCompany.
-4. **Seeder wajib:** buat `AttPositionSeeder` dengan jabatan default **"Karyawan"** (strict, dipakai sebagai fallback jabatan standar).
-
-### Sistem Penggajian
-
-**Trigger: manual oleh Admin** — payroll diproses **per bulan per karyawan**, hanya saat Admin meminta/menjalankan proses penggajian (tidak auto-generate draft).
-
-
-| Komponen             | Keterangan                                                                                                   |
-| -------------------- | ------------------------------------------------------------------------------------------------------------ |
-| Gaji harian          | Hadir × salary/hari dari jabatan; kurang jam tetap dihitung                                                  |
-| Total keterlambatan  | Kumulatif dari setiap hari                                                                                   |
-| Total kekurangan jam | Kumulatif dari setiap hari                                                                                   |
-| Rekap kehadiran      | Jumlah hadir, sakit, izin                                                                                    |
-| Bonus & potongan     | **Seluruhnya input manual oleh Admin** saat proses penggajian — tidak ada potongan otomatis untuk izin/sakit |
-| Slip gaji            | Cetak PDF (DomPDF, ikuti pola `resources/views/reports/`)                                                    |
-| Riwayat              | Simpan snapshot bulanan per karyawan                                                                         |
-
-
-> **Izin/Sakit:** Tidak ada aturan potong gaji otomatis. Admin menentukan potongan (dan bonus) manual per payroll. Rekap jumlah izin/sakit tetap ditampilkan sebagai informasi.
+- Manual oleh Admin per bulan
+- Gaji harian × hadir, keterlambatan, kekurangan jam, bonus & potongan manual
 
 ---
 
@@ -504,20 +500,37 @@ Sub-company punya field yang sama.
 
 ```
 app/
-├── Enums/Att*.php                    # Enum modul absensi
+├── Enums/Abs*.php                    # Enum modul absensi
 ├── Http/
-│   ├── Controllers/Api/Attendance/   # Att*Controller
-│   ├── Requests/Attendance/          # Form requests
-│   └── Resources/Attendance/         # API resources
-├── Models/Att*.php                   # Model dengan prefix Att
-├── Services/Attendance/              # Business logic
-config/attendance.php
-routes/attendance-api.php
-database/migrations/                  # att_* tables
-lang/en|id/attendance.php
-resources/views/reports/attendance/   # PDF templates
-tests/Feature/Api/Attendance/         # Pest tests
+│   ├── Controllers/Api/Absensi/      # Abs*Controller
+│   ├── Requests/Absensi/             # Form requests
+│   └── Resources/Absensi/            # API resources
+├── Models/Abs*.php                   # Model dengan prefix Abs
+├── Services/Absensi/                 # Business logic
+config/absensi.php
+routes/absensi-api.php
+database/migrations/                  # abs_* tables
+lang/en|id/absensi.php
+resources/views/reports/absensi/      # PDF templates
+tests/Feature/Api/Absensi/            # Pest tests
 ```
+
+### Module Config & Versioning
+
+File `config/modules.php`:
+
+```php
+return [
+    'absensi' => ['enabled' => true, 'version' => 'v1'],
+    'operational' => ['enabled' => true, 'version' => 'v1'],
+    'pos' => ['enabled' => true, 'version' => 'v2'],
+    'pos_customer' => ['enabled' => false],
+    'pos_purchase' => ['enabled' => false],
+    'pos_installment' => ['enabled' => false],
+];
+```
+
+Middleware `CheckModule` digunakan di route group untuk return 410 jika module disabled. Registrasi alias `module` di `bootstrap/app.php`.
 
 ### Pola yang Sudah Ada (Operasional = Referensi)
 
@@ -595,8 +608,14 @@ tests/Feature/Api/Attendance/         # Pest tests
 | Role enum             | `app/Enums/Role.php`                                           |
 | Payment method enum   | `app/Enums/OpsPaymentMethod.php`                               |
 | Auth middleware       | `app/Http/Middleware/CheckRole.php`                            |
+| Module config         | `config/modules.php`                                           |
+| CheckModule middleware| `app/Http/Middleware/CheckModule.php`                          |
 | Route registration    | `bootstrap/app.php`                                            |
-| POS routes            | `routes/api.php`                                               |
+| POS routes            | `routes/pos-api.php`                                           |
+| POS controllers       | `app/Http/Controllers/Api/Pos/`                                |
+| POS models            | `app/Models/Pos`* (PosProduct, PosSalesTransaction, dll.)      |
+| POS services          | `app/Services/Pos/`                                            |
+| POS laporan           | `app/Http/Controllers/Api/Pos/PosReportController.php`         |
 | Operational routes    | `routes/operational-api.php`                                   |
 | Company + scope       | `app/Models/Company.php`, `app/Models/Scopes/CompanyScope.php` |
 | Marketing commission  | `app/Http/Controllers/Api/ReportController.php`                |
@@ -611,7 +630,17 @@ tests/Feature/Api/Attendance/         # Pest tests
 | Ops mandor scope      | `app/Http/Controllers/Api/Operational/ScopesOperationalBySubCompany.php` |
 | Ops config            | `config/operational.php`                                       |
 | Ops config seeder     | `database/seeders/OpsConfigurationSeeder.php`                  |
+| Ops production seeder | `database/seeders/OpsProductionSeeder.php`                     |
+| Absensi routes        | `routes/absensi-api.php`                                       |
+| Absensi controllers   | `app/Http/Controllers/Api/Absensi/`                            |
+| Absensi models        | `app/Models/Abs`* (AbsAttendance, AbsEmployeePayroll, dll.)     |
+| Custom config model   | `app/Models/CustomConfiguration.php`                           |
+| Absensi config        | `config/absensi.php`                                           |
+| Report scope fix      | `app/Http/Controllers/Api/Operational/OpsReportController.php` |
+| SubCompany request    | `app/Http/Requests/Operational/SubCompanyRequest.php`          |
 | Postman collection    | `docs/postman/operational-api.postman_collection.json`         |
 | Flowchart operasional | `public/flowchart_operasional.pdf`                             |
+| Release notes v1.6    | `RELEASE-v1.6.md`                                              |
+| Deliverables v1.7     | `docs/release/v1.7-ABS.md`, `v1.7-OPS.md`, `v1.7-POS.md`      |
 
 
