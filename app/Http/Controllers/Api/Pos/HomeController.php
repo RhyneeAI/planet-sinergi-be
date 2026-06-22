@@ -27,7 +27,7 @@ class HomeController extends Controller
         $totalMarketing  = User::where('company_id', $company_id)
                                 ->where('role', Role::MARKETING->value)
                                 ->count();
-        $totalCustomers  = Customer::where('company_id', $company_id)->count();
+        $totalCustomers  = PosCustomer::where('company_id', $company_id)->count();
 
         // Sales data filtered by period
         $salesQuery = PosSalesTransaction::where('company_id', $company_id)
