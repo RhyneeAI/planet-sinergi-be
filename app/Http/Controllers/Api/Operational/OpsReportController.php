@@ -268,7 +268,8 @@ class OpsReportController extends Controller
 
     protected function internalExpenses(Carbon $startDate, Carbon $endDate): Collection
     {
-        return OpsExpense::where(function ($q) {
+        return OpsExpense::with(['mandor', 'subCompany'])
+            ->where(function ($q) {
                 $q->whereNull('mandor_id')
                   ->orWhere('expense_type', OpsExpenseType::MANDOR);
             })
@@ -285,6 +286,15 @@ class OpsReportController extends Controller
                 'payment_method' => $expense->payment_method->value,
                 'expense_type'   => $expense->expense_type->value,
                 'note'           => $expense->note,
+                'mandor'         => $expense->mandor ? [
+                    'uuid' => $expense->mandor->uuid,
+                    'name' => $expense->mandor->name,
+                ] : null,
+                'sub_company'    => $expense->subCompany ? [
+                    'uuid' => $expense->subCompany->uuid,
+                    'name' => $expense->subCompany->name,
+                    'code' => $expense->subCompany->code,
+                ] : null,
             ]);
     }
 
