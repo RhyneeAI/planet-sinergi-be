@@ -14,7 +14,7 @@ class PosStockMutation extends Model
     use HasFactory, HasUlid;
 
     protected static $factory = PosStockMutationFactory::class;
-    protected $table = 'stock_mutations';
+    protected $table = 'pos_stock_mutations';
 
     protected $fillable = [
         'ulid',

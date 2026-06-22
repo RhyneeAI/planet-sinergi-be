@@ -231,7 +231,7 @@ it('creates ADJUST_IN stock mutation when product created with stock > 0', funct
         ->postJson('/api/v1/products', $payload)
         ->assertStatus(201);
 
-    $this->assertDatabaseHas('stock_mutations', [
+    $this->assertDatabaseHas('pos_stock_mutations', [
         'type'         => 'ADJUST_IN',
         'quantity'     => 50,
         'stock_before' => 0,
@@ -251,7 +251,7 @@ it('does not create stock mutation when product created with stock 0', function 
         ->postJson('/api/v1/products', $payload)
         ->assertStatus(201);
 
-    $this->assertDatabaseCount('stock_mutations', 1);
+    $this->assertDatabaseCount('pos_stock_mutations', 1);
 });
 
 it('does not create stock mutation when stock field is not provided', function () {
@@ -264,7 +264,7 @@ it('does not create stock mutation when stock field is not provided', function (
         ->postJson('/api/v1/products', $payload)
         ->assertStatus(201);
 
-    $this->assertDatabaseCount('stock_mutations', 1);
+    $this->assertDatabaseCount('pos_stock_mutations', 1);
 });
 
 it('stock mutation notes contains product name', function () {
@@ -293,7 +293,7 @@ it('created_by in stock mutation matches authenticated user', function () {
         ->postJson('/api/v1/products', $payload)
         ->assertStatus(201);
 
-    $this->assertDatabaseHas('stock_mutations', [
+    $this->assertDatabaseHas('pos_stock_mutations', [
         'created_by' => $this->user->id,
         'company_id' => $this->company->id,
     ]);

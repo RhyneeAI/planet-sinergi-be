@@ -20,7 +20,7 @@ class PosCustomerRequest extends FormRequest
                 $this->isMethod('POST') ? 'required' : 'sometimes',
                 'string',
                 'max:255',
-                Rule::unique('customers')
+                Rule::unique('pos_customers')
                     ->where('company_id', $this->user()->company_id)
                     ->ignore($this->customer?->id),
             ],

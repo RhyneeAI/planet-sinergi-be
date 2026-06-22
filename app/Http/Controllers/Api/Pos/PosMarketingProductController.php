@@ -20,8 +20,8 @@ class PosMarketingProductController extends Controller
         $orderByValue = strtoupper($request->input('order_by_value', 'ASC')) === 'DESC' ? 'DESC' : 'ASC';
 
         $marketingProducts = PosMarketingProduct::with(['product', 'createdBy', 'marketing'])
-            ->join('products', 'products.id', '=', 'marketing_products.product_id')
-            ->select('marketing_products.*', 'products.name as product_name') // hindari conflict kolom
+            ->join('pos_products', 'pos_products.id', '=', 'pos_marketing_products.product_id')
+            ->select('pos_marketing_products.*', 'pos_products.name as product_name') // hindari conflict kolom
             ->when($request->marketing_uuid, function ($query, $marketingUuid) {
                 $query->whereHas('marketing', fn($q) =>
                     $q->where('uuid', $marketingUuid)
@@ -29,12 +29,12 @@ class PosMarketingProductController extends Controller
             })
             ->when($request->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
-                    $q->whereRaw('LOWER(products.name) LIKE ?', ["%" . strtolower($search) . "%"])
-                    ->orWhereRaw('LOWER(products.code) LIKE ?', ["%" . strtolower($search) . "%"]);
+                    $q->whereRaw('LOWER(pos_products.name) LIKE ?', ["%" . strtolower($search) . "%"])
+                    ->orWhereRaw('LOWER(pos_products.code) LIKE ?', ["%" . strtolower($search) . "%"]);
                 });
             })
             ->orderBy(
-                $orderByKey === 'product_name' ? 'products.name' : $orderByKey,
+                $orderByKey === 'product_name' ? 'pos_products.name' : $orderByKey,
                 $orderByValue
             )
             ->paginate($request->input('per_page', 15));

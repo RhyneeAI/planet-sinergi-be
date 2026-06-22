@@ -22,7 +22,7 @@ class PosSalesTransactionRequest extends FormRequest
                 'sometimes', // Auto-generated on POST, so never required from client
                 'string',
                 'max:255',
-                Rule::unique('sales_transactions')->ignore($this->salesTransaction?->id),
+                Rule::unique('pos_sales_transactions')->ignore($this->salesTransaction?->id),
             ],
             'transaction_date'   => [
                 $this->isMethod('POST') ? 'required' : 'sometimes',
@@ -62,7 +62,7 @@ class PosSalesTransactionRequest extends FormRequest
                 }
             ],
             'items'                     => ['required', 'array', 'min:1'],
-            'items.*.product_uuid'      => ['required', 'string', 'uuid', 'exists:products,uuid'],
+            'items.*.product_uuid'      => ['required', 'string', 'uuid', 'exists:pos_products,uuid'],
             'items.*.quantity'          => ['required', 'integer', 'min:1'],
             'items.*.sell_price'        => ['required', 'numeric', 'min:0'],
             'items.*.marketing_price'   => ['required', 'numeric', 'min:0'],

@@ -9,11 +9,11 @@ return new class extends Migration
 
     public function up(): void
     {
-        Schema::create('marketing_products', function (Blueprint $table) {
+        Schema::create('pos_marketing_products', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->unique();
             $table->double('marketing_price')->default(0);
-            $table->foreignId('product_id')->constrained()->onDelete('cascade');
+            $table->foreignId('product_id')->constrained('pos_products')->onDelete('cascade');
             $table->foreignId('marketing_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('created_by')->constrained('users')->onDelete('restrict');
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
@@ -30,6 +30,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('marketing_products');
+        Schema::dropIfExists('pos_marketing_products');
     }
 };

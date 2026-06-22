@@ -14,7 +14,7 @@ class PosUnit extends Model
     use HasFactory, SoftDeletes, HasUuid;
 
     protected static $factory = PosUnitFactory::class;
-    protected $table = 'units';
+    protected $table = 'pos_units';
 
     protected $fillable = [
         'uuid',

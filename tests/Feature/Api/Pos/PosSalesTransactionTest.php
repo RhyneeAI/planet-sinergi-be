@@ -274,7 +274,7 @@ it('stock_mutation SALES_OUT is created after sales', function () {
     $this->actingAs($this->user)
         ->postJson('/api/v1/sales-transactions', $this->payload);
 
-    $this->assertDatabaseHas('stock_mutations', [
+    $this->assertDatabaseHas('pos_stock_mutations', [
         'product_id' => $this->product->id,
         'type'       => 'SALES_OUT',
         'quantity'   => 3,
@@ -410,7 +410,7 @@ it('each item creates a SALES_OUT stock mutation', function () {
     $this->actingAs($this->user)
         ->postJson('/api/v1/sales-transactions', $payload);
 
-    $this->assertDatabaseCount('stock_mutations', 2);
+    $this->assertDatabaseCount('pos_stock_mutations', 2);
 });
 
 // tests/Feature/Api/SalesTransactionTest.php — tambahkan
@@ -553,7 +553,7 @@ it('cancel creates ADJUST_IN stock mutation', function () {
     $this->actingAs($this->user)
         ->patchJson("/api/v1/sales-transactions/{$ulid}/cancel");
 
-    $this->assertDatabaseHas('stock_mutations', [
+    $this->assertDatabaseHas('pos_stock_mutations', [
         'product_id' => $this->product->id,
         'type'       => 'ADJUST_IN',
         'company_id' => $this->company->id,
@@ -591,7 +591,7 @@ it('cancel creates ADJUST_IN for each item', function () {
         ->patchJson("/api/v1/sales-transactions/{$ulid}/cancel");
 
     // 2 SALES_OUT + 2 ADJUST_IN
-    $this->assertDatabaseCount('stock_mutations', 4);
+    $this->assertDatabaseCount('pos_stock_mutations', 4);
 });
 
 it('returns 422 when cancelling already cancelled transaction', function () {
@@ -717,7 +717,7 @@ it('rolls back when error occurs during store', function () {
         ->postJson('/api/v1/sales-transactions', $payload)
         ->assertStatus(422);
 
-    $this->assertDatabaseCount('sales_transactions', 0);
+    $this->assertDatabaseCount('pos_sales_transactions', 0);
 });
 
 it('returns 422 when customer_uuid not found', function () {

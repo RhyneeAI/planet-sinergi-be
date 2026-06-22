@@ -28,7 +28,7 @@ class PosStockMutationRequest extends FormRequest
             'product_uuid' => [ 
                 'required',
                 'uuid', // Validate UUID format first for PostgreSQL compatibility
-                'exists:products,uuid', 
+                'exists:pos_products,uuid', 
             ],
             'notes' => [
                 'nullable',

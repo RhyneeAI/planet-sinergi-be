@@ -19,7 +19,7 @@ class PosUnitRequest extends FormRequest
                 $this->isMethod('POST') ? 'required' : 'sometimes',
                 'string',
                 'max:255',
-                Rule::unique('units')
+                Rule::unique('pos_units')
                 ->where('company_id', $this->user()->company_id)
                 ->ignore($this->unit?->id)
             ],

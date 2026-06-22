@@ -12,7 +12,7 @@ class PosPurchaseDetail extends Model
 {
     use HasFactory, SoftDeletes, HasUlid;
 
-    protected $table = 'purchase_details';
+    protected $table = 'pos_purchase_details';
 
     protected $fillable = [
         'ulid',

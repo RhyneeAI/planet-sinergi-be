@@ -26,7 +26,7 @@ class PosMarketingProductRequest extends FormRequest
             'product_uuid' => [
                 $this->isMethod('POST') ? 'required' : 'sometimes',
                 'uuid',
-                'exists:products,uuid',
+                'exists:pos_products,uuid',
             ],
             'marketing_uuid' => [
                 $this->isMethod('POST') ? 'required' : 'sometimes',

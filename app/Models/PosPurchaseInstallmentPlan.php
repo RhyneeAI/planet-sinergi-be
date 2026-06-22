@@ -13,7 +13,7 @@ class PosPurchaseInstallmentPlan extends Model
 {
     use HasFactory, SoftDeletes, HasUlid;
 
-    protected $table = 'purchase_installment_plans';
+    protected $table = 'pos_purchase_installment_plans';
 
     protected $fillable = [
         'ulid',

@@ -16,7 +16,7 @@ class PosPurchaseTransaction extends Model
     use HasFactory, SoftDeletes, HasUlid;
 
     protected static $factory = PosPurchaseTransactionFactory::class;
-    protected $table = 'purchase_transactions';
+    protected $table = 'pos_purchase_transactions';
 
     protected $fillable = [
         'ulid',

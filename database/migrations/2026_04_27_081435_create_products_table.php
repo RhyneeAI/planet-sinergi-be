@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('products', function (Blueprint $table) {
+        Schema::create('pos_products', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->unique();
             $table->string('name');
@@ -21,8 +21,8 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->boolean('is_active')->default(true);
             
-            $table->foreignId('category_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignId('unit_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('category_id')->nullable()->constrained('pos_categories')->nullOnDelete();
+            $table->foreignId('unit_id')->nullable()->constrained('pos_units')->nullOnDelete();
             $table->foreignId('created_by')->constrained('users')->onDelete('restrict');
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
             
@@ -37,6 +37,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('products');
+        Schema::dropIfExists('pos_products');
     }
 };

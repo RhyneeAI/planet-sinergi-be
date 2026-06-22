@@ -14,7 +14,7 @@ class PosCategory extends Model
     use HasFactory, SoftDeletes, HasUuid;
 
     protected static $factory = PosCategoryFactory::class;
-    protected $table = 'categories';
+    protected $table = 'pos_categories';
 
     protected static function booted(): void
     {

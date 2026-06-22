@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('purchase_transactions', function (Blueprint $table) {
+        Schema::create('pos_purchase_transactions', function (Blueprint $table) {
             $table->id();
             $table->ulid('ulid')->unique();
             $table->string('transaction_code')->unique();
@@ -18,7 +18,7 @@ return new class extends Migration
             $table->double('paid')->default(0);
             $table->enum('payment_type', ['CASH', 'TRANSFER', 'QRIS', 'CICIL'])->default('CASH');
             $table->enum('transaction_status', ['UNPAID', 'PROCESS', 'PAID', 'CANCEL', 'PENDING'])->default('PENDING');
-            $table->foreignId('supplier_id')->constrained()->onDelete('restrict');
+            $table->foreignId('supplier_id')->constrained('pos_suppliers')->onDelete('restrict');
             $table->foreignId('created_by')->constrained('users')->onDelete('restrict');
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
             $table->softDeletes();
@@ -32,6 +32,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('purchase_transactions');
+        Schema::dropIfExists('pos_purchase_transactions');
     }
 };

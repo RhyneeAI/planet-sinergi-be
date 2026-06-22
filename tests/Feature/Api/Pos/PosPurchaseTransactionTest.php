@@ -410,7 +410,7 @@ it('stock_mutation is created after purchase', function () {
     $this->actingAs($this->user)
         ->postJson('/api/v1/purchase-transactions', $this->payload);
 
-    $this->assertDatabaseHas('stock_mutations', [
+    $this->assertDatabaseHas('pos_stock_mutations', [
         'product_id' => $this->product->id,
         'type'       => 'PURCHASE_IN',
         'quantity'   => 5,
@@ -710,7 +710,7 @@ it('each item creates a stock mutation', function () {
     $this->actingAs($this->user)
         ->postJson('/api/v1/purchase-transactions', $payload);
 
-    $this->assertDatabaseCount('stock_mutations', 2);
+    $this->assertDatabaseCount('pos_stock_mutations', 2);
 });
 
 it('rolls back when error occurs during store', function () {
@@ -737,7 +737,7 @@ it('rolls back when error occurs during store', function () {
         ->assertStatus(422);
 
     // Tidak ada transaksi yang tersimpan
-    $this->assertDatabaseCount('purchase_transactions', 0);
+    $this->assertDatabaseCount('pos_purchase_transactions', 0);
 });
 
 it('returns 401 when not authenticated on store', function () {
@@ -819,7 +819,7 @@ it('stock_mutation ADJUST_OUT is created after cancel', function () {
     $this->actingAs($this->user)
         ->patchJson("/api/v1/purchase-transactions/{$ulid}/cancel");
 
-    $this->assertDatabaseHas('stock_mutations', [
+    $this->assertDatabaseHas('pos_stock_mutations', [
         'product_id' => $this->product->id,
         'type'       => 'ADJUST_OUT',
         'company_id' => $this->company->id,
@@ -928,14 +928,14 @@ it('cancel creates ADJUST_OUT stock mutation for each item', function () {
         ->patchJson("/api/v1/purchase-transactions/{$ulid}/cancel");
 
     // 2 PURCHASE_IN + 2 ADJUST_OUT
-    $this->assertDatabaseCount('stock_mutations', 4);
+    $this->assertDatabaseCount('pos_stock_mutations', 4);
 
-    $this->assertDatabaseHas('stock_mutations', [
+    $this->assertDatabaseHas('pos_stock_mutations', [
         'product_id' => $this->product->id,
         'type'       => 'ADJUST_OUT',
     ]);
 
-    $this->assertDatabaseHas('stock_mutations', [
+    $this->assertDatabaseHas('pos_stock_mutations', [
         'product_id' => $this->product2->id,
         'type'       => 'ADJUST_OUT',
     ]);

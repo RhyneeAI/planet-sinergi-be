@@ -24,7 +24,7 @@ class PosProductRequest extends FormRequest
                 'nullable',
                 'string',
                 'max:50',
-                Rule::unique('products')->where(function ($query) {
+                Rule::unique('pos_products')->where(function ($query) {
                     return $query->where('company_id', $this->user()->company_id);
                 })->ignore($this->product?->id),
             ],
@@ -40,8 +40,8 @@ class PosProductRequest extends FormRequest
             'description' => ['nullable', 'string'],
             'is_active' => ['nullable', 'boolean'],
             
-            'category_uuid' => ['nullable', 'uuid', 'exists:categories,uuid'],
-            'unit_uuid' => ['nullable', 'uuid', 'exists:units,uuid'],
+            'category_uuid' => ['nullable', 'uuid', 'exists:pos_categories,uuid'],
+            'unit_uuid' => ['nullable', 'uuid', 'exists:pos_units,uuid'],
         ];
     }
 

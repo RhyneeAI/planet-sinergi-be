@@ -14,7 +14,7 @@ class PosProduct extends Model
     use HasFactory, SoftDeletes, HasUuid;
 
     protected static $factory = PosProductFactory::class;
-    protected $table = 'products';
+    protected $table = 'pos_products';
 
     protected $fillable = [
         'uuid',

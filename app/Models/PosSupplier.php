@@ -14,7 +14,7 @@ class PosSupplier extends Model
     use HasFactory, SoftDeletes, HasUuid;
 
     protected static $factory = PosSupplierFactory::class;
-    protected $table = 'suppliers';
+    protected $table = 'pos_suppliers';
 
     protected $fillable = [
         'uuid',

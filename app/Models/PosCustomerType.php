@@ -14,7 +14,7 @@ class PosCustomerType extends Model
     use HasFactory, SoftDeletes, HasUuid;
 
     protected static $factory = PosCustomerTypeFactory::class;
-    protected $table = 'customer_types';
+    protected $table = 'pos_customer_types';
 
     protected static function booted(): void
     {

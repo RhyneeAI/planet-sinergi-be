@@ -8,11 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('purchase_details', function (Blueprint $table) {
+        Schema::create('pos_purchase_details', function (Blueprint $table) {
             $table->id();
             $table->ulid('ulid')->unique();
-            $table->foreignId('purchase_id')->constrained('purchase_transactions')->onDelete('cascade');
-            $table->foreignId('product_id')->constrained()->onDelete('restrict');
+            $table->foreignId('purchase_id')->constrained('pos_purchase_transactions')->onDelete('cascade');
+            $table->foreignId('product_id')->constrained('pos_products')->onDelete('restrict');
             $table->integer('quantity')->default(0);
             $table->double('buy_price')->default(0);
             $table->double('subtotal')->default(0);
@@ -28,6 +28,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('purchase_details');
+        Schema::dropIfExists('pos_purchase_details');
     }
 };

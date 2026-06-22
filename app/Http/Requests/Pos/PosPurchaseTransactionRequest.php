@@ -42,7 +42,7 @@ class PosPurchaseTransactionRequest extends FormRequest
             'paid'                 => ['required', 'numeric', 'min:0'],
             'payment_type'         => ['required', Rule::enum(PosPaymentType::class)],
             'items'                => ['required', 'array', 'min:1'],
-            'items.*.product_uuid' => ['required', 'string', 'uuid', 'exists:products,uuid'],
+            'items.*.product_uuid' => ['required', 'string', 'uuid', 'exists:pos_products,uuid'],
             'items.*.quantity'     => ['required', 'integer', 'min:1'],
             'items.*.buy_price'    => ['required', 'numeric', 'min:0'],
         ];

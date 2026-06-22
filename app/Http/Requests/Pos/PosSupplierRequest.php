@@ -19,7 +19,7 @@ class PosSupplierRequest extends FormRequest
                 $this->isMethod('POST') ? 'required' : 'sometimes',
                 'string',
                 'max:255',
-                Rule::unique('suppliers')
+                Rule::unique('pos_suppliers')
                     ->where('company_id', $this->user()->company_id)
                     ->ignore($this->supplier?->id),
             ],

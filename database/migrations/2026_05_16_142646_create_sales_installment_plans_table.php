@@ -8,11 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('sales_installment_plans', function (Blueprint $table) {
+        Schema::create('pos_sales_installment_plans', function (Blueprint $table) {
             $table->id();
             $table->char('ulid', 26)->unique();
-            $table->foreignId('sales_transaction_id')->constrained()->onDelete('cascade')->name('fk_sip_sales_transaction_id');
-            $table->foreignId('customer_id')->constrained()->onDelete('restrict')->name('fk_sip_customer_id');
+            $table->foreignId('sales_transaction_id')->constrained('pos_sales_transactions')->onDelete('cascade')->name('fk_sip_sales_transaction_id');
+            $table->foreignId('customer_id')->constrained('pos_customers')->onDelete('restrict')->name('fk_sip_customer_id');
             $table->double('total_amount');
             $table->double('paid_amount')->default(0);
             // $table->date('paid_date')->nullable()->change();
@@ -27,6 +27,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('sales_installment_plans');
+        Schema::dropIfExists('pos_sales_installment_plans');
     }
 };
