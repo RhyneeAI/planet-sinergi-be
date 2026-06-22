@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+use Database\Factories\Ops\OpsExpenseFactory;
 
 use App\Enums\OpsExpenseType;
 use App\Enums\OpsPaymentMethod;
@@ -14,6 +15,7 @@ class OpsExpense extends Model
 {
     use HasFactory, SoftDeletes, HasUuid;
 
+    protected static $factory = OpsExpenseFactory::class;
     protected $fillable = [
         'uuid',
         'name',

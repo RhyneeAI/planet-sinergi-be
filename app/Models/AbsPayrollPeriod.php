@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+use Database\Factories\Abs\AbsPayrollPeriodFactory;
 
 use App\Enums\AbsPayrollStatus;
 use App\Models\Scopes\CompanyScope;
@@ -11,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 class AbsPayrollPeriod extends Model
 {
     use HasFactory, HasUlid;
+    protected static $factory = AbsPayrollPeriodFactory::class;
 
     protected $table = 'abs_payroll_periods';
 

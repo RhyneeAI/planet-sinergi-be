@@ -131,7 +131,6 @@ return [
         'sub_company_code_max' => 'Branch code must not exceed 50 characters.',
         'sub_company_code_required' => 'Branch code is required.',
         'sub_company_code_unique' => 'Branch code is already in use.',
-        'sub_company_code_unique' => 'Branch code is already in use.',
         'phone_required' => 'Phone number is required.',
         'phone_min' => 'Phone number must be at least 10 characters.',
         'phone_unique' => 'Phone number is already in use.',

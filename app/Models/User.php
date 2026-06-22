@@ -59,22 +59,22 @@ class User extends Authenticatable
 
     public function products()
     {
-        return $this->hasMany(Product::class, 'created_by');
+        return $this->hasMany(PosProduct::class, 'created_by');
     }
 
     public function marketingProducts()
     {
-        return $this->hasMany(MarketingProduct::class, 'marketing_id');
+        return $this->hasMany(PosMarketingProduct::class, 'marketing_id');
     }
 
     public function salesTransactions()
     {
-        return $this->hasMany(SalesTransaction::class, 'created_by', 'id');
+        return $this->hasMany(PosSalesTransaction::class, 'created_by', 'id');
     }
 
     public function createdStockMutations()
     {
-        return $this->hasMany(StockMutation::class, 'created_by');
+        return $this->hasMany(PosStockMutation::class, 'created_by');
     }
 
     public function opsWallet()

@@ -8,13 +8,13 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('customers', function (Blueprint $table) {
+        Schema::create('pos_customers', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->unique();
             $table->string('name');
             $table->text('address')->nullable();
             $table->string('phone')->nullable();
-            $table->foreignId('customer_type_id')->constrained('customer_types')->onDelete('restrict');
+            $table->foreignId('customer_type_id')->constrained('pos_customer_types')->onDelete('restrict');
             $table->foreignId('created_by')->constrained('users')->onDelete('restrict');
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
             $table->softDeletes();
@@ -26,6 +26,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('customers');
+        Schema::dropIfExists('pos_customers');
     }
 };

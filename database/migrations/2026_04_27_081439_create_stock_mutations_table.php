@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('stock_mutations', function (Blueprint $table) {
+        Schema::create('pos_stock_mutations', function (Blueprint $table) {
             $table->id();
             $table->ulid('ulid')->unique();
             $table->enum('type', [
@@ -23,7 +23,7 @@ return new class extends Migration
             $table->integer('stock_after');
             $table->text('notes')->nullable();
 
-            $table->foreignId('product_id')->constrained()->onDelete('cascade');
+            $table->foreignId('product_id')->constrained('pos_products')->onDelete('cascade');
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
 
             // reference_id saja, type sudah implisit menjelaskan asalnya
@@ -40,6 +40,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('stock_mutations');
+        Schema::dropIfExists('pos_stock_mutations');
     }
 };

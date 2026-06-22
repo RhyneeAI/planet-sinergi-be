@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+use Database\Factories\Ops\OpsWalletFactory;
 
 use App\Models\Scopes\CompanyScope;
 use App\Traits\HasUuid;
@@ -11,6 +12,7 @@ class OpsWallet extends Model
 {
     use HasFactory, HasUuid;
 
+    protected static $factory = OpsWalletFactory::class;
     protected $fillable = [
         'uuid',
         'mandor_id',

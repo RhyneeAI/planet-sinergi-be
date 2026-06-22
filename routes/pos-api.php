@@ -1,0 +1,128 @@
+<?php
+
+use App\Http\Controllers\Api\Pos\PosCategoryController;
+use App\Http\Controllers\Api\Pos\PosCustomerController;
+use App\Http\Controllers\Api\Pos\PosCustomerTypeController;
+use App\Http\Controllers\Api\Pos\PosMarketingController;
+use App\Http\Controllers\Api\Pos\PosMarketingProductController;
+use App\Http\Controllers\Api\Pos\PosProductController;
+use App\Http\Controllers\Api\Pos\PosPurchaseInstallmentController;
+use App\Http\Controllers\Api\Pos\PosPurchaseTransactionController;
+use App\Http\Controllers\Api\Pos\PosSalesInstallmentController;
+use App\Http\Controllers\Api\Pos\PosSalesTransactionController;
+use App\Http\Controllers\Api\Pos\PosStockMutationController;
+use App\Http\Controllers\Api\Pos\PosSupplierController;
+use App\Http\Controllers\Api\Pos\PosUnitController;
+use App\Http\Controllers\Api\ReportController;
+use Illuminate\Support\Facades\Route;
+
+Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
+
+    Route::group(['middleware' => ['role:SUPERADMIN,OWNER,MARKETING']], function () {
+        Route::apiResource('categories', PosCategoryController::class)->parameters([
+            'categories' => 'category:uuid',
+        ])->only(['index', 'show']);
+
+        Route::apiResource('units', PosUnitController::class)->parameters([
+            'units' => 'unit:uuid',
+        ])->only(['index', 'show']);
+
+        Route::get('products/generate-code', [PosProductController::class, 'generateCode']);
+        Route::apiResource('products', PosProductController::class)->parameters([
+            'products' => 'product:uuid',
+        ])->only(['index', 'show']);
+
+        Route::apiResource('suppliers', PosSupplierController::class)->parameters([
+            'suppliers' => 'supplier:uuid',
+        ])->only(['index', 'show']);
+
+        Route::apiResource('customers', PosCustomerController::class)->parameters([
+            'customers' => 'customer:uuid',
+        ])->only(['index', 'show']);
+
+        Route::apiResource('customer-types', PosCustomerTypeController::class)->parameters([
+            'customer-types' => 'customerType:uuid',
+        ])->only(['index', 'show']);
+
+        Route::apiResource('marketings', PosMarketingController::class)->parameters([
+            'marketings' => 'marketing:uuid',
+        ])->only(['index', 'show']);
+
+        Route::apiResource('marketing-products', PosMarketingProductController::class)->parameters([
+            'marketing-products' => 'marketingProduct:uuid',
+        ])->only(['index', 'show']);
+    });
+
+    Route::group(['middleware' => ['role:SUPERADMIN,OWNER']], function () {
+        Route::apiResource('categories', PosCategoryController::class)->parameters([
+            'categories' => 'category:uuid',
+        ])->except(['index', 'show']);
+
+        Route::apiResource('units', PosUnitController::class)->parameters([
+            'units' => 'unit:uuid',
+        ])->except(['index', 'show']);
+
+        Route::apiResource('products', PosProductController::class)->parameters([
+            'products' => 'product:uuid',
+        ])->except(['index', 'show']);
+
+        Route::apiResource('suppliers', PosSupplierController::class)->parameters([
+            'suppliers' => 'supplier:uuid',
+        ])->except(['index', 'show']);
+
+        Route::apiResource('customers', PosCustomerController::class)->parameters([
+            'customers' => 'customer:uuid',
+        ])->except(['index', 'show']);
+
+        Route::apiResource('customer-types', PosCustomerTypeController::class)->parameters([
+            'customer-types' => 'customerType:uuid',
+        ])->except(['index', 'show']);
+
+        Route::apiResource('marketings', PosMarketingController::class)->parameters([
+            'marketings' => 'marketing:uuid',
+        ])->except(['index', 'show']);
+
+        Route::apiResource('marketing-products', PosMarketingProductController::class)->parameters([
+            'marketing-products' => 'marketingProduct:uuid',
+        ])->except(['index', 'show']);
+
+        Route::prefix('stock-mutations')->group(function () {
+            Route::post('/', [PosStockMutationController::class, 'store']);
+            Route::get('/products', [PosStockMutationController::class, 'index']);
+            Route::get('/products/{product:uuid}', [PosStockMutationController::class, 'show']);
+        });
+    });
+
+    Route::group(['middleware' => ['role:SUPERADMIN,OWNER,MARKETING']], function () {
+        Route::prefix('purchase-transactions')->group(function () {
+            Route::get('/', [PosPurchaseTransactionController::class, 'index']);
+            Route::post('/',[PosPurchaseTransactionController::class, 'store']);
+            Route::get('/{purchaseTransaction:ulid}', [PosPurchaseTransactionController::class, 'show']);
+            Route::patch('/{purchaseTransaction:ulid}/cancel', [PosPurchaseTransactionController::class, 'cancel']);
+        });
+
+        Route::prefix('purchase-installments')->group(function () {
+            Route::get('/',                                    [PosPurchaseInstallmentController::class, 'index']);
+            Route::get('/{purchaseInstallmentPlan:ulid}',      [PosPurchaseInstallmentController::class, 'show']);
+            Route::post('/{purchaseInstallmentPlan:ulid}/pay', [PosPurchaseInstallmentController::class, 'pay']);
+        });
+
+        Route::prefix('sales-transactions')->group(function () {
+            Route::get('/', [PosSalesTransactionController::class, 'index']);
+            Route::post('/', [PosSalesTransactionController::class, 'store']);
+            Route::get('/{salesTransaction:ulid}', [PosSalesTransactionController::class, 'show']);
+            Route::patch('/{salesTransaction:ulid}/cancel', [PosSalesTransactionController::class, 'cancel']);
+        });
+
+        Route::prefix('sales-installments')->group(function () {
+            Route::get('/',                                 [PosSalesInstallmentController::class, 'index']);
+            Route::get('/{salesInstallmentPlan:ulid}',      [PosSalesInstallmentController::class, 'show']);
+            Route::post('/{salesInstallmentPlan:ulid}/pay', [PosSalesInstallmentController::class, 'pay']);
+        });
+
+        Route::prefix('reports')->group(function () {
+            Route::get('/marketing-commission', [ReportController::class, 'marketingCommission']);
+            Route::get('/sales-revenue',        [ReportController::class, 'salesRevenue']);
+        });
+    });
+});

@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+use Database\Factories\Ops\OpsWalletTransactionFactory;
 
 use App\Enums\OpsWalletTransactionType;
 use App\Models\Scopes\CompanyScope;
@@ -12,6 +13,7 @@ class OpsWalletTransaction extends Model
 {
     use HasFactory, HasUuid;
 
+    protected static $factory = OpsWalletTransactionFactory::class;
     public $timestamps = false;
 
     protected $fillable = [

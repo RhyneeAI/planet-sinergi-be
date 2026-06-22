@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+use Database\Factories\Abs\AbsEmployeeProfileFactory;
 
 use App\Models\Scopes\CompanyScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -9,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 class AbsEmployeeProfile extends Model
 {
     use HasFactory;
+    protected static $factory = AbsEmployeeProfileFactory::class;
 
     protected $table = 'abs_employee_profiles';
 

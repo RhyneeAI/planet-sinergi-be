@@ -1,0 +1,45 @@
+<?php
+
+namespace App\Http\Resources\Pos;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class PosPurchaseTransactionResource extends JsonResource
+{
+    public function toArray(Request $request): array
+    {
+        return [
+            'ulid'               => (string) $this->ulid,
+            'transaction_code'   => $this->transaction_code,
+            'transaction_date'   => $this->transaction_date?->toISOString(),
+            'discount'           => (float) $this->discount,
+            'total'              => (float) $this->total,
+            'paid'               => (float) $this->paid,
+            'payment_type'       => $this->payment_type?->value,
+            'transaction_status' => $this->transaction_status?->value,
+            'supplier'           => $this->whenLoaded('supplier', fn() => [
+                'uuid' => $this->supplier->uuid,
+                'name' => $this->supplier->name,
+            ]),
+            'created_by'         => $this->whenLoaded('createdBy', fn() => [
+                'name' => $this->createdBy->name,
+            ]),
+            'items'              => $this->whenLoaded('details', fn() =>
+                $this->details->map(fn($detail) => [
+                    // 'ulid'      => (string) $detail->ulid,
+                    'product'   => [
+                        'uuid' => $detail->product->uuid,
+                        'name' => $detail->product->name,
+                        'code' => $detail->product->code,
+                        'base_price' => $detail->product->base_price,
+                    ],
+                    'quantity'  => (int) $detail->quantity,
+                    'buy_price' => (float) $detail->buy_price,
+                    'subtotal'  => (float) $detail->subtotal,
+                ])
+            ),
+            'created_at'         => $this->created_at?->toISOString(),
+        ];
+    }
+}

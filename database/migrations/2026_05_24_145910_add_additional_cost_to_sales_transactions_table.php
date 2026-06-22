@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('sales_transactions', function (Blueprint $table) {
+        Schema::table('pos_sales_transactions', function (Blueprint $table) {
             $table->double('additional_cost')->default(0)->after('discount');
             $table->string('additional_cost_note')->nullable()->after('additional_cost');
         });
@@ -16,7 +16,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::table('sales_transactions', function (Blueprint $table) {
+        Schema::table('pos_sales_transactions', function (Blueprint $table) {
             $table->dropColumn(['additional_cost', 'additional_cost_note']);
         });
     }

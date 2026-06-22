@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+use Database\Factories\Abs\AbsDeductionFactory;
 
 use App\Models\Scopes\CompanyScope;
 use App\Traits\HasUlid;
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 class AbsDeduction extends Model
 {
     use HasFactory, HasUlid;
+    protected static $factory = AbsDeductionFactory::class;
 
     protected $table = 'abs_deductions';
 

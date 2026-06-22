@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+use Database\Factories\Ops\OpsEditLogFactory;
 
 use App\Models\Scopes\CompanyScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,6 +11,7 @@ class OpsEditLog extends Model
 {
     use HasFactory;
 
+    protected static $factory = OpsEditLogFactory::class;
     public $timestamps = false;
 
     protected $fillable = [

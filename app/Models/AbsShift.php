@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+use Database\Factories\Abs\AbsShiftFactory;
 
 use App\Models\Scopes\CompanyScope;
 use App\Traits\HasUuid;
@@ -11,6 +12,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class AbsShift extends Model
 {
     use HasFactory, HasUuid, SoftDeletes;
+
+    protected static $factory = AbsShiftFactory::class;
 
     protected $table = 'abs_shifts';
 

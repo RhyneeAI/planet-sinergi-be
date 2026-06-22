@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+use Database\Factories\Ops\OpsTransferConfirmationFactory;
 
 use App\Enums\OpsTransferConfirmationStatus;
 use App\Models\Scopes\CompanyScope;
@@ -12,6 +13,7 @@ class OpsTransferConfirmation extends Model
 {
     use HasFactory, HasUuid;
 
+    protected static $factory = OpsTransferConfirmationFactory::class;
     protected $fillable = [
         'uuid',
         'confirmable_type',

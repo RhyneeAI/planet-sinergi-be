@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+use Database\Factories\Abs\AbsAttendanceFactory;
 
 use App\Enums\AbsAttendanceStatus;
 use App\Models\Scopes\CompanyScope;
@@ -11,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 class AbsAttendance extends Model
 {
     use HasFactory, HasUlid;
+    protected static $factory = AbsAttendanceFactory::class;
 
     protected $table = 'abs_attendances';
 

@@ -12,12 +12,12 @@ class DatabaseSeeder extends Seeder
             // Inti: company + semua role + master POS minimal
             CompanySeeder::class,
             UserSeeder::class,
-            UnitSeeder::class,
-            CategorySeeder::class,
-            SupplierSeeder::class,
-            CustomerTypeSeeder::class,
-            CustomerSeeder::class,
-            ProductSeeder::class,
+            PosUnitSeeder::class,
+            PosCategorySeeder::class,
+            PosSupplierSeeder::class,
+            PosCustomerTypeSeeder::class,
+            PosCustomerSeeder::class,
+            PosProductSeeder::class,
 
             // Operasional: config + sub-company otomatis per mandor
             OpsConfigurationSeeder::class,
@@ -30,8 +30,8 @@ class DatabaseSeeder extends Seeder
             OpsIncomeExpenseSeeder::class,
 
             // Laporan: company terpisah, data transaksi fokus
-            MarketingCommissionReportSeeder::class,
-            SalesRevenueReportSeeder::class,
+            PosMarketingCommissionReportSeeder::class,
+            PosSalesRevenueReportSeeder::class,
         ]);
     }
 }

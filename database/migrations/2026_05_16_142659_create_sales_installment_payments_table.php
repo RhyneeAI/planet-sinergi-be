@@ -8,10 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('sales_installment_payments', function (Blueprint $table) {
+        Schema::create('pos_sales_installment_payments', function (Blueprint $table) {
             $table->id();
             $table->char('ulid', 26)->unique();
-            $table->foreignId('sales_installment_plan_id')->constrained('sales_installment_plans')->onDelete('cascade')->name('fk_sip_sales_installment_plan_id');
+            $table->foreignId('sales_installment_plan_id')->constrained('pos_sales_installment_plans')->onDelete('cascade')->name('fk_sip_sales_installment_plan_id');
             $table->integer('installment_number');
             $table->double('paid_amount');
             $table->date('paid_date');
@@ -28,6 +28,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('sales_installment_payments');
+        Schema::dropIfExists('pos_sales_installment_payments');
     }
 };

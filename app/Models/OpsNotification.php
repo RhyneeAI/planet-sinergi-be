@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+use Database\Factories\Ops\OpsNotificationFactory;
 
 use App\Enums\OpsNotificationType;
 use App\Models\Scopes\CompanyScope;
@@ -12,6 +13,7 @@ class OpsNotification extends Model
 {
     use HasFactory, HasUuid;
 
+    protected static $factory = OpsNotificationFactory::class;
     public $timestamps = false;
 
     protected $fillable = [

@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\Category;
+use App\Models\PosCategory;
 use App\Models\User;
 
 // beforeEach(function () {
@@ -36,7 +36,7 @@ use App\Models\User;
 //     $this->actingAs($this->user);
 //     $this->freezeTime();
     
-//     $category = Category::factory()->create(['company_id' => $this->user->company_id]);
+//     $category = PosCategory::factory()->create(['company_id' => $this->user->company_id]);
     
 //     // Request pertama -> sukses
 //     $this->patchJson("/api/v1/categories/{$category->uuid}", ['name' => 'Updated'])

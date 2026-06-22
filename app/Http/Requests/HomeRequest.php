@@ -26,7 +26,7 @@ class HomeRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'period.in' => __('home.validation.period_invalid'),
+            'period.in' => __('pos.home.validation.period_invalid'),
         ];
     }
 }

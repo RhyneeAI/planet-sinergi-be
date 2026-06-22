@@ -22,22 +22,22 @@ class Company extends Model
     // Relationships
     public function categories()
     {
-        return $this->hasMany(Category::class);
+        return $this->hasMany(PosCategory::class);
     }
 
     public function units()
     {
-        return $this->hasMany(Unit::class);
+        return $this->hasMany(PosUnit::class);
     }
 
     public function suppliers()
     {
-        return $this->hasMany(Supplier::class);
+        return $this->hasMany(PosSupplier::class);
     }
 
     public function products()
     {
-        return $this->hasMany(Product::class);
+        return $this->hasMany(PosProduct::class);
     }
 
     public function users()
@@ -47,12 +47,12 @@ class Company extends Model
 
     public function customers()
     {
-        return $this->hasMany(Customer::class);
+        return $this->hasMany(PosCustomer::class);
     }
 
     public function customerTypes()
     {
-        return $this->hasMany(CustomerType::class);
+        return $this->hasMany(PosCustomerType::class);
     }
 
     public function marketings()
@@ -64,17 +64,17 @@ class Company extends Model
 
     public function purchaseTransactions()
     {
-        return $this->hasMany(PurchaseTransaction::class);
+        return $this->hasMany(PosPurchaseTransaction::class);
     }
 
     public function salesTransactions()
     {
-        return $this->hasMany(SalesTransaction::class);
+        return $this->hasMany(PosSalesTransaction::class);
     }
 
     public function stockMutations()
     {
-        return $this->hasMany(StockMutation::class);
+        return $this->hasMany(PosStockMutation::class);
     }
 
     public function opsIncomes()

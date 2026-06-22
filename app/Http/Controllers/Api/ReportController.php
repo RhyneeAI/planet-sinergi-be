@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Enums\PaymentType;
 use App\Enums\Role;
-use App\Enums\TransactionStatus;
+use App\Enums\PosPaymentType;
+use App\Enums\PosTransactionStatus;
 use App\Helpers\FileHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\MarketingCommissionRequest;
-use App\Http\Requests\SalesRevenueRequest;
-use App\Models\SalesDetail;
-use App\Models\SalesTransaction;
+use App\Http\Requests\Pos\PosMarketingCommissionRequest;
+use App\Http\Requests\Pos\PosSalesRevenueRequest;
+use App\Models\PosSalesDetail;
+use App\Models\PosSalesTransaction;
 use App\Models\User;
 use App\Services\ExportService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -23,7 +23,7 @@ class ReportController extends Controller
         protected ExportService $exportService,
     ) {}
 
-    public function marketingCommission(MarketingCommissionRequest $request)
+    public function marketingCommission(PosMarketingCommissionRequest $request)
     {
         $companyId   = $request->user()->company_id;
 
@@ -38,7 +38,7 @@ class ReportController extends Controller
             if (!$marketingId) {
                 return response()->json([
                     'success' => false,
-                    'message' => __('reports.validation.marketingCommission.marketing_not_found'),
+                    'message' => __('pos.reports.validation.marketingCommission.marketing_not_found'),
                     'code'    => 404,
                 ], 404);
             }
@@ -49,14 +49,14 @@ class ReportController extends Controller
             ->where('role', Role::MARKETING)
             ->pluck('id');
 
-        $transactions = SalesTransaction::with([
+        $transactions = PosSalesTransaction::with([
                 'customer:id,name',
                 'createdBy:id,name,uuid',
                 'details.product:id,uuid,name,code,sales_price,marketing_price',
             ])
             ->where('company_id', $companyId)
             ->whereIn('created_by', $marketingUserIds) 
-            ->where('transaction_status', TransactionStatus::PAID)
+            ->where('transaction_status', PosTransactionStatus::PAID)
             ->whereDate('transaction_date', '>=', $request->date_from)
             ->whereDate('transaction_date', '<=', $request->date_to)
             ->when($marketingId, fn($q, $id) => $q->where('created_by', $id))
@@ -164,7 +164,7 @@ class ReportController extends Controller
         ]);
     }
 
-    public function salesRevenue(SalesRevenueRequest $request)
+    public function salesRevenue(PosSalesRevenueRequest $request)
     {
         $companyId = $request->user()->company_id;
 
@@ -179,14 +179,14 @@ class ReportController extends Controller
             if (!$marketingId) {
                 return response()->json([
                     'success' => false,
-                    'message' => __('reports.validation.marketingCommission.marketing_not_found'),
+                    'message' => __('pos.reports.validation.marketingCommission.marketing_not_found'),
                     'code'    => 404,
                 ], 404);
             }
         }
 
         // Ambil semua sales_details dalam rentang transaksi PAID
-        $details = SalesDetail::with([
+        $details = PosSalesDetail::with([
                 'product:id,uuid,name,code,base_price,marketing_price,unit_id,sales_price', 
                 'product.unit:id,name',                                         
                 'saleTransaction:id,transaction_code,transaction_date,total,paid,additional_cost,payment_type,created_by',
@@ -195,7 +195,7 @@ class ReportController extends Controller
             ])
             ->whereHas('saleTransaction', function ($q) use ($companyId, $request, $marketingId) {
                 $q->where('company_id', $companyId)
-                ->whereIn('transaction_status', [TransactionStatus::PAID, TransactionStatus::PROCESS, TransactionStatus::UNPAID])
+                ->whereIn('transaction_status', [PosTransactionStatus::PAID, PosTransactionStatus::PROCESS, PosTransactionStatus::UNPAID])
                 ->whereDate('transaction_date', '>=', $request->date_from)
                 ->whereDate('transaction_date', '<=', $request->date_to);
                 
@@ -232,7 +232,7 @@ class ReportController extends Controller
         $detailTransactions = $details->groupBy('saleTransaction.id')->map(function ($items, $transactionId) {
             $firstItem = $items->first();
             $trx = $firstItem->saleTransaction;
-            $isCicil = $trx->payment_type === PaymentType::CICIL;
+            $isCicil = $trx->payment_type === PosPaymentType::CICIL;
             $plan = $isCicil ? $trx->installmentPlan : null;
             
             // Cek apakah transaksi dibuat oleh OWNER atau MARKETING
@@ -292,12 +292,12 @@ class ReportController extends Controller
                 $trx = $items->first()->saleTransaction;
                 
                 // Jika PAID atau UNPAID (lunas atau bayar langsung), pakai total
-                if ($trx->transaction_status === TransactionStatus::PAID) {
+                if ($trx->transaction_status === PosTransactionStatus::PAID) {
                     return $trx->total;
                 }
                 
                 // Jika CICIL, pakai paid_amount (yang sudah dibayar)
-                if ($trx->payment_type === PaymentType::CICIL && $trx->installmentPlan) {
+                if ($trx->payment_type === PosPaymentType::CICIL && $trx->installmentPlan) {
                     return $trx->installmentPlan->paid_amount;
                 }
                 
@@ -306,7 +306,7 @@ class ReportController extends Controller
             }),
             'total_profit'    => $detailTransactions->sum('profit'),
             'total_remaining' => $details
-                ->filter(fn($r) => $r->saleTransaction->payment_type === PaymentType::CICIL)
+                ->filter(fn($r) => $r->saleTransaction->payment_type === PosPaymentType::CICIL)
                 ->sum(fn($r) => $r->saleTransaction->installmentPlan?->remainingAmount() ?? 0),
         ];
 

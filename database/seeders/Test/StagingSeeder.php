@@ -3,10 +3,10 @@
 namespace Database\Seeders\Test;
 
 use App\Enums\Role;
-use App\Models\Category;
+use App\Models\PosCategory;
 use App\Models\Company;
-use App\Models\CustomerType;
-use App\Models\Unit;
+use App\Models\PosCustomerType;
+use App\Models\PosUnit;
 use App\Models\User;
 use Hash;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -50,21 +50,21 @@ class StagingSeeder extends Seeder
         // ================================
         // Master Data (Optional - uncomment jika perlu)
         // ================================
-        // $category = Category::create([
+        // $category = PosCategory::create([
         //     'uuid'       => Str::uuid(),
         //     'name'       => 'Kebutuhan Rumah',
         //     'created_by' => $owner->id,
         //     'company_id' => $company->id,
         // ]);
 
-        // $unit = Unit::create([
+        // $unit = PosUnit::create([
         //     'uuid'       => Str::uuid(),
         //     'name'       => 'Pcs',
         //     'created_by' => $owner->id,
         //     'company_id' => $company->id,
         // ]);
 
-        // $customerType = CustomerType::create([
+        // $customerType = PosCustomerType::create([
         //     'uuid'       => Str::uuid(),
         //     'type'       => 'Regular',
         //     'discount'   => 0,

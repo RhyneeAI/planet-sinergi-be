@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+use Database\Factories\Ops\OpsIncomeFactory;
 
 use App\Enums\OpsPaymentMethod;
 use App\Enums\OpsSourceType;
@@ -14,6 +15,7 @@ class OpsIncome extends Model
 {
     use HasFactory, SoftDeletes, HasUuid;
 
+    protected static $factory = OpsIncomeFactory::class;
     protected $fillable = [
         'uuid',
         'name',

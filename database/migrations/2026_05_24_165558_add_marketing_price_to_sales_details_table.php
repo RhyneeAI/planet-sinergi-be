@@ -8,14 +8,14 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('sales_details', function (Blueprint $table) {
+        Schema::table('pos_sales_details', function (Blueprint $table) {
             $table->double('marketing_price')->after('sell_price');
         });
     }
 
     public function down(): void
     {
-        Schema::table('sales_details', function (Blueprint $table) {
+        Schema::table('pos_sales_details', function (Blueprint $table) {
             $table->dropColumn('marketing_price');
         });
     }

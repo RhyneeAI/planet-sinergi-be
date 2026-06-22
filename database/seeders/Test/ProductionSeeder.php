@@ -3,10 +3,10 @@
 namespace Database\Seeders\Test;
 
 use App\Enums\Role;
-use App\Models\Category;
+use App\Models\PosCategory;
 use App\Models\Company;
-use App\Models\CustomerType;
-use App\Models\Unit;
+use App\Models\PosCustomerType;
+use App\Models\PosUnit;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -128,14 +128,14 @@ class ProductionSeeder extends Seeder
     // ================================
     private function seedMasterData(int $companyId, int $ownerId): void
     {
-        Category::create([
+        PosCategory::create([
             'uuid'       => Str::uuid(),
             'name'       => 'T-Shirt',
             'created_by' => $ownerId,
             'company_id' => $companyId,
         ]);
 
-        Unit::create([
+        PosUnit::create([
             'uuid'       => Str::uuid(),
             'name'       => 'Pcs',
             'created_by' => $ownerId,
@@ -150,7 +150,7 @@ class ProductionSeeder extends Seeder
         ];
 
         foreach ($customerTypes as $ct) {
-            CustomerType::create([
+            PosCustomerType::create([
                 'uuid'       => Str::uuid(),
                 'type'       => $ct['type'],
                 'discount'   => $ct['discount'],

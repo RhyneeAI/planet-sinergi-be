@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+use Database\Factories\Abs\AbsJabatanFactory;
 
 use App\Models\Scopes\CompanyScope;
 use App\Traits\HasUuid;
@@ -11,6 +12,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class AbsJabatan extends Model
 {
     use HasFactory, HasUuid, SoftDeletes;
+
+    protected static $factory = AbsJabatanFactory::class;
 
     protected $table = 'abs_jabatans';
 
