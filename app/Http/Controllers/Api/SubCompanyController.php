@@ -5,8 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Enums\Role;
 use App\Http\Controllers\Api\Operational\ReturnsEmptyShowResponse;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Operational\SubCompanyStoreRequest;
-use App\Http\Requests\Operational\SubCompanyUpdateRequest;
+use App\Http\Requests\Operational\SubCompanyRequest;
 use App\Http\Resources\Operational\OpsMandorResource;
 use App\Http\Resources\SubCompanyResource;
 use App\Models\SubCompany;
@@ -54,7 +53,7 @@ class SubCompanyController extends Controller
         ]);
     }
 
-    public function store(SubCompanyStoreRequest $request)
+    public function store(SubCompanyRequest $request)
     {
         DB::beginTransaction();
 
@@ -112,7 +111,7 @@ class SubCompanyController extends Controller
         ]);
     }
 
-    public function update(SubCompanyUpdateRequest $request, string $uuid)
+    public function update(SubCompanyRequest $request, string $uuid)
     {
         $subCompany = SubCompany::where('uuid', $uuid)->first();
 
