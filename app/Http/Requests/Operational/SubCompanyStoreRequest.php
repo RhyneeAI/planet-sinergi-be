@@ -22,6 +22,7 @@ class SubCompanyStoreRequest extends FormRequest
             'mandor.phone' => [
                 'required',
                 'string',
+                'min:10',
                 'max:20',
                 Rule::unique('users', 'phone')->where('company_id', $companyId),
             ],
@@ -47,6 +48,7 @@ class SubCompanyStoreRequest extends FormRequest
             'mandor.required' => __('operational.validation.mandor_payload_required'),
             'mandor.name.required' => __('operational.validation.name_required'),
             'mandor.phone.required' => __('operational.validation.phone_required'),
+            'mandor.phone.min' => __('operational.validation.phone_min'),
             'mandor.phone.unique' => __('operational.validation.phone_unique'),
             'mandor.email.email' => __('operational.validation.email_invalid'),
             'mandor.email.unique' => __('operational.validation.email_unique'),

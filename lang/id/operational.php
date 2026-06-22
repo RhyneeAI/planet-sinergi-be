@@ -132,6 +132,7 @@ return [
         'sub_company_code_required' => 'Kode cabang wajib diisi.',
         'sub_company_code_unique' => 'Kode cabang sudah digunakan.',
         'phone_required' => 'Nomor telepon wajib diisi.',
+        'phone_min' => 'Nomor telepon minimal 10 karakter.',
         'phone_unique' => 'Nomor telepon sudah digunakan.',
         'email_invalid' => 'Format email tidak valid.',
         'email_unique' => 'Email sudah digunakan.',

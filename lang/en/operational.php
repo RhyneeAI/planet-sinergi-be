@@ -133,6 +133,7 @@ return [
         'sub_company_code_unique' => 'Branch code is already in use.',
         'sub_company_code_unique' => 'Branch code is already in use.',
         'phone_required' => 'Phone number is required.',
+        'phone_min' => 'Phone number must be at least 10 characters.',
         'phone_unique' => 'Phone number is already in use.',
         'email_invalid' => 'Invalid email format.',
         'email_unique' => 'Email is already in use.',

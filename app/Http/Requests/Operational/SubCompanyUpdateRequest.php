@@ -25,6 +25,7 @@ class SubCompanyUpdateRequest extends FormRequest
             'mandor.phone' => [
                 'sometimes',
                 'string',
+                'min:10',
                 'max:20',
                 Rule::unique('users', 'phone')
                     ->where('company_id', $companyId)
