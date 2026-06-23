@@ -30,6 +30,7 @@ class PosSalesTransaction extends Model
         'payment_type',
         'transaction_status',
         'customer_id',
+        'marketing_id',
         'created_by',
         'company_id',
     ];

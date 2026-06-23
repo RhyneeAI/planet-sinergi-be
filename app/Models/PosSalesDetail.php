@@ -23,6 +23,9 @@ class PosSalesDetail extends Model
         'quantity',
         'marketing_price',
         'sell_price',
+        'company_profit',
+        'lead_profit',
+        'marketing_profit',
         'discount',
         'subtotal',
         'company_id'
