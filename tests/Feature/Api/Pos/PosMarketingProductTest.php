@@ -9,7 +9,7 @@ use App\Models\User;
 
 beforeEach(function () {
     $this->company   = Company::factory()->create();
-    $this->owner     = User::factory()->owner()->create(['company_id' => $this->company->id]);
+    $this->owner     = User::factory()->admin()->create(['company_id' => $this->company->id]);
     $this->marketing = User::factory()->marketing()->create(['company_id' => $this->company->id]);
     $this->category  = PosCategory::factory()->create([
         'company_id' => $this->company->id,

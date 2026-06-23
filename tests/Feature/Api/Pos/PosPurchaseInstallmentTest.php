@@ -17,7 +17,7 @@ use Illuminate\Support\Str;
 
 beforeEach(function () {
     $this->company      = Company::factory()->create();
-    $this->owner        = User::factory()->owner()->create(['company_id' => $this->company->id]);
+    $this->owner        = User::factory()->admin()->create(['company_id' => $this->company->id]);
     $this->supplierType = PosCustomerType::factory()->create([
         'company_id' => $this->company->id,
         'created_by' => $this->owner->id,

@@ -13,7 +13,7 @@ use App\Models\User;
 
 beforeEach(function () {
     $this->company      = Company::factory()->create();
-    $this->user         = User::factory()->owner()->create([
+    $this->user         = User::factory()->kasir()->create([
         'company_id' => $this->company->id,
     ]);
     $this->customerType = PosCustomerType::factory()->create([

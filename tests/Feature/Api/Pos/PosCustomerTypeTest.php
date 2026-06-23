@@ -7,7 +7,7 @@ use App\Models\User;
 
 beforeEach(function () {
     $this->company = Company::factory()->create();
-    $this->user    = User::factory()->owner()->create([
+    $this->user    = User::factory()->admin()->create([
         'company_id' => $this->company->id,
     ]);
 });
