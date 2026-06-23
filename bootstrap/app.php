@@ -41,6 +41,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->alias([
             'role' => \App\Http\Middleware\CheckRole::class,
+            'module' => \App\Http\Middleware\CheckModule::class,
             'telescope.auth' => \App\Http\Middleware\TelescopeAuth::class,
         ]);
 
