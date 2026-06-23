@@ -56,4 +56,29 @@ class UserFactory extends Factory
     {
         return $this->state(['role' => Role::ADMIN]);
     }
+
+    public function hrd(): static
+    {
+        return $this->state(['role' => Role::HRD]);
+    }
+
+    public function manajerGudang(): static
+    {
+        return $this->state(['role' => Role::MANAJER_GUDANG]);
+    }
+
+    public function marketingLead(): static
+    {
+        return $this->state(['role' => Role::MARKETING_LEAD]);
+    }
+
+    public function marketingTetap(): static
+    {
+        return $this->state(['role' => Role::MARKETING_TETAP]);
+    }
+
+    public function kasir(): static
+    {
+        return $this->state(['role' => Role::KASIR]);
+    }
 }

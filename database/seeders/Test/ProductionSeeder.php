@@ -3,10 +3,7 @@
 namespace Database\Seeders\Test;
 
 use App\Enums\Role;
-use App\Models\PosCategory;
 use App\Models\Company;
-use App\Models\PosCustomerType;
-use App\Models\PosUnit;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -16,147 +13,84 @@ class ProductionSeeder extends Seeder
 {
     public function run(): void
     {
-        // ================================
-        // Company 1 — Gudang Planet (Production)
-        // ================================
-        $gp = Company::create([
-            'uuid'       => Str::uuid(),
-            'name'    => 'Gudang Planet',
-            'address' => '-',
-            'code'    => 'GPL',
-        ]);
+        User::updateOrCreate(
+            ['phone' => '081234567889'],
+            [
+                'uuid'       => (string) Str::uuid(),
+                'name'       => 'Superadmin',
+                'email'      => 'superadmin@gudangplanet.com',
+                'address'    => 'Jl. Raya No. 1, Jakarta',
+                'password'   => Hash::make('superadmin123'),
+                'role'       => Role::SUPERADMIN,
+                'company_id' => null,
+                'is_active'  => true,
+            ]
+        );
 
-        User::create([
-            'uuid'       => Str::uuid(),
-            'name'       => 'Owner Gudang Planet',
-            'phone'      => '081234567801',
-            'email'      => 'owner@gudangplanet.com',
-            'password'   => Hash::make('gp_owner'),
-            'role'       => Role::OWNER,
-            'company_id' => $gp->id,
-        ]);
+        // =============================================
+        // COMPANY 1 — UAT / Test
+        // =============================================
+        $testCompany = Company::firstOrCreate(
+            ['code' => 'GP001'],
+            [
+                'uuid'    => (string) Str::uuid(),
+                'name'    => config('app.name') . ' (Test)',
+                'address' => 'Jl. Raya No. 1, Jakarta',
+            ]
+        );
 
-        User::create([
-            'uuid'       => Str::uuid(),
-            'name'       => 'Marketing Gudang Planet',
-            'phone'      => '081234567802',
-            'email'      => 'marketing@gudangplanet.com',
-            'password'   => Hash::make('gp_marketing'),
-            'role'       => Role::MARKETING,
-            'company_id' => $gp->id,
-        ]);
-
-        $this->seedMasterData($gp->id, 1); // owner id = 1
-
-        // ================================
-        // Company 2 — Gudang Planet 2 (Production 2)
-        // ================================
-        $gp2 = Company::create([
-            'uuid'       => Str::uuid(),
-            'name'    => 'Gudang Planet 2',
-            'address' => '-',
-            'code'    => 'GPL2',
-        ]);
-
-        User::create([
-            'uuid'       => Str::uuid(),
-            'name'       => 'Owner Gudang Planet 2',
-            'phone'      => '081234567803',
-            'email'      => 'owner@gudangplanet2.com',
-            'password'   => Hash::make('gp2_owner'),
-            'role'       => Role::OWNER,
-            'company_id' => $gp2->id,
-        ]);
-
-        User::create([
-            'uuid'       => Str::uuid(),
-            'name'       => 'Marketing Gudang Planet 2',
-            'phone'      => '081234567804',
-            'email'      => 'marketing@gudangplanet2.com',
-            'password'   => Hash::make('gp2_marketing'),
-            'role'       => Role::MARKETING,
-            'company_id' => $gp2->id,
-        ]);
-
-        $this->seedMasterData($gp2->id, 3); // owner id = 3
-
-        // ================================
-        // Company 3 — Gudang Planet Test (Internal)
-        // ================================
-        $gpTest = Company::create([
-            'uuid'       => Str::uuid(),
-            'name'    => 'Gudang Planet Test',
-            'address' => '-',
-            'code'    => 'GPLTEST',
-        ]);
-
-        User::create([
-            'uuid'       => Str::uuid(),
-            'name'       => 'SuperAdmin GP Test',
-            'phone'      => '081234567805',
-            'email'      => 'superadmin@gudangplanet.com',
-            'password'   => Hash::make('gp_superadmin'),
-            'role'       => Role::SUPERADMIN,
-            'company_id' => $gpTest->id,
-        ]);
-
-        User::create([
-            'uuid'       => Str::uuid(),
-            'name'       => 'Owner GP Test',
-            'phone'      => '081234567806',
-            'email'      => 'owner@gudangplanettest.com',
-            'password'   => Hash::make('gptest_owner'),
-            'role'       => Role::OWNER,
-            'company_id' => $gpTest->id,
-        ]);
-
-        User::create([
-            'uuid'       => Str::uuid(),
-            'name'       => 'Marketing GP Test',
-            'phone'      => '081234567807',
-            'email'      => 'marketing@gudangplanettest.com',
-            'password'   => Hash::make('gptest_marketing'),
-            'role'       => Role::MARKETING,
-            'company_id' => $gpTest->id,
-        ]);
-
-        $this->seedMasterData($gpTest->id, 5); // owner id = 5
-    }
-
-    // ================================
-    // Master Data per Company
-    // ================================
-    private function seedMasterData(int $companyId, int $ownerId): void
-    {
-        PosCategory::create([
-            'uuid'       => Str::uuid(),
-            'name'       => 'T-Shirt',
-            'created_by' => $ownerId,
-            'company_id' => $companyId,
-        ]);
-
-        PosUnit::create([
-            'uuid'       => Str::uuid(),
-            'name'       => 'Pcs',
-            'created_by' => $ownerId,
-            'company_id' => $companyId,
-        ]);
-
-        $customerTypes = [
-            ['type' => 'Regular', 'discount' => 0],
-            ['type' => 'Family',  'discount' => 2],
-            ['type' => 'Member',  'discount' => 5],
-            ['type' => 'VIP',     'discount' => 10],
+        $testUsers = [
+            ['name' => 'Owner Test', 'phone' => '081234567890', 'role' => Role::OWNER],
+            ['name' => 'Admin Test', 'phone' => '081234567891', 'role' => Role::ADMIN],
         ];
 
-        foreach ($customerTypes as $ct) {
-            PosCustomerType::create([
-                'uuid'       => Str::uuid(),
-                'type'       => $ct['type'],
-                'discount'   => $ct['discount'],
-                'created_by' => $ownerId,
-                'company_id' => $companyId,
-            ]);
+        foreach ($testUsers as $user) {
+            User::updateOrCreate(
+                ['phone' => $user['phone']],
+                [
+                    'uuid'       => (string) Str::uuid(),
+                    'name'       => $user['name'],
+                    'email'      => strtolower(str_replace(' ', '', $user['name'])) . '@gudangplanet.com',
+                    'address'    => 'Jl. Raya No. 1, Jakarta',
+                    'password'   => Hash::make('password'),
+                    'role'       => $user['role'],
+                    'company_id' => $testCompany->id,
+                    'is_active'  => true,
+                ]
+            );
+        }
+
+        // =============================================
+        // COMPANY 2 — Go-Live (Production)
+        // =============================================
+        $liveCompany = Company::firstOrCreate(
+            ['code' => 'GP002'],
+            [
+                'uuid'    => (string) Str::uuid(),
+                'name'    => config('app.name'),
+                'address' => 'Jl. Raya No. 1, Jakarta',
+            ]
+        );
+
+        $liveUsers = [
+            ['name' => 'Owner', 'phone' => '081234567892', 'role' => Role::OWNER],
+            ['name' => 'Admin', 'phone' => '081234567893', 'role' => Role::ADMIN],
+        ];
+
+        foreach ($liveUsers as $user) {
+            User::updateOrCreate(
+                ['phone' => $user['phone']],
+                [
+                    'uuid'       => (string) Str::uuid(),
+                    'name'       => $user['name'],
+                    'email'      => strtolower($user['name']) . '@gudangplanet.com',
+                    'address'    => 'Jl. Raya No. 1, Jakarta',
+                    'password'   => Hash::make('password'),
+                    'role'       => $user['role'],
+                    'company_id' => $liveCompany->id,
+                    'is_active'  => true,
+                ]
+            );
         }
     }
 }

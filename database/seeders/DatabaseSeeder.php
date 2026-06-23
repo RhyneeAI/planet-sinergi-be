@@ -2,14 +2,22 @@
 
 namespace Database\Seeders;
 
+use Database\Seeders\Test\ProductionSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        if (app()->environment('production')) {
+            $this->call([
+                ProductionSeeder::class,
+            ]);
+
+            return;
+        }
+
         $this->call([
-            // Inti: company + semua role + master POS minimal
             CompanySeeder::class,
             UserSeeder::class,
             PosUnitSeeder::class,
@@ -19,17 +27,14 @@ class DatabaseSeeder extends Seeder
             PosCustomerSeeder::class,
             PosProductSeeder::class,
 
-            // Operasional: config + sub-company otomatis per mandor
             OpsConfigurationSeeder::class,
             SubCompanySeeder::class,
             AbsJabatanSeeder::class,
             AbsShiftSeeder::class,
             AbsEmployeeProfileSeeder::class,
 
-            // Operasional: dummy incomes & expenses untuk testing report
             OpsIncomeExpenseSeeder::class,
 
-            // Laporan: company terpisah, data transaksi fokus
             PosMarketingCommissionReportSeeder::class,
             PosSalesRevenueReportSeeder::class,
         ]);

@@ -26,6 +26,18 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if ($this->app->environment('production')) {
+            $this->app['events']->listen(
+                \Illuminate\Console\Events\CommandStarting::class,
+                function ($event) {
+                    $forbidden = ['migrate:fresh', 'migrate:refresh', 'migrate:reset', 'db:wipe'];
+                    if (in_array($event->command, $forbidden, true)) {
+                        throw new \RuntimeException("{$event->command} dilarang di production!");
+                    }
+                }
+            );
+        }
+
         User::observe(\App\Observers\UserObserver::class);
 
         Relation::enforceMorphMap([

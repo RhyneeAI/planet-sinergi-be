@@ -2,7 +2,7 @@
     {{-- Title --}}
     <tr>
         <td colspan="8" style="font-size: 16px; font-weight: bold; text-align: center; padding: 8px;">
-            Laporan Operasional Gudang Planet
+            Laporan Operasional {{ config('app.name') }}
             @if ($is_specific)
                 Cabang {{ $groups->first()['sub_companies']->pluck('name')->implode(', ') }}
             @endif

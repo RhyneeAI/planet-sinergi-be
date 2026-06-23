@@ -7,8 +7,11 @@ enum Role: string
     case SUPERADMIN = 'SUPERADMIN';
     case OWNER = 'OWNER';
     case ADMIN = 'ADMIN';
-    case MARKETING_LEADER = 'MARKETING_LEADER';
+    case HRD = 'HRD';
+    case MANAJER_GUDANG = 'MANAJER_GUDANG';
+    case MARKETING_LEAD = 'MARKETING_LEAD';
     case MARKETING = 'MARKETING';
+    case MARKETING_TETAP = 'MARKETING_TETAP';
     case KASIR = 'KASIR';
     case MANDOR = 'MANDOR';
     case KARYAWAN = 'KARYAWAN';
@@ -24,8 +27,11 @@ enum Role: string
             self::SUPERADMIN => 'SUPERADMIN',
             self::OWNER => 'OWNER',
             self::ADMIN => 'ADMIN',
-            self::MARKETING_LEADER => 'MARKETING_LEADER',
+            self::HRD => 'HRD',
+            self::MANAJER_GUDANG => 'MANAJER_GUDANG',
+            self::MARKETING_LEAD => 'MARKETING_LEAD',
             self::MARKETING => 'MARKETING',
+            self::MARKETING_TETAP => 'MARKETING_TETAP',
             self::KASIR => 'KASIR',
             self::MANDOR => 'MANDOR',
             self::KARYAWAN => 'KARYAWAN',
