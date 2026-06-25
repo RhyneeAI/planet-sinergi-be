@@ -268,4 +268,7 @@ return [
             'name_unique'   => 'The unit name has already been taken.',
         ],
     ],
+    'stock_card' => [
+        'detail' => 'Stock card retrieved successfully.',
+    ],
 ];

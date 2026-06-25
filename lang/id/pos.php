@@ -268,4 +268,7 @@ return [
             'name_unique'   => 'Nama satuan sudah digunakan.',
         ],
     ],
+    'stock_card' => [
+        'detail' => 'Kartu stok berhasil diambil.',
+    ],
 ];

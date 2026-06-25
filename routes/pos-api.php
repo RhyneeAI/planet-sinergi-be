@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\Pos\PosPurchaseInstallmentController;
 use App\Http\Controllers\Api\Pos\PosPurchaseTransactionController;
 use App\Http\Controllers\Api\Pos\PosSalesInstallmentController;
 use App\Http\Controllers\Api\Pos\PosSalesTransactionController;
+use App\Http\Controllers\Api\Pos\PosStockCardController;
 use App\Http\Controllers\Api\Pos\PosStockMutationController;
 use App\Http\Controllers\Api\Pos\PosSupplierController;
 use App\Http\Controllers\Api\Pos\PosUnitController;
@@ -33,6 +34,8 @@ Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
         Route::apiResource('units', PosUnitController::class)->parameters([
             'units' => 'unit:uuid',
         ])->only(['index', 'show']);
+
+        Route::get('stock-card/{product:uuid}', [PosStockCardController::class, 'show']);
 
         Route::apiResource('products', PosProductController::class)->parameters([
             'products' => 'product:uuid',
