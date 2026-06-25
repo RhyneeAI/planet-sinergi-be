@@ -31,7 +31,7 @@ it('can get product list', function () {
             'success',
             'message',
             'data' => [
-                '*' => ['uuid', 'name', 'code', 'sales_price', 'stock']
+                '*' => ['uuid', 'name', 'code', 'leader_price', 'stock']
             ]
         ])
         ->assertJsonPath('success', true);
@@ -134,7 +134,7 @@ it('can create a product', function () {
             'name' => 'Product Test',
             'code' => 'PRD-001',
             'base_price' => 50000,
-            'sales_price' => 75000,
+            'leader_price' => 75000,
             'stock' => 10,
             'min_stock' => 5,
             'category_uuid' => $category->uuid, 
@@ -150,7 +150,7 @@ it('returns 422 when category_uuid is invalid', function () {
     $this->actingAs($this->user)
         ->postJson('/api/v1/products', [
             'name' => 'Product Test',
-            'sales_price' => 75000,
+            'leader_price' => 75000,
             'category_uuid' => 'invalid-uuid',
         ])
         ->assertStatus(422);
@@ -160,7 +160,7 @@ it('returns 422 when unit_uuid is invalid', function () {
     $this->actingAs($this->user)
         ->postJson('/api/v1/products', [
             'name' => 'Product Test',
-            'sales_price' => 75000,
+            'leader_price' => 75000,
             'unit_uuid' => 'invalid-uuid',
         ])
         ->assertStatus(422);
@@ -181,9 +181,9 @@ it('returns 422 when name exceeds 255 characters', function () {
         ->assertStatus(422);
 });
 
-it('returns 422 when sales_price is empty on store', function () {
+it('returns 422 when leader_price is empty on store', function () {
     $this->actingAs($this->user)
-        ->postJson('/api/v1/products', ['name' => 'Test', 'sales_price' => ''])
+        ->postJson('/api/v1/products', ['name' => 'Test', 'leader_price' => ''])
         ->assertStatus(422);
 });
 
@@ -197,7 +197,7 @@ it('returns 422 when code is duplicate within same company', function () {
         ->postJson('/api/v1/products', [
             'name' => 'Another Product',
             'code' => 'DUP-001',
-            'sales_price' => 10000,
+            'leader_price' => 10000,
         ])
         ->assertStatus(422);
 });
@@ -213,7 +213,7 @@ it('allows same product code in different companies', function () {
         ->postJson('/api/v1/products', [
             'name' => 'Product',
             'code' => 'SAME-001',
-            'sales_price' => 10000,
+            'leader_price' => 10000,
         ])
         ->assertStatus(201);
 });
@@ -223,7 +223,7 @@ it('allows same product code in different companies', function () {
 it('creates ADJUST_IN stock mutation when product created with stock > 0', function () {
     $payload = [
         'name'        => 'Produk Test',
-        'sales_price' => 10000,
+        'leader_price' => 10000,
         'stock'       => 50,
     ];
 
@@ -243,7 +243,7 @@ it('creates ADJUST_IN stock mutation when product created with stock > 0', funct
 it('does not create stock mutation when product created with stock 0', function () {
     $payload = [
         'name'        => 'Produk Test',
-        'sales_price' => 10000,
+        'leader_price' => 10000,
         'stock'       => 0,
     ];
 
@@ -257,7 +257,7 @@ it('does not create stock mutation when product created with stock 0', function 
 it('does not create stock mutation when stock field is not provided', function () {
     $payload = [
         'name'        => 'Produk Test',
-        'sales_price' => 10000,
+        'leader_price' => 10000,
     ];
 
     $this->actingAs($this->user)
@@ -270,7 +270,7 @@ it('does not create stock mutation when stock field is not provided', function (
 it('stock mutation notes contains product name', function () {
     $payload = [
         'name'        => 'Sabun Mandi Special',
-        'sales_price' => 10000,
+        'leader_price' => 10000,
         'stock'       => 25,
     ];
 
@@ -285,7 +285,7 @@ it('stock mutation notes contains product name', function () {
 it('created_by in stock mutation matches authenticated user', function () {
     $payload = [
         'name'        => 'Produk Test',
-        'sales_price' => 10000,
+        'leader_price' => 10000,
         'stock'       => 10,
     ];
 
@@ -303,7 +303,7 @@ it('can create product with marketing_price', function () {
     $this->actingAs($this->user)
         ->postJson('/api/v1/products', [
             'name'            => 'Produk Test',
-            'sales_price'     => 15000,
+            'leader_price'     => 15000,
             'marketing_price' => 12000,
         ])
         ->assertStatus(201)
@@ -314,7 +314,7 @@ it('marketing_price defaults to 0 when not provided', function () {
     $this->actingAs($this->user)
         ->postJson('/api/v1/products', [
             'name'        => 'Produk Test',
-            'sales_price' => 15000,
+            'leader_price' => 15000,
         ])
         ->assertStatus(201)
         ->assertJsonPath('data.marketing_price', 0);
@@ -341,7 +341,7 @@ it('returns 422 when marketing_price is negative', function () {
     $this->actingAs($this->user)
         ->postJson('/api/v1/products', [
             'name'            => 'Produk Test',
-            'sales_price'     => 15000,
+            'leader_price'     => 15000,
             'marketing_price' => -1000,
         ])
         ->assertStatus(422);
@@ -391,17 +391,17 @@ it('can update a product', function () {
     $this->actingAs($this->user)
         ->patchJson("/api/v1/products/{$product->uuid}", [
             'name' => 'Updated Product',
-            'sales_price' => 100000,
+            'leader_price' => 100000,
         ])
         ->assertStatus(200)
         ->assertJsonPath('data.name', 'Updated Product')
-        ->assertJsonPath('data.sales_price', 100000);
+        ->assertJsonPath('data.leader_price', 100000);
 });
 
 it('can partial update product without sending all fields', function () {
     $product = PosProduct::factory()->create([
         'name' => 'Original Name',
-        'sales_price' => 50000,
+        'leader_price' => 50000,
         'company_id' => $this->company->id,
     ]);
 
@@ -409,7 +409,7 @@ it('can partial update product without sending all fields', function () {
         ->patchJson("/api/v1/products/{$product->uuid}", ['name' => 'Only Name Updated'])
         ->assertStatus(200)
         ->assertJsonPath('data.name', 'Only Name Updated')
-        ->assertJsonPath('data.sales_price', 50000);
+        ->assertJsonPath('data.leader_price', 50000);
 });
 
 it('returns 404 when updating product from other company', function () {

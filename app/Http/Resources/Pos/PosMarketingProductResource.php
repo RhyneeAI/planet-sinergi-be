@@ -16,7 +16,7 @@ class PosMarketingProductResource extends JsonResource
                 'uuid'        => $this->product->uuid,
                 'name'        => $this->product->name,
                 'code'        => $this->product->code,
-                'sales_price' => $this->product->sales_price,
+                'leader_price' => $this->product->leader_price,
                 'stock'       => $this->product->stock,
             ],
             'marketing'       => $this->whenLoaded('marketing', fn() => [

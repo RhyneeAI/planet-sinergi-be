@@ -52,7 +52,7 @@ class ReportController extends Controller
         $transactions = PosSalesTransaction::with([
                 'customer:id,name',
                 'createdBy:id,name,uuid',
-                'details.product:id,uuid,name,code,sales_price,marketing_price',
+                'details.product:id,uuid,name,code,leader_price,marketing_price',
             ])
             ->where('company_id', $companyId)
             ->whereIn('created_by', $marketingUserIds) 
@@ -187,7 +187,7 @@ class ReportController extends Controller
 
         // Ambil semua sales_details dalam rentang transaksi PAID
         $details = PosSalesDetail::with([
-                'product:id,uuid,name,code,base_price,marketing_price,unit_id,sales_price', 
+                'product:id,uuid,name,code,base_price,marketing_price,unit_id,leader_price', 
                 'product.unit:id,name',                                         
                 'saleTransaction:id,transaction_code,transaction_date,total,paid,additional_cost,payment_type,created_by',
                 'saleTransaction.createdBy:id,name,role',                   
@@ -273,7 +273,7 @@ class ReportController extends Controller
                         'name'       => $row->product->name ?? '-',
                         'unit'       => $row->product->unit->name ?? '-',
 						'base_price' => $row->product->base_price ?? '-',
-                        'sales_price'=> $row->product->sales_price ?? '-',
+                        'leader_price'=> $row->product->leader_price ?? '-',
                         'sell_price' => $row->sell_price,
                         'quantity'   => $row->quantity,
                         'subtotal'   => $row->subtotal,

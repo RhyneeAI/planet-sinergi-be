@@ -41,7 +41,7 @@ beforeEach(function () {
     // Product A: base 5000
     $this->productA = PosProduct::factory()->create([
         'base_price'  => 5000,
-        'sales_price' => 8000,
+        'leader_price' => 8000,
         'marketing_price' => 7000,
         'stock'       => 100,
         'category_id' => $this->category->id,
@@ -53,7 +53,7 @@ beforeEach(function () {
     // Product B: base 12000
     $this->productB = PosProduct::factory()->create([
         'base_price'  => 12000,
-        'sales_price' => 18000,
+        'leader_price' => 18000,
         'marketing_price' => 15000,
         'stock'       => 100,
         'category_id' => $this->category->id,
@@ -457,7 +457,7 @@ it('returns zero when no transactions in range', function () {
 // it('skips commission for product not in marketing_products', function () {
 //     $productC = PosProduct::factory()->create([
 //         'base_price'  => 8000,
-//         'sales_price' => 12000,
+//         'leader_price' => 12000,
 //         'stock'       => 100,
 //         'category_id' => $this->category->id,
 //         'unit_id'     => $this->unit->id,

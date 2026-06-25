@@ -35,7 +35,7 @@ beforeEach(function () {
     ]);
     $this->product      = PosProduct::factory()->create([
         'stock'             => 20,
-        'sales_price'       => 15000,
+        'leader_price'       => 15000,
         'marketing_price'   => 13000,
         'category_id'       => $this->category->id,
         'unit_id'           => $this->unit->id,
@@ -44,7 +44,7 @@ beforeEach(function () {
     ]);
     $this->product2     = PosProduct::factory()->create([
         'stock'             => 10,
-        'sales_price'       => 25000,
+        'leader_price'       => 25000,
         'marketing_price'   => 20000,
         'category_id'       => $this->category->id,
         'unit_id'           => $this->unit->id,

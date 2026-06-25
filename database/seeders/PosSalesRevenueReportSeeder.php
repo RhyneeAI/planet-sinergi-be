@@ -86,7 +86,7 @@ class PosSalesRevenueReportSeeder extends Seeder
                     'uuid' => (string) Str::uuid(),
                     'name' => $data['name'],
                     'base_price' => $data['base'],
-                    'sales_price' => $data['sell'],
+                    'leader_price' => $data['sell'],
                     'stock' => $data['stock'],
                     'is_active' => true,
                     'category_id' => $category->id,

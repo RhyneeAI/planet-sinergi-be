@@ -20,14 +20,14 @@ beforeEach(function () {
         'created_by' => $this->owner->id,
     ]);
     $this->product   = PosProduct::factory()->create([
-        'sales_price' => 15000,
+        'leader_price' => 15000,
         'category_id' => $this->category->id,
         'unit_id'     => $this->unit->id,
         'created_by'  => $this->owner->id,
         'company_id'  => $this->company->id,
     ]);
     $this->product2  = PosProduct::factory()->create([
-        'sales_price' => 20000,
+        'leader_price' => 20000,
         'category_id' => $this->category->id,
         'unit_id'     => $this->unit->id,
         'created_by'  => $this->owner->id,

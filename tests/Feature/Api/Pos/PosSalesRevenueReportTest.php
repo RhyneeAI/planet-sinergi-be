@@ -43,7 +43,7 @@ beforeEach(function () {
     $this->productA = PosProduct::factory()->create([
         'code'        => 'TEST-A',
         'base_price'  => 3000,
-        'sales_price' => 5000,
+        'leader_price' => 5000,
         'stock'       => 100,
         'category_id' => $this->category->id,
         'unit_id'     => $this->unit->id,
@@ -55,7 +55,7 @@ beforeEach(function () {
     $this->productB = PosProduct::factory()->create([
         'code'        => 'TEST-B',
         'base_price'  => 10000,
-        'sales_price' => 15000,
+        'leader_price' => 15000,
         'stock'       => 100,
         'category_id' => $this->category->id,
         'unit_id'     => $this->unit->id,
@@ -381,7 +381,7 @@ it('only includes transactions from same company', function () {
         'company_id' => $otherCompany->id,
         'created_by' => $otherUser->id,
         'base_price' => 5000,
-        'sales_price' => 10000,
+        'leader_price' => 10000,
         'category_id' => $this->category->id,
         'unit_id'     => $this->unit->id,
     ]);
@@ -449,7 +449,7 @@ it('returns correct response structure', function () {
 // REVENUE CALCULATION
 // =============================
 
-it('uses sell_price from sales_details not products.sales_price', function () {
+it('uses sell_price from sales_details not products.leader_price', function () {
     makeSalesRevTrx([
         'date'       => '2026-03-01',
         'total'      => 14000,

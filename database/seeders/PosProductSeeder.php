@@ -30,7 +30,7 @@ class PosProductSeeder extends Seeder
                     'uuid' => (string) Str::uuid(),
                     'name' => $product['name'],
                     'base_price' => $product['base'],
-                    'sales_price' => $product['sell'],
+                    'leader_price' => $product['sell'],
                     'marketing_price' => $product['marketing'],
                     'last_purchase_price' => $product['base'],
                     'stock' => $product['stock'],

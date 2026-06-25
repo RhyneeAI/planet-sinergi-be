@@ -14,7 +14,7 @@ use Illuminate\Http\Request;
 
 class PosProductController extends Controller
 {
-    protected array $sortableColumns = ['name', 'code', 'sales_price', 'stock', 'created_at'];
+    protected array $sortableColumns = ['name', 'code', 'leader_price', 'stock', 'created_at'];
 
     public function generateCode(Request $request)
     {
@@ -89,8 +89,9 @@ class PosProductController extends Controller
             'name'                => $request->name,
             'code'                => $request->code,
             'base_price'          => $request->base_price ?? 0,
-            'sales_price'         => $request->sales_price,
-            'marketing_price'     => $request->marketing_price ?? 0, 
+            'leader_price'        => $request->leader_price,
+            'marketing_price'     => $request->marketing_price ?? 0,
+            'sell_price'          => $request->sell_price ?? 0,
             'last_purchase_price' => $request->last_purchase_price ?? 0,
             'stock'               => $stock,
             'min_stock'           => $request->min_stock ?? 0,
@@ -143,8 +144,9 @@ class PosProductController extends Controller
             'name' => $request->has('name') ? $request->name : null,
             'code' => $request->has('code') ? $request->code : null,
             'base_price' => $request->has('base_price') ? $request->base_price : null,
-            'sales_price' => $request->has('sales_price') ? $request->sales_price : null,
-            'marketing_price' => $request->has('marketing_price') ? $request->marketing_price : null, 
+            'leader_price' => $request->has('leader_price') ? $request->leader_price : null,
+            'marketing_price' => $request->has('marketing_price') ? $request->marketing_price : null,
+            'sell_price' => $request->has('sell_price') ? $request->sell_price : null,
             'last_purchase_price' => $request->has('last_purchase_price') ? $request->last_purchase_price : null,
             'stock' => $request->has('stock') ? $request->stock : null,
             'min_stock' => $request->has('min_stock') ? $request->min_stock : null,

@@ -54,7 +54,7 @@ trait SeedsSalesTransactions
                     'product_id' => $product->id,
                     'quantity' => $item['qty'],
                     'sell_price' => $item['price'],
-                    'marketing_price' => $item['marketing_price'] ?? $product->marketing_price ?? $product->sales_price,
+                    'marketing_price' => $item['marketing_price'] ?? $product->marketing_price ?? $product->leader_price,
                     'discount' => 0,
                     'subtotal' => $subtotal,
                     'company_id' => $company->id,
