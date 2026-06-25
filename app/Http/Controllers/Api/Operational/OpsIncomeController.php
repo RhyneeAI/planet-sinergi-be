@@ -346,7 +346,7 @@ class OpsIncomeController extends Controller
 
         $this->deleteRecordProofs($opsIncome);
 
-        $opsIncome->delete();
+        $opsIncome->forceDelete();
 
         return response()->json([
             'success' => true,
@@ -392,7 +392,7 @@ class OpsIncomeController extends Controller
                 $opsIncome->name
             );
 
-            $opsIncome->delete();
+            $opsIncome->forceDelete();
 
             DB::commit();
 

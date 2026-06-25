@@ -29,6 +29,7 @@ class PosSalesTransactionRequest extends FormRequest
                 'date',
             ],
             'discount'           => ['sometimes', 'numeric', 'min:0'],
+            'down_payment'        => ['nullable', 'numeric', 'min:0'],
             'additional_cost'      => ['sometimes', 'numeric', 'min:0'],
             'additional_cost_note' => ['nullable', 'string', 'max:255'],
             'total'              => ['sometimes', 'numeric', 'min:0'],

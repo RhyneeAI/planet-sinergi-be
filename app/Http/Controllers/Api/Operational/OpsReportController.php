@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Operational;
 
 use App\Enums\OpsExpenseType;
+use App\Enums\OpsPaymentMethod;
 use App\Enums\Role;
 use App\Exports\OpsIncomeExpenseExport;
 use App\Helpers\FileHelper;
@@ -93,6 +94,9 @@ class OpsReportController extends Controller
         $saldoAkhirExpense = (clone $expenseQuery)->whereDate('date', '<=', $endDate)->sum('amount');
         $saldoAkhir        = (float) $saldoAkhirIncome - (float) $saldoAkhirExpense;
 
+        $saldoAwalMethods   = $this->paymentMethodSaldo($incomeQuery, $expenseQuery, '<', $startDate);
+        $saldoAkhirMethods  = $this->paymentMethodSaldo($incomeQuery, $expenseQuery, '<=', $endDate);
+
         $mandors = User::where('company_id', $companyId)
             ->where('role', Role::MANDOR)
             ->orderBy('name')
@@ -106,19 +110,20 @@ class OpsReportController extends Controller
             $internalIncomes  = $this->internalIncomes($startDate, $endDate);
             $internalExpenses = $this->internalExpenses($startDate, $endDate);
 
-            $internalSaldoAwalIncome  = OpsIncome::whereNull('mandor_id')->whereDate('date', '<', $startDate)->sum('amount');
-            $internalSaldoAwalExpense = OpsExpense::where(function ($q) {
+            $internalIncomeBase  = OpsIncome::whereNull('mandor_id');
+            $internalExpenseBase = OpsExpense::where(function ($q) {
                     $q->whereNull('mandor_id')
                       ->orWhere('expense_type', OpsExpenseType::MANDOR);
-                })
-                ->whereDate('date', '<', $startDate)->sum('amount');
+                });
 
-            $internalSaldoAkhirIncome  = OpsIncome::whereNull('mandor_id')->whereDate('date', '<=', $endDate)->sum('amount');
-            $internalSaldoAkhirExpense = OpsExpense::where(function ($q) {
-                    $q->whereNull('mandor_id')
-                      ->orWhere('expense_type', OpsExpenseType::MANDOR);
-                })
-                ->whereDate('date', '<=', $endDate)->sum('amount');
+            $internalSaldoAwalIncome  = (clone $internalIncomeBase)->whereDate('date', '<', $startDate)->sum('amount');
+            $internalSaldoAwalExpense = (clone $internalExpenseBase)->whereDate('date', '<', $startDate)->sum('amount');
+
+            $internalSaldoAkhirIncome  = (clone $internalIncomeBase)->whereDate('date', '<=', $endDate)->sum('amount');
+            $internalSaldoAkhirExpense = (clone $internalExpenseBase)->whereDate('date', '<=', $endDate)->sum('amount');
+
+            $internalSaldoAwalMethods  = $this->paymentMethodSaldo($internalIncomeBase, $internalExpenseBase, '<', $startDate);
+            $internalSaldoAkhirMethods = $this->paymentMethodSaldo($internalIncomeBase, $internalExpenseBase, '<=', $endDate);
 
             $hasInternalData = $internalIncomes->isNotEmpty()
                 || $internalExpenses->isNotEmpty()
@@ -134,6 +139,12 @@ class OpsReportController extends Controller
                     'sub_companies' => collect(),
                     'saldo_awal'    => (float) $internalSaldoAwalIncome - (float) $internalSaldoAwalExpense,
                     'saldo_akhir'   => (float) $internalSaldoAkhirIncome - (float) $internalSaldoAkhirExpense,
+                    'saldo_awal_qris'       => $internalSaldoAwalMethods['qris'],
+                    'saldo_awal_tunai'      => $internalSaldoAwalMethods['tunai'],
+                    'saldo_awal_split_bill' => $internalSaldoAwalMethods['split_bill'],
+                    'saldo_akhir_qris'      => $internalSaldoAkhirMethods['qris'],
+                    'saldo_akhir_tunai'     => $internalSaldoAkhirMethods['tunai'],
+                    'saldo_akhir_split_bill'=> $internalSaldoAkhirMethods['split_bill'],
                     'total_income'  => $totalInternalIncome,
                     'total_expense' => $totalInternalExpense,
                     'remaining'     => $totalInternalIncome - $totalInternalExpense,
@@ -147,15 +158,18 @@ class OpsReportController extends Controller
             $incomes = $this->mandorIncomes($mandor->id, $startDate, $endDate);
             $expenses = $this->mandorExpenses($mandor->id, $startDate, $endDate);
 
-            $mandorSaldoAwalIncome  = OpsIncome::where('mandor_id', $mandor->id)->whereDate('date', '<', $startDate)->sum('amount');
-            $mandorSaldoAwalExpense = OpsExpense::where('mandor_id', $mandor->id)
-                ->where('expense_type', '!=', OpsExpenseType::MANDOR)
-                ->whereDate('date', '<', $startDate)->sum('amount');
+            $mandorIncomeBase  = OpsIncome::where('mandor_id', $mandor->id);
+            $mandorExpenseBase = OpsExpense::where('mandor_id', $mandor->id)
+                ->where('expense_type', '!=', OpsExpenseType::MANDOR);
 
-            $mandorSaldoAkhirIncome  = OpsIncome::where('mandor_id', $mandor->id)->whereDate('date', '<=', $endDate)->sum('amount');
-            $mandorSaldoAkhirExpense = OpsExpense::where('mandor_id', $mandor->id)
-                ->where('expense_type', '!=', OpsExpenseType::MANDOR)
-                ->whereDate('date', '<=', $endDate)->sum('amount');
+            $mandorSaldoAwalIncome  = (clone $mandorIncomeBase)->whereDate('date', '<', $startDate)->sum('amount');
+            $mandorSaldoAwalExpense = (clone $mandorExpenseBase)->whereDate('date', '<', $startDate)->sum('amount');
+
+            $mandorSaldoAkhirIncome  = (clone $mandorIncomeBase)->whereDate('date', '<=', $endDate)->sum('amount');
+            $mandorSaldoAkhirExpense = (clone $mandorExpenseBase)->whereDate('date', '<=', $endDate)->sum('amount');
+
+            $mandorSaldoAwalMethods  = $this->paymentMethodSaldo($mandorIncomeBase, $mandorExpenseBase, '<', $startDate);
+            $mandorSaldoAkhirMethods = $this->paymentMethodSaldo($mandorIncomeBase, $mandorExpenseBase, '<=', $endDate);
 
             $mandorSubCompanies = $mandor->subCompanies()
                 ->get(['uuid', 'name', 'code'])
@@ -182,6 +196,12 @@ class OpsReportController extends Controller
                     'sub_companies' => $mandorSubCompanies,
                     'saldo_awal'    => (float) $mandorSaldoAwalIncome - (float) $mandorSaldoAwalExpense,
                     'saldo_akhir'   => (float) $mandorSaldoAkhirIncome - (float) $mandorSaldoAkhirExpense,
+                    'saldo_awal_qris'       => $mandorSaldoAwalMethods['qris'],
+                    'saldo_awal_tunai'      => $mandorSaldoAwalMethods['tunai'],
+                    'saldo_awal_split_bill' => $mandorSaldoAwalMethods['split_bill'],
+                    'saldo_akhir_qris'      => $mandorSaldoAkhirMethods['qris'],
+                    'saldo_akhir_tunai'     => $mandorSaldoAkhirMethods['tunai'],
+                    'saldo_akhir_split_bill'=> $mandorSaldoAkhirMethods['split_bill'],
                     'total_income'  => $totalIncome,
                     'total_expense' => $totalExpense,
                     'remaining'     => $totalIncome - $totalExpense,
@@ -199,8 +219,14 @@ class OpsReportController extends Controller
                 'start_date' => $startDate->format('Y-m-d'),
                 'end_date'   => $endDate->format('Y-m-d'),
             ],
-            'saldo_awal'      => $saldoAwal,
-            'saldo_akhir'     => $saldoAkhir,
+            'saldo_awal'            => $saldoAwal,
+            'saldo_akhir'           => $saldoAkhir,
+            'saldo_awal_qris'       => $saldoAwalMethods['qris'],
+            'saldo_awal_tunai'      => $saldoAwalMethods['tunai'],
+            'saldo_awal_split_bill' => $saldoAwalMethods['split_bill'],
+            'saldo_akhir_qris'      => $saldoAkhirMethods['qris'],
+            'saldo_akhir_tunai'     => $saldoAkhirMethods['tunai'],
+            'saldo_akhir_split_bill'=> $saldoAkhirMethods['split_bill'],
             'total_income'    => $totalPeriodIncome,
             'total_expense'   => $totalPeriodExpense,
             'total_remaining' => $totalPeriodIncome - $totalPeriodExpense,
@@ -264,6 +290,24 @@ class OpsReportController extends Controller
                 'source_type'    => $income->source_type->value,
                 'note'           => $income->note,
             ]);
+    }
+
+    protected function paymentMethodSaldo(mixed $incomeQuery, mixed $expenseQuery, string $dateOp, Carbon $dateValue): array
+    {
+        $methods = [
+            'qris'       => OpsPaymentMethod::TRANSFER,
+            'tunai'      => OpsPaymentMethod::CASH,
+            'split_bill' => OpsPaymentMethod::SPLIT_BILL,
+        ];
+
+        $result = [];
+        foreach ($methods as $key => $enum) {
+            $inc = (clone $incomeQuery)->where('payment_method', $enum)->whereDate('date', $dateOp, $dateValue)->sum('amount');
+            $exp = (clone $expenseQuery)->where('payment_method', $enum)->whereDate('date', $dateOp, $dateValue)->sum('amount');
+            $result[$key] = (float) $inc - (float) $exp;
+        }
+
+        return $result;
     }
 
     protected function internalExpenses(Carbon $startDate, Carbon $endDate): Collection

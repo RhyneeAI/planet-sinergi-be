@@ -60,7 +60,6 @@ return [
         'payment_recorded'  => 'Pembayaran cicilan berhasil dicatat.',
         'completed'         => 'Cicilan telah lunas.',
         'already_completed' => 'Cicilan ini sudah lunas.',
-        'must_pay_full'     => 'Tenor sudah habis. Wajib melunasi sisa sebesar Rp :remaining.',
         'overpaid'          => 'Jumlah bayar melebihi sisa cicilan sebesar Rp :remaining.',
         'validation'        => [
             'paid_amount_required' => 'Jumlah bayar wajib diisi.',
@@ -266,6 +265,22 @@ return [
             'name_string'   => 'Nama satuan harus berupa teks.',
             'name_max'      => 'Nama satuan tidak boleh lebih dari 255 karakter.',
             'name_unique'   => 'Nama satuan sudah digunakan.',
+        ],
+    ],
+    'returns' => [
+        'list'   => 'Daftar retur berhasil diambil.',
+        'stored' => 'Retur berhasil dibuat. Stok telah disesuaikan.',
+        'validation' => [
+            'sales_transaction_required' => 'Transaksi penjualan wajib diisi.',
+            'sales_detail_required'      => 'Detail penjualan wajib diisi.',
+            'product_required'           => 'Produk wajib diisi.',
+            'qty_required'               => 'Jumlah wajib diisi.',
+            'qty_min'                    => 'Jumlah minimal 1.',
+            'reason_required'            => 'Alasan retur wajib diisi.',
+            'refund_amount_required'     => 'Jumlah pengembalian wajib diisi.',
+            'detail_not_in_transaction'  => 'Detail penjualan tidak sesuai dengan transaksi.',
+            'product_not_in_detail'      => 'Produk tidak sesuai dengan detail penjualan.',
+            'qty_exceeds_available'      => 'Tidak dapat retur lebih dari :available item untuk produk ini.',
         ],
     ],
     'stock_card' => [

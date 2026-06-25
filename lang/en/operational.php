@@ -103,6 +103,8 @@ return [
         'stored_with_credentials' => 'Operational branch and mandor created successfully. Mandor account — phone: :phone, password: :password.',
         'updated' => 'Operational branch and mandor updated successfully.',
         'deleted' => 'Operational branch deleted successfully.',
+        'restored' => 'Operational branch restored successfully.',
+        'not_found_or_not_deleted' => 'Branch not found or not deleted.',
         'has_pending_transfers' => 'This branch cannot be deleted while transfer confirmations are still pending.',
         'limit_reached' => 'Mandor has reached the maximum of :limit branches.',
     ],

@@ -470,4 +470,26 @@ class SubCompanyService
             }
         });
     }
+
+    public function restore(SubCompany $subCompany): void
+    {
+        DB::transaction(function () use ($subCompany) {
+            // Restore soft-deleted incomes & expenses
+            OpsIncome::withTrashed()
+                ->where('sub_company_id', $subCompany->id)
+                ->restore();
+            OpsExpense::withTrashed()
+                ->where('sub_company_id', $subCompany->id)
+                ->restore();
+
+            // Restore sub-company
+            $subCompany->restore();
+
+            // Restore mandor if they were soft-deleted
+            $mandor = User::withTrashed()->find($subCompany->mandor_id);
+            if ($mandor && $mandor->trashed()) {
+                $mandor->restore();
+            }
+        });
+    }
 }

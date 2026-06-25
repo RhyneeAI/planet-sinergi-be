@@ -156,6 +156,29 @@ class SubCompanyController extends Controller
         ]);
     }
 
+    public function restore(string $uuid)
+    {
+        $subCompany = SubCompany::onlyTrashed()->where('uuid', $uuid)->first();
+
+        if (!$subCompany) {
+            return response()->json([
+                'success' => false,
+                'message' => __('operational.sub_companies.not_found_or_not_deleted'),
+                'code' => 404,
+            ], 404);
+        }
+
+        $this->subCompanyService->restore($subCompany);
+
+        return response()->json([
+            'success' => true,
+            'message' => __('operational.sub_companies.restored'),
+            'data'    => new SubCompanyResource(
+                $subCompany->fresh()->load(['mandor', 'createdBy', 'wallet'])
+            ),
+        ]);
+    }
+
     protected function branchPayload(SubCompany $subCompany, User $mandor): array
     {
         $subCompany->loadMissing(['mandor', 'createdBy', 'wallet']);

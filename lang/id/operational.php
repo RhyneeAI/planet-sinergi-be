@@ -103,6 +103,8 @@ return [
         'stored_with_credentials' => 'Cabang operasional dan mandor berhasil dibuat. Akun mandor — telepon: :phone, kata sandi: :password.',
         'updated' => 'Cabang operasional dan mandor berhasil diperbarui.',
         'deleted' => 'Cabang operasional berhasil dihapus.',
+        'restored' => 'Cabang operasional berhasil dipulihkan.',
+        'not_found_or_not_deleted' => 'Cabang tidak ditemukan atau belum dihapus.',
         'has_pending_transfers' => 'Cabang tidak dapat dihapus karena masih ada transfer yang menunggu konfirmasi.',
         'limit_reached' => 'Mandor sudah mencapai batas maksimal :limit cabang.',
     ],

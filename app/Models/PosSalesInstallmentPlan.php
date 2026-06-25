@@ -21,17 +21,18 @@ class PosSalesInstallmentPlan extends Model
         'customer_id',
         'total_amount',
         'paid_amount',
-        'tenor',
+        'down_payment',
         'start_date',
         'status',
         'company_id',
     ];
 
     protected $casts = [
-        'status'     => PosInstallmentStatus::class,
-        'start_date' => 'date',
+        'status'       => PosInstallmentStatus::class,
+        'start_date'   => 'date',
         'total_amount' => 'float',
         'paid_amount'  => 'float',
+        'down_payment' => 'float',
     ];
 
     protected static function booted(): void
@@ -68,12 +69,5 @@ class PosSalesInstallmentPlan extends Model
     public function isLastPayment(float $amount): bool
     {
         return ($this->paid_amount + $amount) >= $this->total_amount;
-    }
-
-    public function isOverdue(): bool
-    {
-        if ($this->status === PosInstallmentStatus::COMPLETED) return false;
-        $monthsPassed = $this->start_date->diffInMonths(now());
-        return $monthsPassed >= $this->tenor && $this->remainingAmount() > 0;
     }
 }

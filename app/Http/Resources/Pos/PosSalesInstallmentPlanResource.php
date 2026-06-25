@@ -15,10 +15,9 @@ class PosSalesInstallmentPlanResource extends JsonResource
             'status_label'   => $this->status->label(),
             'total_amount'   => $this->total_amount,
             'paid_amount'    => $this->paid_amount,
+            'down_payment'   => $this->down_payment,
             'remaining'      => $this->remainingAmount(),
-            'tenor'          => $this->tenor,
             'start_date'     => $this->start_date?->toDateString(),
-            'is_overdue'     => $this->isOverdue(),
             'created_by'     => $this->whenLoaded('salesTransaction', fn() =>
                 $this->salesTransaction->relationLoaded('createdBy')
                     ? [
@@ -38,11 +37,10 @@ class PosSalesInstallmentPlanResource extends JsonResource
             ]),
             'payments'       => $this->whenLoaded('payments', fn() =>
                 $this->payments->map(fn($p) => [
-                    // 'ulid'               => (string) $p->ulid,
-                    'installment_number' => $p->installment_number,
-                    'paid_amount'        => $p->paid_amount,
-                    'paid_date'          => $p->paid_date?->toDateString(),
-                    'notes'              => $p->notes,
+                    'ulid'        => (string) $p->ulid,
+                    'paid_amount' => $p->paid_amount,
+                    'paid_date'   => $p->paid_date?->toDateString(),
+                    'notes'       => $p->notes,
                 ])
             ),
             'payments_count' => $this->whenLoaded('payments', fn() => $this->payments->count()),

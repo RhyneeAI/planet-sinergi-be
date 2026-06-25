@@ -60,7 +60,6 @@ return [
         'payment_recorded'  => 'Installment payment recorded successfully.',
         'completed'         => 'Installment fully paid.',
         'already_completed' => 'This installment has already been completed.',
-        'must_pay_full'     => 'Tenor has ended. Must pay the remaining balance of Rp :remaining.',
         'overpaid'          => 'Payment amount exceeds remaining balance of Rp :remaining.',
         'validation'        => [
             'paid_amount_required' => 'Payment amount is required.',
@@ -266,6 +265,22 @@ return [
             'name_string'   => 'The unit name must be a string.',
             'name_max'      => 'The unit name may not be greater than 255 characters.',
             'name_unique'   => 'The unit name has already been taken.',
+        ],
+    ],
+    'returns' => [
+        'list'   => 'Return list retrieved successfully.',
+        'stored' => 'Return created successfully. Stock has been adjusted.',
+        'validation' => [
+            'sales_transaction_required' => 'Sales transaction is required.',
+            'sales_detail_required'      => 'Sales detail is required.',
+            'product_required'           => 'Product is required.',
+            'qty_required'               => 'Quantity is required.',
+            'qty_min'                    => 'Quantity must be at least 1.',
+            'reason_required'            => 'Reason is required.',
+            'refund_amount_required'     => 'Refund amount is required.',
+            'detail_not_in_transaction'  => 'Sales detail does not belong to this transaction.',
+            'product_not_in_detail'      => 'Product does not match the sales detail.',
+            'qty_exceeds_available'      => 'Cannot return more than :available items for this product.',
         ],
     ],
     'stock_card' => [

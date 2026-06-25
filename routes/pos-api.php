@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Pos\PosMarketingProductController;
 use App\Http\Controllers\Api\Pos\PosProductController;
 use App\Http\Controllers\Api\Pos\PosPurchaseInstallmentController;
 use App\Http\Controllers\Api\Pos\PosPurchaseTransactionController;
+use App\Http\Controllers\Api\Pos\PosReturnController;
 use App\Http\Controllers\Api\Pos\PosSalesInstallmentController;
 use App\Http\Controllers\Api\Pos\PosSalesTransactionController;
 use App\Http\Controllers\Api\Pos\PosStockCardController;
@@ -107,9 +108,9 @@ Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
     });
 
     // =======================================================
-    // SALES TRANSACTIONS
+    // SALES TRANSACTIONS, INSTALLMENTS & RETURNS
     // =======================================================
-    Route::group(['middleware' => ['role:SUPERADMIN,KASIR,MARKETING_LEAD,MARKETING,MARKETING_TETAP']], function () {
+    Route::group(['middleware' => ['role:SUPERADMIN,OWNER,ADMIN,MANAGER_GUDANG,KASIR']], function () {
         Route::prefix('sales-transactions')->group(function () {
             Route::get('/', [PosSalesTransactionController::class, 'index']);
             Route::post('/', [PosSalesTransactionController::class, 'store']);
@@ -121,6 +122,11 @@ Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
             Route::get('/',                                 [PosSalesInstallmentController::class, 'index']);
             Route::get('/{salesInstallmentPlan:ulid}',      [PosSalesInstallmentController::class, 'show']);
             Route::post('/{salesInstallmentPlan:ulid}/pay', [PosSalesInstallmentController::class, 'pay']);
+        });
+
+        Route::prefix('returns')->group(function () {
+            Route::get('/',  [PosReturnController::class, 'index']);
+            Route::post('/', [PosReturnController::class, 'store']);
         });
     });
 

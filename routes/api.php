@@ -44,6 +44,8 @@ Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
             Route::apiResource('sub-companies', SubCompanyController::class)
                 ->parameters(['sub-companies' => 'uuid'])
                 ->only(['store', 'update', 'destroy']);
+
+            Route::post('sub-companies/{uuid}/restore', [SubCompanyController::class, 'restore']);
         });
 
         Route::get('/exports/{token}', [ExportController::class, 'status'])->name('exports.status');

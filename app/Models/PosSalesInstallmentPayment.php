@@ -17,7 +17,6 @@ class PosSalesInstallmentPayment extends Model
     protected $fillable = [
         'ulid',
         'sales_installment_plan_id',
-        'installment_number',
         'paid_amount',
         'paid_date',
         'notes',

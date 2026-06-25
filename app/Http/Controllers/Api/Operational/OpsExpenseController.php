@@ -483,10 +483,10 @@ class OpsExpenseController extends Controller
 
                 if ($income) {
                     $income->transferConfirmation?->delete();
-                    $income->delete();
+                    $income->forceDelete();
                 }
 
-                $opsExpense->delete();
+                $opsExpense->forceDelete();
 
                 DB::commit();
 
@@ -502,7 +502,7 @@ class OpsExpenseController extends Controller
 
         $this->deleteRecordProofs($opsExpense);
 
-        $opsExpense->delete();
+        $opsExpense->forceDelete();
 
         return response()->json([
             'success' => true,
@@ -548,7 +548,7 @@ class OpsExpenseController extends Controller
                 $opsExpense->name
             );
 
-            $opsExpense->delete();
+            $opsExpense->forceDelete();
 
             DB::commit();
 

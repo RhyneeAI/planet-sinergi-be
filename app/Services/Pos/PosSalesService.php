@@ -64,7 +64,7 @@ class PosSalesService
             }
 
             if ($paymentType === PosPaymentType::CICIL) {
-                $this->createInstallmentPlan($transaction, $customerId, $data['total'], $data['tenor'], $user);
+                $this->createInstallmentPlan($transaction, $customerId, $data['total'], $data['down_payment'] ?? 0, $user);
             }
 
             return $transaction->fresh()->load(['customer', 'createdBy', 'details', 'details.product']);
@@ -232,7 +232,7 @@ class PosSalesService
         PosSalesTransaction $transaction,
         int $customerId,
         float $total,
-        ?int $tenor,
+        float $downPayment,
         User $user,
     ): void {
         PosSalesInstallmentPlan::create([
@@ -241,7 +241,7 @@ class PosSalesService
             'customer_id'          => $customerId,
             'total_amount'         => $total,
             'paid_amount'          => 0,
-            'tenor'                => $tenor,
+            'down_payment'         => $downPayment,
             'start_date'           => now()->toDateString(),
             'status'               => PosInstallmentStatus::ACTIVE,
             'company_id'           => $user->company_id,
