@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1/operational')->middleware(['auth:sanctum'])->group(function () {
 
-    Route::middleware(['role:SUPERADMIN,OWNER,ADMIN,MANDOR'])->group(function () {
+    Route::middleware(['role:SUPERADMIN,OWNER,ADMIN,MANDOR,KEPALA_MANDOR'])->group(function () {
 
         Route::get('dashboard/admin', [OpsDashboardController::class, 'adminDashboard']);
         Route::get('dashboard/mandor', [OpsDashboardController::class, 'mandorDashboard']);
@@ -49,9 +49,13 @@ Route::prefix('v1/operational')->middleware(['auth:sanctum'])->group(function ()
             ->only(['index', 'show']);
 
         Route::get('edit-logs', [OpsEditLogController::class, 'index']);
+    });
+
+    Route::middleware(['role:SUPERADMIN,OWNER,ADMIN,KEPALA_MANDOR'])->group(function () {
 
         Route::get('reports/income-expense', [OpsReportController::class, 'incomeExpenseReport']);
         Route::get('reports/income-expense/download', [OpsReportController::class, 'downloadIncomeExpenseReport']);
+        Route::get('reports/income-expense/detail', [OpsReportController::class, 'incomeExpenseDetail']);
     });
 
     Route::middleware(['role:SUPERADMIN,ADMIN'])->group(function () {
@@ -66,7 +70,7 @@ Route::prefix('v1/operational')->middleware(['auth:sanctum'])->group(function ()
             ->only(['store', 'update', 'destroy']);
     });
 
-    Route::middleware(['role:MANDOR'])->group(function () {
+    Route::middleware(['role:MANDOR,KEPALA_MANDOR'])->group(function () {
 
         Route::get('wallet', [OpsWalletController::class, 'show']);
         Route::get('wallet/transactions', [OpsWalletController::class, 'transactions']);

@@ -13,6 +13,7 @@ enum Role: string
     case MARKETING = 'MARKETING';
     case MARKETING_TETAP = 'MARKETING_TETAP';
     case KASIR = 'KASIR';
+    case KEPALA_MANDOR = 'KEPALA_MANDOR';
     case MANDOR = 'MANDOR';
     case KARYAWAN = 'KARYAWAN';
 
@@ -33,6 +34,7 @@ enum Role: string
             self::MARKETING => 'MARKETING',
             self::MARKETING_TETAP => 'MARKETING_TETAP',
             self::KASIR => 'KASIR',
+            self::KEPALA_MANDOR => 'KEPALA_MANDOR',
             self::MANDOR => 'MANDOR',
             self::KARYAWAN => 'KARYAWAN',
         };

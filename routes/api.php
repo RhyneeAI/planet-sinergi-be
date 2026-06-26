@@ -34,7 +34,7 @@ Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
         Route::get('/profile',         [ProfileController::class, 'show']);
         Route::patch('/profile',       [ProfileController::class, 'update']);
 
-        Route::middleware(['role:SUPERADMIN,OWNER,ADMIN,MANDOR'])->group(function () {
+        Route::middleware(['role:SUPERADMIN,OWNER,ADMIN,MANDOR,KEPALA_MANDOR'])->group(function () {
             Route::apiResource('sub-companies', SubCompanyController::class)
                 ->parameters(['sub-companies' => 'uuid'])
                 ->only(['index', 'show']);
