@@ -34,7 +34,7 @@ class OpsTransferConfirmationController extends Controller
 
         $confirmations = OpsTransferConfirmation::with(['confirmable.subCompany', 'confirmable.mandor', 'confirmedBy'])
             ->when(
-                $user->role === Role::MANDOR,
+                in_array($user->role, [Role::MANDOR, Role::KEPALA_MANDOR]),
                 fn (Builder $query) => $this->transferAccess->scopeForMandor($query, $user)
             )
             ->when($request->status, fn($q, $status) => $q->where('status', $status))
@@ -79,7 +79,7 @@ class OpsTransferConfirmationController extends Controller
         OpsTransferConfirmation $opsTransferConfirmation
     ) {
         $user = $request->user();
-        $this->authorizeConfirmationAccess($opsTransferConfirmation, Role::MANDOR);
+        $this->authorizeConfirmationAccess($opsTransferConfirmation, $user->role);
 
         if ($opsTransferConfirmation->status !== OpsTransferConfirmationStatus::PENDING) {
             return response()->json([
@@ -154,7 +154,7 @@ class OpsTransferConfirmationController extends Controller
     public function reject(Request $request, OpsTransferConfirmation $opsTransferConfirmation)
     {
         $user = $request->user();
-        $this->authorizeConfirmationAccess($opsTransferConfirmation, Role::MANDOR);
+        $this->authorizeConfirmationAccess($opsTransferConfirmation, $user->role);
 
         if ($opsTransferConfirmation->status !== OpsTransferConfirmationStatus::PENDING) {
             return response()->json([
@@ -192,8 +192,9 @@ class OpsTransferConfirmationController extends Controller
         ?Role $mandorOnly = null
     ): void {
         $user = request()->user();
+        $isMandorOrKepala = in_array($user->role, [Role::MANDOR, Role::KEPALA_MANDOR]);
 
-        if ($mandorOnly === Role::MANDOR && $user->role !== Role::MANDOR) {
+        if ($mandorOnly !== null && !$isMandorOrKepala) {
             abort(response()->json([
                 'success' => false,
                 'message' => __('operational.confirmations.not_accessible'),
@@ -201,7 +202,7 @@ class OpsTransferConfirmationController extends Controller
             ], 403));
         }
 
-        if ($user->role !== Role::MANDOR) {
+        if (!$isMandorOrKepala) {
             return;
         }
 

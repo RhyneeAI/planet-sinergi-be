@@ -51,7 +51,7 @@ class OpsExpenseController extends Controller
             return $response;
         }
 
-        if ($request->user()->role === Role::MANDOR) {
+        if (in_array($request->user()->role, [Role::MANDOR, Role::KEPALA_MANDOR])) {
             return $this->storeAsMandor($request);
         }
 
@@ -66,7 +66,7 @@ class OpsExpenseController extends Controller
             return $this->emptyShowResponse(__('operational.expenses.detail'));
         }
 
-        if ($request->user()->role === Role::MANDOR) {
+        if (in_array($request->user()->role, [Role::MANDOR, Role::KEPALA_MANDOR])) {
             $this->authorizeExpenseAccess($opsExpense);
         }
 
@@ -93,7 +93,7 @@ class OpsExpenseController extends Controller
             return $response;
         }
 
-        if ($request->user()->role === Role::MANDOR) {
+        if (in_array($request->user()->role, [Role::MANDOR, Role::KEPALA_MANDOR])) {
             return $this->updateAsMandor($request, $opsExpense);
         }
 
@@ -112,7 +112,7 @@ class OpsExpenseController extends Controller
             ], 404);
         }
 
-        if ($request->user()->role === Role::MANDOR) {
+        if (in_array($request->user()->role, [Role::MANDOR, Role::KEPALA_MANDOR])) {
             return $this->destroyAsMandor($opsExpense);
         }
 
@@ -391,7 +391,7 @@ class OpsExpenseController extends Controller
     protected function updateAsMandor(OpsExpenseRequest $request, OpsExpense $opsExpense)
     {
         $user = $request->user();
-        $this->authorizeExpenseAccess($opsExpense, Role::MANDOR);
+        $this->authorizeExpenseAccess($opsExpense, $user->role);
 
         if ($opsExpense->expense_type !== OpsExpenseType::INTERNAL) {
             abort(response()->json([
@@ -515,7 +515,7 @@ class OpsExpenseController extends Controller
     {
         DB::beginTransaction();
         try {
-            $this->authorizeExpenseAccess($opsExpense, Role::MANDOR);
+            $this->authorizeExpenseAccess($opsExpense, request()->user()->role);
 
             if ($opsExpense->expense_type !== OpsExpenseType::INTERNAL) {
                 abort(response()->json([
@@ -625,8 +625,9 @@ class OpsExpenseController extends Controller
     protected function authorizeExpenseAccess(OpsExpense $expense, ?Role $mandorOnly = null): void
     {
         $user = request()->user();
+        $isMandorOrKepala = in_array($user->role, [Role::MANDOR, Role::KEPALA_MANDOR]);
 
-        if ($mandorOnly === Role::MANDOR && $user->role !== Role::MANDOR) {
+        if ($mandorOnly !== null && !$isMandorOrKepala) {
             abort(response()->json([
                 'success' => false,
                 'message' => __('operational.expenses.not_accessible'),
@@ -634,7 +635,7 @@ class OpsExpenseController extends Controller
             ], 403));
         }
 
-        if ($user->role !== Role::MANDOR) {
+        if (!$isMandorOrKepala) {
             return;
         }
 

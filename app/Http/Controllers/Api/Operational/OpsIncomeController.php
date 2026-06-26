@@ -45,7 +45,7 @@ class OpsIncomeController extends Controller
             return $response;
         }
 
-        if ($request->user()->role === Role::MANDOR) {
+        if (in_array($request->user()->role, [Role::MANDOR, Role::KEPALA_MANDOR])) {
             return $this->storeAsMandor($request);
         }
 
@@ -60,7 +60,7 @@ class OpsIncomeController extends Controller
             return $this->emptyShowResponse(__('operational.incomes.detail'));
         }
 
-        if ($request->user()->role === Role::MANDOR) {
+        if (in_array($request->user()->role, [Role::MANDOR, Role::KEPALA_MANDOR])) {
             $this->authorizeMandorIncomeAccess($opsIncome);
         }
 
@@ -87,7 +87,7 @@ class OpsIncomeController extends Controller
             return $response;
         }
 
-        if ($request->user()->role === Role::MANDOR) {
+        if (in_array($request->user()->role, [Role::MANDOR, Role::KEPALA_MANDOR])) {
             return $this->updateAsMandor($request, $opsIncome);
         }
 
@@ -106,7 +106,7 @@ class OpsIncomeController extends Controller
             ], 404);
         }
 
-        if ($request->user()->role === Role::MANDOR) {
+        if (in_array($request->user()->role, [Role::MANDOR, Role::KEPALA_MANDOR])) {
             return $this->destroyAsMandor($opsIncome);
         }
 
