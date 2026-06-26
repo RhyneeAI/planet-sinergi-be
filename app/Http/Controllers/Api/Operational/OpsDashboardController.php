@@ -53,7 +53,7 @@ class OpsDashboardController extends Controller
             ->tap($applySubCompanyScope)
             ->sum('amount');
 
-        $totalActiveMandor = User::where('role', Role::MANDOR)
+        $totalActiveMandor = User::whereIn('role', [Role::MANDOR, Role::KEPALA_MANDOR])
             ->where('is_active', true)
             ->count();
 

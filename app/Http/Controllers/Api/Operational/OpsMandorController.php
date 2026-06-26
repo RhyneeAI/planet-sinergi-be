@@ -24,9 +24,9 @@ class OpsMandorController extends Controller
             ? Carbon::parse($request->date_to)->endOfDay()
             : today()->endOfDay();
 
-        $mandors = User::where('role', Role::MANDOR)
+        $mandors = User::whereIn('role', [Role::MANDOR, Role::KEPALA_MANDOR])
             ->where('is_active', true)
-            ->when($user->role === Role::MANDOR, fn (Builder $query) => $query->where('id', $user->id))
+            ->when(in_array($user->role, [Role::MANDOR, Role::KEPALA_MANDOR]), fn (Builder $query) => $query->where('id', $user->id))
             ->when($request->boolean('is_dashboard_data'), function ($query) use ($dateFrom, $dateTo) {
                 $query
                     ->withSum([
