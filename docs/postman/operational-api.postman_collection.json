@@ -141,7 +141,7 @@
                 { "key": "date_to", "value": "", "disabled": true }
               ]
             },
-            "description": "Ringkasan dashboard mandor. Role: MANDOR."
+            "description": "Ringkasan dashboard mandor. Role: MANDOR, KEPALA_MANDOR."
           }
         }
       ]
@@ -165,7 +165,7 @@
                 { "key": "per_page", "value": "15", "disabled": true }
               ]
             },
-            "description": "List cabang operasional. Mandor hanya melihat cabang sendiri."
+            "description": "List cabang operasional. Mandor/KEPALA_MANDOR hanya melihat cabang sendiri (KEPALA_MANDOR melihat semua cabang via unscoped query)."
           }
         },
         {
@@ -191,14 +191,14 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"mandor\": {\n    \"name\": \"Mandor Baru\",\n    \"phone\": \"081234567890\",\n    \"email\": \"mandor@test.com\",\n    \"address\": \"Jl. Mandor No. 1\"\n  },\n  \"sub_company\": {\n    \"name\": \"Cabang Jakarta\",\n    \"address\": \"Jl. Cabang Jakarta No. 2\"\n  }\n}"
+              "raw": "{\n  \"mandor\": {\n    \"name\": \"Mandor Baru\",\n    \"phone\": \"081234567890\",\n    \"email\": \"mandor@test.com\",\n    \"address\": \"Jl. Mandor No. 1\",\n    \"role\": \"MANDOR\"\n  },\n  \"sub_company\": {\n    \"name\": \"Cabang Jakarta\",\n    \"address\": \"Jl. Cabang Jakarta No. 2\"\n  }\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/sub-companies",
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "operational", "sub-companies"]
             },
-            "description": "Buat cabang operasional sekaligus mandor baru. Kode cabang auto-generate. Return credentials mandor.\n\nRole: SUPERADMIN, OWNER, ADMIN."
+            "description": "Buat cabang operasional sekaligus mandor baru. Kode cabang auto-generate. Return credentials mandor.\n\n`mandor.role` (opsional): `MANDOR` (default) atau `KEPALA_MANDOR`.\n\nRole: SUPERADMIN, OWNER, ADMIN."
           }
         }
       ]
@@ -227,7 +227,7 @@
                 { "key": "per_page", "value": "15", "disabled": true }
               ]
             },
-            "description": "List pemasukan. Mandor otomatis di-scope ke cabang sendiri."
+            "description": "List pemasukan. Mandor/KEPALA_MANDOR otomatis di-scope ke cabang sendiri."
           }
         },
         {
@@ -303,7 +303,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "operational", "incomes"]
             },
-            "description": "Mandor catat pemasukan cabang sendiri. `INTERNAL` + langsung kredit wallet.\n\nRole: MANDOR."
+            "description": "Mandor catat pemasukan cabang sendiri. `INTERNAL` + langsung kredit wallet.\n\nRole: MANDOR, KEPALA_MANDOR."
           }
         },
         {
@@ -666,7 +666,7 @@
                 { "key": "sub_company_uuid", "value": "{{sub_company_uuid}}", "description": "Required" }
               ]
             },
-            "description": "Saldo virtual cabang. Role: MANDOR."
+            "description": "Saldo virtual cabang. Role: MANDOR, KEPALA_MANDOR."
           }
         },
         {
@@ -687,7 +687,7 @@
                 { "key": "per_page", "value": "15", "disabled": true }
               ]
             },
-            "description": "Riwayat mutasi wallet. Role: MANDOR."
+            "description": "Riwayat mutasi wallet. Role: MANDOR, KEPALA_MANDOR."
           }
         }
       ]
@@ -785,7 +785,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "operational", "transfer-confirmations", "{{uuid}}", "confirm"]
             },
-            "description": "Konfirmasi penerimaan dana. Kredit wallet. Role: MANDOR."
+            "description": "Konfirmasi penerimaan dana. Kredit wallet. Role: MANDOR, KEPALA_MANDOR."
           }
         },
         {
@@ -805,7 +805,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "operational", "transfer-confirmations", "{{uuid}}", "reject"]
             },
-            "description": "Tolak transfer. Role: MANDOR."
+            "description": "Tolak transfer. Role: MANDOR, KEPALA_MANDOR."
           }
         }
       ],
@@ -834,6 +834,68 @@
           }
         }
       ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "Income Expense Report",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/operational/reports/income-expense?start_date=&end_date=",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "operational", "reports", "income-expense"],
+              "query": [
+                { "key": "start_date", "value": "2026-06-01", "description": "Required, YYYY-MM-DD" },
+                { "key": "end_date", "value": "2026-06-26", "description": "Required, YYYY-MM-DD, >= start_date" },
+                { "key": "mandor_uuid", "value": "", "disabled": true, "description": "Filter per mandor" }
+              ]
+            },
+            "description": "Ringkasan income/expense (grouped per mandor). Role: SUPERADMIN, OWNER, ADMIN, KEPALA_MANDOR.\n\nKEPALA_MANDOR: melihat semua group mandor (group sendiri diurutkan pertama), data internal pusat tidak tampil."
+          }
+        },
+        {
+          "name": "Income Expense Detail",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/operational/reports/income-expense/detail?start_date=&end_date=",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "operational", "reports", "income-expense", "detail"],
+              "query": [
+                { "key": "start_date", "value": "2026-06-01", "description": "Required, YYYY-MM-DD" },
+                { "key": "end_date", "value": "2026-06-26", "description": "Required, YYYY-MM-DD, >= start_date" },
+                { "key": "mandor_uuid", "value": "", "disabled": true, "description": "Filter per mandor (kosong = data internal pusat)" },
+                { "key": "per_page", "value": "15", "disabled": true, "description": "Paginated, default 15" }
+              ]
+            },
+            "description": "Detail income/expense per item (paginated). Response includes `proof_files`. Role: SUPERADMIN, OWNER, ADMIN, KEPALA_MANDOR."
+          }
+        },
+        {
+          "name": "Download Income Expense Report",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/operational/reports/income-expense/download?start_date=&end_date=&download_type=EXCEL",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "operational", "reports", "income-expense", "download"],
+              "query": [
+                { "key": "start_date", "value": "2026-06-01", "description": "Required, YYYY-MM-DD" },
+                { "key": "end_date", "value": "2026-06-26", "description": "Required, YYYY-MM-DD, >= start_date" },
+                { "key": "mandor_uuid", "value": "", "disabled": true, "description": "Filter per mandor" },
+                { "key": "download_type", "value": "EXCEL", "description": "EXCEL | PDF" }
+              ]
+            },
+            "description": "Download laporan income/expense (EXCEL/PDF). Role: SUPERADMIN, OWNER, ADMIN, KEPALA_MANDOR."
+          }
+        }
+      ],
+      "description": "Laporan income/expense — ringkasan per mandor, detail per item, dan download.\n\nKEPALA_MANDOR mendapat akses setara ADMIN untuk laporan (kecuali data internal pusat)."
     }
   ]
 }
