@@ -1,0 +1,58 @@
+lemburan diinput per group tanggal, alasan lembur, dalam satu form dari jamber ke jamber
+kasbon 
+karyawan -> hrd->a ersa
+hrd bisa liat list karyawan riwayat kasbon
+lemburan salary bisa diedit dan tetap untuk setiap jabatan per jamnya
+harga modal kantor
+harga leader marketing
+team marketing
+harga konsumen
+marketing tetap anggap karyawan = harga kantor langsung ke konsumen
+marketing tetap
+marketing leader
+marketing team
+mandor pusat untuk input data pos
+mandor pusat bisa barang datang nambah stok
+buat akun kasir lebih dari satu untuk pengganti
+
+
+Absensi (Penyesuaian + Fitur baru)
+- Menambah role baru HRD ("admin" dari aplikasi Absensi)
+- Fitur pengajuan lemburan (input batch karyawannya), inputan berupa : Tanggal lembur, Alasan Lembur, Dari jam berapa hingga jam berapa. Untuk alurnya secara singkat, setiap karyawan harus mengajukan lembur ke HRD (dibalik layar) kemudian HRD yang menginputkan dan ACC
+- Fitur pengajuan kasbon, Alurnya sendiri : Karyawan mengajukan kasbon kepada HRD (dibalik layar), kemudian input tanggal, kebutuhan/alasan kasbon, tenor tiap bulan (1 - 4 bulan max), nanti otomatis menjadi potongan terhadap gaji 
+- Pada akses HRD dapat melihat list semua karyawan (termasuk owner dan superadmin), dan untuk selain owner ada aksi untuk melihat "Detail" yang berisi informasi karyawan (read-only) dan informasi atau histori kasbonnya
+- Tambahkan config setting (buat table baru misal custom_configuration dengan pasangan id-key-value), digunakan saat ini untuk mengatur salary lembur (global) nanti di kalkulasi lagi ke penggajian dari lemburan yang di ACC
+- Role MARKETING_LEADER dan MARKETING tidak perlu absensi & penggajian (karena itu bukan karyawan tetap)
+
+Ops (Pengembangan)
+- Ada menu list karyawan, disamakan dengan tampilkan pada Absensi (detail & kasbon) beserta bisa mengaktif dan denonaktifkan
+- Ada menu list lemburan
+- Ada menu list pengajuan kasbon yang telah di input HRD
+- Ada menu untuk CRUD jabatan (endpoint ada di prefix api Absensi), jika ada pengeditan pada salary harus ada log edit oleh siapa nya (baik admin ataupun HRD)
+- Endpoint baru untuk "Management karyawan", input karyawan dengan berbagai role selain Superadmin & Owner
+
+POS (Penyesuaian + Fitur baru)
+- Penambahan role baru MANDOR_PUSAT ("admin" dari aplikasi POS)
+- MANDOR_PUSAT berperan untuk manajemen data (produk, kategori, satuan, dll), dan mutasi stok serta melihat pelaporan
+- KASIR berperan untuk melakukan transaksi, piutang dan retur
+- Hilangkan akses MARKETING pada aplikasi POS
+- Menghapus module CUSTOMER (Nonaktifkan saja fiturnya)
+- Menghapus module PURCHASE_TRANSACTION (nonaktifkan saja fiturnya)
+- Menghapus module PURCHASE_INSTALLMENT (nonaktifkan saja fiturnya)
+- Pada module Product, terdapat 3 harga tetap dan 1 harga berubah. Yang 3 itu adalah base_price, marketing_leader_price, marketing_price dan yang 1 terakhir sell_price, dengan penjelasan sebagai berikut : base_price adalah harga modal perusahaan, marketing_leader_price adalah harga jual perusahaan kepada konsumen, marketing_price adalah harga jual untuk ke marketing bawahannya, dan sell_price adalah harga jual akhir
+    - Kejelasan keuntungan di setiap "price", Company mengambil keuntungan dari selisih base_price dengan marketing_leader_price (Role terlibat : MARKETING_LEADER, MARKETING_TETAP), kemudian Marketing Leader mengambil keuntungan dari selisih marketing_leader_price dan marketing_price, dan terakhir Marketing Lepas mengambil keuntungan dari marketing_price dan sell_price
+    - Kejelasan pembagian keuntungan ketika produk terjual, Misal jika base_price: 20k, marketing_leader_price: 25k, marketing_price: 26k, dan sell_price 30k. Jika yang menjual adalah MARKETING maka dia mendapatkan keuntungan 4k, MARKETING_LEADER mendapatkan keuntungan 1k, dan Company mendapatkan keuntungan 4k
+- Pada module Transaksi Penjualan
+    - Tidak ada pilih customer, hanya ada pilih Marketing (LEADER_MARKETING, MARKETING_TETAP dan MARKETING), untuk kalkulasi keuntungan nantinya
+    - Untuk custom sell_price (dari FE) dan discount, beserta biaya opsional masih ada
+    - Piutang tidak ada lagi sistem tenor, hanya ada DP diawal dan pada list piutangnya harus langsung "PELUNASAN", dan tidak menerima piutang installment seperti sebelumnya (buat api v2 saja)
+- New module Retur Penjualan, seperti pada umumnya, jika sudah melakukan transaksi kemudian ada konsumen ingin melakukan retur maka harus ada begitu saja
+- Laporan marketing disesuaikan untuk LEADER_MARKETING dan MARKETING saja (MARKETING_TETAP tidak)
+- Laporan Penjualan disesuaikan juga terhadap transaksi penjualan 
+- New module Laporan mutasi stok (per-produk ada kartu-stok saja)
+
+
+PENYESUAIAN KRUSIAL
+- Role MARKETING_LEADER -> LEAD_MARKETING
+- Role MARKETING -> MARKETING
+- New Role MARKETING_TETAP

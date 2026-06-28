@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Operational\OpsExpenseController;
 use App\Http\Controllers\Api\Operational\OpsIncomeController;
 use App\Http\Controllers\Api\Operational\OpsJabatanController;
 use App\Http\Controllers\Api\Operational\OpsMandorController;
+use App\Http\Controllers\Api\Operational\OpsMarketingController;
 use App\Http\Controllers\Api\Operational\OpsNotificationController;
 use App\Http\Controllers\Api\Operational\OpsReportController;
 use App\Http\Controllers\Api\Operational\OpsTransferConfirmationController;
@@ -67,6 +68,20 @@ Route::prefix('v1/operational')->middleware(['auth:sanctum'])->group(function ()
 
         Route::apiResource('jabatans', OpsJabatanController::class)
             ->parameters(['jabatans' => 'absJabatan:uuid'])
+            ->only(['store', 'update', 'destroy']);
+    });
+
+    Route::middleware(['role:SUPERADMIN,OWNER,ADMIN,KEPALA_GUDANG,KEPALA_MANDOR,GUDANG'])->group(function () {
+
+        Route::apiResource('marketings', OpsMarketingController::class)
+            ->parameters(['marketings' => 'marketing:uuid'])
+            ->only(['index', 'show']);
+    });
+
+    Route::middleware(['role:SUPERADMIN,ADMIN,KEPALA_GUDANG,KEPALA_MANDOR'])->group(function () {
+
+        Route::apiResource('marketings', OpsMarketingController::class)
+            ->parameters(['marketings' => 'marketing:uuid'])
             ->only(['store', 'update', 'destroy']);
     });
 

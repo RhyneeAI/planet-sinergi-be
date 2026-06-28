@@ -22,12 +22,12 @@ Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
 
     // Generate-code harus sebelum apiResource agar tidak tertelan route {product}
     Route::get('products/generate-code', [PosProductController::class, 'generateCode'])
-        ->middleware('role:SUPERADMIN,ADMIN,MANAGER_GUDANG');
+        ->middleware('role:SUPERADMIN,ADMIN,GUDANG,KEPALA_GUDANG,KEPALA_MANDOR');
 
     // =======================================================
     // MASTER DATA — READ (index & show)
     // =======================================================
-    Route::group(['middleware' => ['role:SUPERADMIN,OWNER,ADMIN,MANAGER_GUDANG']], function () {
+    Route::group(['middleware' => ['role:SUPERADMIN,OWNER,ADMIN,KEPALA_GUDANG,KEPALA_MANDOR,GUDANG']], function () {
         Route::apiResource('categories', PosCategoryController::class)->parameters([
             'categories' => 'category:uuid',
         ])->only(['index', 'show']);
@@ -64,9 +64,9 @@ Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
     });
 
     // =======================================================
-    // MASTER DATA — WRITE (store, update, destroy)
+    // MASTER DATA — WRITE: Stok & Produk (GUDANG + roles di atasnya)
     // =======================================================
-    Route::group(['middleware' => ['role:SUPERADMIN,ADMIN,MANAGER_GUDANG']], function () {
+    Route::group(['middleware' => ['role:SUPERADMIN,ADMIN,KEPALA_GUDANG,KEPALA_MANDOR,GUDANG']], function () {
         Route::apiResource('categories', PosCategoryController::class)->parameters([
             'categories' => 'category:uuid',
         ])->except(['index', 'show']);
@@ -79,6 +79,18 @@ Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
             'products' => 'product:uuid',
         ])->except(['index', 'show']);
 
+        // Stock Mutations
+        Route::prefix('stock-mutations')->group(function () {
+            Route::post('/', [PosStockMutationController::class, 'store']);
+            Route::get('/products', [PosStockMutationController::class, 'index']);
+            Route::get('/products/{product:uuid}', [PosStockMutationController::class, 'show']);
+        });
+    });
+
+    // =======================================================
+    // MASTER DATA — WRITE: Non-stok (khusus KEPALA_GUDANG ke atas)
+    // =======================================================
+    Route::group(['middleware' => ['role:SUPERADMIN,ADMIN,KEPALA_GUDANG,KEPALA_MANDOR']], function () {
         Route::apiResource('suppliers', PosSupplierController::class)->parameters([
             'suppliers' => 'supplier:uuid',
         ])->except(['index', 'show']);
@@ -91,26 +103,15 @@ Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
             'customers' => 'customer:uuid',
         ])->except(['index', 'show']);
 
-        Route::apiResource('marketings', PosMarketingController::class)->parameters([
-            'marketings' => 'marketing:uuid',
-        ])->except(['index', 'show']);
-
         Route::apiResource('marketing-products', PosMarketingProductController::class)->parameters([
             'marketing-products' => 'marketingProduct:uuid',
         ])->except(['index', 'show']);
-
-        // Stock Mutations
-        Route::prefix('stock-mutations')->group(function () {
-            Route::post('/', [PosStockMutationController::class, 'store']);
-            Route::get('/products', [PosStockMutationController::class, 'index']);
-            Route::get('/products/{product:uuid}', [PosStockMutationController::class, 'show']);
-        });
     });
 
     // =======================================================
     // SALES TRANSACTIONS, INSTALLMENTS & RETURNS
     // =======================================================
-    Route::group(['middleware' => ['role:SUPERADMIN,OWNER,ADMIN,MANAGER_GUDANG,KASIR']], function () {
+    Route::group(['middleware' => ['role:SUPERADMIN,OWNER,ADMIN,KEPALA_GUDANG,KEPALA_MANDOR,KASIR']], function () {
         Route::prefix('sales-transactions')->group(function () {
             Route::get('/', [PosSalesTransactionController::class, 'index']);
             Route::post('/', [PosSalesTransactionController::class, 'store']);
@@ -133,7 +134,7 @@ Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
     // =======================================================
     // PURCHASE TRANSACTIONS & INSTALLMENTS (legacy, read-only)
     // =======================================================
-    Route::group(['middleware' => ['role:SUPERADMIN,ADMIN,MANAGER_GUDANG']], function () {
+    Route::group(['middleware' => ['role:SUPERADMIN,ADMIN,KEPALA_GUDANG,KEPALA_MANDOR']], function () {
         Route::prefix('purchase-transactions')->group(function () {
             Route::get('/', [PosPurchaseTransactionController::class, 'index']);
             Route::post('/', [PosPurchaseTransactionController::class, 'store']);
@@ -151,7 +152,7 @@ Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
     // =======================================================
     // REPORTS
     // =======================================================
-    Route::group(['middleware' => ['role:SUPERADMIN,OWNER,ADMIN,MANAGER_GUDANG,MARKETING_LEAD,MARKETING']], function () {
+    Route::group(['middleware' => ['role:SUPERADMIN,OWNER,ADMIN,GUDANG,KEPALA_GUDANG,KEPALA_MANDOR,MARKETING_LEAD,MARKETING']], function () {
         Route::prefix('reports')->group(function () {
             Route::get('/marketing-commission', [ReportController::class, 'marketingCommission']);
             Route::get('/sales-revenue',        [ReportController::class, 'salesRevenue']);
