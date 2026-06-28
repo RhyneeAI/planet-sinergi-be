@@ -23,7 +23,9 @@ return [
         'https://planetsinergi.com',
         'https://www.planetsinergi.com',
         'https://operational.planetsinergi.com',
+        'https://operational.planetsinergi.com',
         'https://staging.planetsinergi.com',
+        'https://operational-gp.vercel.app'
     ],
 
     'allowed_origins_patterns' => [],
