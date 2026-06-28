@@ -48,6 +48,13 @@ class UserSeeder extends Seeder
                 'password' => 'mandor_gp',
                 'role' => Role::MANDOR,
             ],
+            [
+                'name' => 'HRD GP',
+                'phone' => '081976567086',
+                'email' => 'hrd_gp@gp.com',
+                'password' => 'hrd_gp',
+                'role' => Role::HRD,
+            ],
         ];
 
         foreach ($users as $user) {

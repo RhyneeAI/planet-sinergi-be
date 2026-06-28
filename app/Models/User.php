@@ -129,6 +129,16 @@ class User extends Authenticatable
         return $this->hasMany(AbsPayrollPeriod::class);
     }
 
+    public function absOvertimes()
+    {
+        return $this->hasMany(AbsOvertime::class);
+    }
+
+    public function absLoans()
+    {
+        return $this->hasMany(AbsLoan::class);
+    }
+
     // Helper methods
     public function isSuperAdmin(): bool
     {
@@ -142,6 +152,6 @@ class User extends Authenticatable
 
     public function isMarketing(): bool
     {
-        return $this->role === Role::MARKETING;
+        return in_array($this->role, [Role::MARKETING, Role::MARKETING_TETAP], true);
     }
 }

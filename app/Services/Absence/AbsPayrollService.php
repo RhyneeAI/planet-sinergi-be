@@ -2,11 +2,14 @@
 
 namespace App\Services\Absence;
 
+use App\Enums\AbsLoanStatus;
 use App\Enums\AbsPayrollStatus;
+use App\Enums\Role;
 use App\Models\AbsAttendance;
 use App\Models\AbsBonus;
 use App\Models\AbsDeduction;
 use App\Models\AbsEmployeeProfile;
+use App\Models\AbsLoan;
 use App\Models\AbsPayrollPeriod;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -58,11 +61,17 @@ class AbsPayrollService
         $count = 0;
 
         foreach ($profiles as $profile) {
-            if (!$profile->user?->is_active || !$profile->jabatan) {
+            $user = $profile->user;
+
+            if (!$user?->is_active || !$profile->jabatan) {
                 continue;
             }
 
-            $this->getOrGenerateForUser($profile->user, $month, $year);
+            if (in_array($user->role->value, [Role::MARKETING->value, Role::MARKETING_TETAP->value])) {
+                continue;
+            }
+
+            $this->getOrGenerateForUser($user, $month, $year);
             $count++;
         }
 
@@ -197,17 +206,81 @@ class AbsPayrollService
             throw new \RuntimeException(__('absence.payroll.already_final'));
         }
 
+        $this->applyLoanInstallments($period);
+
         $period = $this->recalculate($period);
         $period->update(['status' => AbsPayrollStatus::FINAL]);
 
         return $period->fresh(['deductions', 'bonuses', 'user']);
     }
 
+    private function applyLoanInstallments(AbsPayrollPeriod $period): void
+    {
+        $loanPrefix = 'LOAN#';
+        $activeLoans = AbsLoan::where('user_id', $period->user_id)
+            ->where('status', AbsLoanStatus::APPROVED)
+            ->where('remaining_balance', '>', 0)
+            ->get();
+
+        foreach ($activeLoans as $loan) {
+            $installment = (float) $loan->monthly_installment;
+            $remaining = (float) $loan->remaining_balance;
+
+            $deductionAmount = min($installment, $remaining);
+
+            $alreadyDeducted = AbsDeduction::where('abs_payroll_period_id', $period->id)
+                ->where('user_id', $period->user_id)
+                ->where('reason', $loanPrefix . $loan->id)
+                ->exists();
+
+            if ($alreadyDeducted) {
+                continue;
+            }
+
+            AbsDeduction::create([
+                'abs_payroll_period_id' => $period->id,
+                'user_id' => $period->user_id,
+                'reason' => $loanPrefix . $loan->id,
+                'amount' => $deductionAmount,
+                'created_by' => $period->user_id,
+                'company_id' => $period->company_id,
+            ]);
+
+            $newRemaining = round($remaining - $deductionAmount, 2);
+
+            $loan->update([
+                'remaining_balance' => $newRemaining,
+                'status' => $newRemaining <= 0 ? AbsLoanStatus::PAID : AbsLoanStatus::APPROVED,
+            ]);
+        }
+    }
+
     public function unlock(AbsPayrollPeriod $period): AbsPayrollPeriod
     {
+        $this->removeLoanInstallments($period);
+
         $period->update(['status' => AbsPayrollStatus::DRAFT]);
 
         return $period->fresh(['deductions', 'bonuses', 'user']);
+    }
+
+    private function removeLoanInstallments(AbsPayrollPeriod $period): void
+    {
+        $loanPrefix = 'LOAN#';
+        $loanDeductions = AbsDeduction::where('abs_payroll_period_id', $period->id)
+            ->where('user_id', $period->user_id)
+            ->where('reason', 'like', $loanPrefix . '%')
+            ->get();
+
+        foreach ($loanDeductions as $deduction) {
+            $loanId = (int) str_replace($loanPrefix, '', $deduction->reason);
+            $loan = AbsLoan::find($loanId);
+            if ($loan) {
+                $loan->increment('remaining_balance', (float) $deduction->amount);
+                $loan->update(['status' => AbsLoanStatus::APPROVED->value]);
+            }
+            $deduction->delete();
+        }
     }
 
     public function generateSlipPdf(AbsPayrollPeriod $period)

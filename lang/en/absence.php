@@ -58,6 +58,7 @@ return [
         'profile_not_found' => 'Employee profile not found.',
         'jabatan_not_assigned' => 'Job position is not assigned to employee profile.',
         'slip_not_available' => 'Payslip is only available after payroll is finalized.',
+        'loan_deduction_reason' => 'Loan installment #:id',
     ],
     'dashboard' => [
         'summary' => 'Attendance dashboard summary retrieved successfully.',
@@ -74,6 +75,29 @@ return [
         'employees' => 'Employees report retrieved successfully',
         'employees_exported' => 'Employees report exported successfully'
     ],
+    'overtimes' => [
+        'list' => 'Overtimes retrieved successfully.',
+        'detail' => 'Overtime detail retrieved successfully.',
+        'stored' => 'Overtime submitted successfully.',
+        'approved' => 'Overtime approved successfully.',
+        'rejected' => 'Overtime rejected successfully.',
+        'already_processed' => 'Overtime has already been processed.',
+    ],
+    'loans' => [
+        'list' => 'Loans retrieved successfully.',
+        'detail' => 'Loan detail retrieved successfully.',
+        'stored' => 'Loan submitted successfully.',
+        'approved' => 'Loan approved successfully.',
+        'rejected' => 'Loan rejected successfully.',
+        'already_processed' => 'Loan has already been processed.',
+    ],
+    'custom_config' => [
+        'list' => 'Custom configurations retrieved successfully.',
+        'detail' => 'Custom configuration retrieved successfully.',
+        'stored' => 'Custom configuration created successfully.',
+        'updated' => 'Custom configuration updated successfully.',
+        'not_found' => 'Custom configuration not found.',
+    ],
     'validation' => [
         'branch_uuid_not_found' => 'Branch not found.',
         'jabatan_uuid_not_found' => 'Job position not found.',
@@ -83,5 +107,7 @@ return [
         'photo_required' => 'Attendance photo is required.',
         'latitude_required' => 'Latitude is required.',
         'longitude_required' => 'Longitude is required.',
+        'tenor_max_4' => 'Maximum tenor is 4 months.',
+        'tenor_min_1' => 'Minimum tenor is 1 month.',
     ],
 ];
