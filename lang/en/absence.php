@@ -91,6 +91,13 @@ return [
         'rejected' => 'Loan rejected successfully.',
         'already_processed' => 'Loan has already been processed.',
     ],
+    'custom_config' => [
+        'list' => 'Custom configurations retrieved successfully.',
+        'detail' => 'Custom configuration retrieved successfully.',
+        'stored' => 'Custom configuration created successfully.',
+        'updated' => 'Custom configuration updated successfully.',
+        'not_found' => 'Custom configuration not found.',
+    ],
     'validation' => [
         'branch_uuid_not_found' => 'Branch not found.',
         'jabatan_uuid_not_found' => 'Job position not found.',

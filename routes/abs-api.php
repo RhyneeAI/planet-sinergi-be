@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Absence\AbsAdminAttendanceController;
+use App\Http\Controllers\Api\Absence\AbsCustomConfigurationController;
 use App\Http\Controllers\Api\Absence\AbsDashboardController;
 use App\Http\Controllers\Api\Absence\AbsEmployeeAttendanceController;
 use App\Http\Controllers\Api\Absence\AbsEmployeeController;
@@ -50,6 +51,14 @@ Route::prefix('v1/abs')->middleware(['throttle:api'])->group(function () {
 
             Route::get('/loans', [AbsLoanController::class, 'index']);
             Route::get('/loans/{absLoan}', [AbsLoanController::class, 'show']);
+
+            Route::get('/custom-configurations', [AbsCustomConfigurationController::class, 'index']);
+            Route::get('/custom-configurations/{key}', [AbsCustomConfigurationController::class, 'show']);
+        });
+
+        Route::middleware(['role:SUPERADMIN,ADMIN,HRD'])->group(function () {
+            Route::post('/custom-configurations', [AbsCustomConfigurationController::class, 'store']);
+            Route::put('/custom-configurations/{key}', [AbsCustomConfigurationController::class, 'update']);
         });
 
         Route::middleware(['role:SUPERADMIN,ADMIN'])->group(function () {

@@ -91,6 +91,13 @@ return [
         'rejected' => 'Kasbon berhasil ditolak.',
         'already_processed' => 'Kasbon sudah diproses sebelumnya.',
     ],
+    'custom_config' => [
+        'list' => 'Data konfigurasi berhasil diambil.',
+        'detail' => 'Detail konfigurasi berhasil diambil.',
+        'stored' => 'Konfigurasi berhasil ditambahkan.',
+        'updated' => 'Konfigurasi berhasil diperbarui.',
+        'not_found' => 'Konfigurasi tidak ditemukan.',
+    ],
     'validation' => [
         'branch_uuid_not_found' => 'Cabang tidak ditemukan.',
         'jabatan_uuid_not_found' => 'Jabatan tidak ditemukan.',
