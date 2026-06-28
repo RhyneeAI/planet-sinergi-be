@@ -11,4 +11,5 @@ return [
         'pulang_awal',
         'terlambat_pulang_awal',
     ],
+    'overtime_hourly_rate' => (int) env('ABS_OVERTIME_HOURLY_RATE', 25000),
 ];

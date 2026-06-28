@@ -58,6 +58,7 @@ return [
         'profile_not_found' => 'Profil karyawan tidak ditemukan.',
         'jabatan_not_assigned' => 'Jabatan belum ditetapkan pada profil karyawan.',
         'slip_not_available' => 'Slip gaji hanya tersedia setelah payroll difinalisasi.',
+        'loan_deduction_reason' => 'Cicilan kasbon #:id',
     ],
     'dashboard' => [
         'summary' => 'Ringkasan dashboard absensi berhasil diambil.',
@@ -74,6 +75,22 @@ return [
         'employees' => 'Laporan karyawan berhasil diambil',
         'employees_exported' => 'Laporan karyawan berhasil diekspor'
     ],
+    'overtimes' => [
+        'list' => 'Data lembur berhasil diambil.',
+        'detail' => 'Detail lembur berhasil diambil.',
+        'stored' => 'Pengajuan lembur berhasil dikirim.',
+        'approved' => 'Lembur berhasil disetujui.',
+        'rejected' => 'Lembur berhasil ditolak.',
+        'already_processed' => 'Lembur sudah diproses sebelumnya.',
+    ],
+    'loans' => [
+        'list' => 'Data kasbon berhasil diambil.',
+        'detail' => 'Detail kasbon berhasil diambil.',
+        'stored' => 'Pengajuan kasbon berhasil dikirim.',
+        'approved' => 'Kasbon berhasil disetujui.',
+        'rejected' => 'Kasbon berhasil ditolak.',
+        'already_processed' => 'Kasbon sudah diproses sebelumnya.',
+    ],
     'validation' => [
         'branch_uuid_not_found' => 'Cabang tidak ditemukan.',
         'jabatan_uuid_not_found' => 'Jabatan tidak ditemukan.',
@@ -83,5 +100,7 @@ return [
         'photo_required' => 'Foto absensi wajib diupload.',
         'latitude_required' => 'Koordinat latitude wajib diisi.',
         'longitude_required' => 'Koordinat longitude wajib diisi.',
+        'tenor_max_4' => 'Tenor maksimal 4 bulan.',
+        'tenor_min_1' => 'Tenor minimal 1 bulan.',
     ],
 ];
