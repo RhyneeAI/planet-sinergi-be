@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Gudang Planet — POS API (v2.7)",
-    "description": "Dokumentasi lengkap REST API modul POS Gudang Planet v2.7.\n\n**Base URL:** `{{base_url}}/api/v1`\n\n**Auth:** `POST /api/v1/login` → set `{{token}}`\n\n**Credential demo:**\n| Role | Phone | Password |\n|------|-------|----------|\n| KASIR | 087777888888 | kasir_gp |\n| ADMIN | 081122223333 | admin_gp |\n| MANAGER_GUDANG | (lihat seeder) | — |\n\n**Header wajib:**\n- `Accept: application/json`\n- `Accept-Language: {{lang}}` (id/en)\n- `Authorization: Bearer {{token}}`\n\n**Modul sales:** `sales-transactions`, `sales-installments`, `sales-transaction-returns`\n\n**Marketing CRUD:** dilakukan di OPS (`/api/v1/operational/marketings`). POS hanya read picker.\n\nFolder **Legacy** = endpoint lama yang masih ada di backend tetapi tidak dipakai di POS v2.",
+    "description": "Dokumentasi lengkap REST API modul POS Gudang Planet v2.7.\n\n**Base URL:** `{{base_url}}/api/v1`\n\n**Auth:** `POST /api/v1/login` → set `{{token}}`\n\n**Credential demo:**\n| Role | Phone | Password |\n|------|-------|----------|\n| KASIR | 087777888888 | kasir_gp |\n| ADMIN | 081122223333 | admin_gp |\n| GUDANG | (lihat seeder) | — |\n\n**Header wajib:**\n- `Accept: application/json`\n- `Accept-Language: {{lang}}` (id/en)\n- `Authorization: Bearer {{token}}`\n\n**Modul sales:** `sales-transactions`, `sales-installments`, `sales-transaction-returns`\n\n**Marketing CRUD:** dilakukan di OPS (`/api/v1/operational/marketings`). POS hanya read picker.\n\nFolder **Legacy** = endpoint lama yang masih ada di backend tetapi tidak dipakai di POS v2.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -667,7 +667,7 @@
           }
         }
       ],
-      "description": "Role write: SUPERADMIN, ADMIN, MANAGER_GUDANG"
+      "description": "Role write: SUPERADMIN, ADMIN, GUDANG, KEPALA_GUDANG, KEPALA_MANDOR"
     },
     {
       "name": "Units",
@@ -1667,7 +1667,7 @@
           }
         }
       ],
-      "description": "Role: SUPERADMIN, OWNER, ADMIN, MANAGER_GUDANG, KASIR"
+      "description": "Role: SUPERADMIN, OWNER, ADMIN, KEPALA_GUDANG, KEPALA_MANDOR, GUDANG, KASIR"
     },
     {
       "name": "Sales Installments",

@@ -89,7 +89,7 @@ collection = {
             "| Role | Phone | Password |\n|------|-------|----------|\n"
             "| KASIR | 087777888888 | kasir_gp |\n"
             "| ADMIN | 081122223333 | admin_gp |\n"
-            "| MANAGER_GUDANG | (lihat seeder) | — |\n\n"
+            "| GUDANG | (lihat seeder) | — |\n\n"
             "**Header wajib:**\n"
             "- `Accept: application/json`\n"
             "- `Accept-Language: {{lang}}` (id/en)\n"
@@ -143,7 +143,7 @@ collection = {
             req("POST", ["categories"], "Create Category", '{\n  "name": "Kategori Contoh"\n}'),
             req("PUT", ["categories", "{{category_uuid}}"], "Update Category", '{\n  "name": "Kategori Updated"\n}'),
             req("DELETE", ["categories", "{{category_uuid}}"], "Delete Category"),
-        ], "Role write: SUPERADMIN, ADMIN, MANAGER_GUDANG"),
+        ], "Role write: SUPERADMIN, ADMIN, GUDANG, KEPALA_GUDANG, KEPALA_MANDOR"),
         folder("Units", [
             req("GET", ["units"], "List Units", test_script=save_first("uuid", "unit_uuid")),
             req("GET", ["units", "{{unit_uuid}}"], "Show Unit"),
@@ -233,7 +233,7 @@ collection = {
             )),
             req("GET", ["sales-transactions", "{{transaction_ulid}}"], "Show Sales Transaction"),
             req("PATCH", ["sales-transactions", "{{transaction_ulid}}", "cancel"], "Cancel Sales Transaction"),
-        ], "Role: SUPERADMIN, OWNER, ADMIN, MANAGER_GUDANG, KASIR"),
+        ], "Role: SUPERADMIN, OWNER, ADMIN, KEPALA_GUDANG, KEPALA_MANDOR, GUDANG, KASIR"),
         folder("Sales Installments", [
             req("GET", ["sales-installments"], "List Installment Plans", test_script=save_first("ulid", "installment_ulid")),
             req("GET", ["sales-installments", "{{installment_ulid}}"], "Show Installment Plan"),
