@@ -82,11 +82,33 @@ class OpsEmployeeController extends Controller
 
     public function show(User $user)
     {
+        $user->load([
+            'absEmployeeProfile.jabatan',
+            'absEmployeeProfile.subCompany',
+            'absEmployeeProfile.shift',
+            'absOvertimes' => fn($q) => $q->orderBy('date', 'DESC')->limit(50),
+            'absLoans' => fn($q) => $q->orderBy('created_at', 'DESC')->limit(20),
+            'absPayrollPeriods' => fn($q) => $q->orderBy('period_year', 'DESC')->orderBy('period_month', 'DESC')->limit(12),
+        ]);
+
         return response()->json([
             'success' => true,
             'message' => __('operational.employees.detail'),
+            'data' => new OpsEmployeeResource($user),
+        ]);
+    }
+
+    public function toggleActive(User $user)
+    {
+        $user->update(['is_active' => !$user->is_active]);
+
+        return response()->json([
+            'success' => true,
+            'message' => $user->is_active
+                ? __('operational.employees.activated')
+                : __('operational.employees.deactivated'),
             'data' => new OpsEmployeeResource(
-                $user->load(['absEmployeeProfile.jabatan', 'absEmployeeProfile.subCompany', 'absEmployeeProfile.shift'])
+                $user->fresh()->load(['absEmployeeProfile.jabatan', 'absEmployeeProfile.subCompany', 'absEmployeeProfile.shift'])
             ),
         ]);
     }

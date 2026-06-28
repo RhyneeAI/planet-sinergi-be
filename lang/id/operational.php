@@ -81,6 +81,7 @@ return [
         'detail' => 'Detail karyawan berhasil diambil.',
         'stored' => 'Karyawan berhasil ditambahkan.',
         'updated' => 'Data karyawan berhasil diperbarui.',
+        'activated' => 'Karyawan berhasil diaktifkan.',
         'deactivated' => 'Karyawan berhasil dinonaktifkan.',
         'password_reset' => 'Password karyawan berhasil direset.',
     ],

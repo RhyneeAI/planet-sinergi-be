@@ -81,6 +81,7 @@ return [
         'detail' => 'Employee detail retrieved successfully.',
         'stored' => 'Employee created successfully.',
         'updated' => 'Employee updated successfully.',
+        'activated' => 'Employee activated successfully.',
         'deactivated' => 'Employee deactivated successfully.',
         'password_reset' => 'Employee password reset successfully.',
     ],

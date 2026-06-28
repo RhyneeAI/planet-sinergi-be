@@ -1,0 +1,286 @@
+{
+  "info": {
+    "name": "Gudang Planet — Ops Employees",
+    "description": "Collection untuk endpoint Management Karyawan modul Operasional.\n\n**Base URL:** `{{base_url}}/api/v1/operational/employees`\n\n**Auth:** Bearer token dari `POST /api/v1/login`.\n\n**Demo credentials (company 1):**\n| Role | Phone | Password |\n|------|-------|----------|\n| SUPERADMIN | 085155118899 | superadmin_gp |\n| ADMIN | 081122223333 | admin_gp |\n| HRD | 081155556666 | hrd_gp |",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000", "type": "string" },
+    { "key": "token", "value": "", "type": "string" },
+    { "key": "uuid", "value": "", "type": "string" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data.token) {",
+                  "    pm.collectionVariables.set('token', json.data.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"081122223333\",\n  \"password\": \"admin_gp\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "login"]
+            },
+            "description": "Login sebagai ADMIN. Token otomatis disimpan ke collection variable `token`."
+          }
+        },
+        {
+          "name": "Login (HRD)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data.token) {",
+                  "    pm.collectionVariables.set('token', json.data.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"081155556666\",\n  \"password\": \"hrd_gp\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "login"]
+            },
+            "description": "Login sebagai HRD. Token otomatis disimpan ke collection variable `token`."
+          }
+        },
+        {
+          "name": "Login (Superadmin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data.token) {",
+                  "    pm.collectionVariables.set('token', json.data.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"085155118899\",\n  \"password\": \"superadmin_gp\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "login"]
+            },
+            "description": "Login sebagai SUPERADMIN. Token otomatis disimpan ke collection variable `token`."
+          }
+        }
+      ]
+    },
+    {
+      "name": "List Employees",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const json = pm.response.json();",
+              "if (json.data && json.data.data && json.data.data.length > 0) {",
+              "    pm.collectionVariables.set('uuid', json.data.data[0].uuid);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/operational/employees?per_page=15&order_by=name&order_by_value=ASC",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "operational", "employees"],
+          "query": [
+            { "key": "per_page", "value": "15", "description": "Jumlah per halaman" },
+            { "key": "order_by", "value": "name", "description": "Kolom sorting (name, phone, role, created_at)" },
+            { "key": "order_by_value", "value": "ASC", "description": "ASC atau DESC" },
+            { "key": "search", "value": null, "description": "Cari berdasarkan nama atau phone" },
+            { "key": "role", "value": null, "description": "Filter role (KARYAWAN, KASIR, MANDOR, dll)" },
+            { "key": "sub_company_uuid", "value": null, "description": "Filter berdasarkan cabang" },
+            { "key": "is_active", "value": null, "description": "Filter status aktif (true/false)" }
+          ],
+          "variable": []
+        },
+        "description": "Mendapatkan daftar semua karyawan. Mendukung filter, search, dan pagination.\n\n**Role akses:** SUPERADMIN, OWNER, ADMIN, HRD"
+      }
+    },
+    {
+      "name": "Create Employee",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const json = pm.response.json();",
+              "if (json.data && json.data.uuid) {",
+              "    pm.collectionVariables.set('uuid', json.data.uuid);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Budi Santoso\",\n  \"phone\": \"081377778888\",\n  \"password\": \"budi123\",\n  \"password_confirmation\": \"budi123\",\n  \"role\": \"KARYAWAN\",\n  \"jabatan_uuid\": \"uuid-jabatan-disini\",\n  \"sub_company_uuid\": null,\n  \"shift_uuid\": null\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/operational/employees",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "operational", "employees"]
+        },
+        "description": "Membuat karyawan baru.\n\n**Role akses:** SUPERADMIN, ADMIN, HRD\n\n**Role yang bisa dibuat:** Semua role kecuali SUPERADMIN & OWNER (divalidasi di controller).\n\nField opsional:\n- `jabatan_uuid` — UUID dari abs_jabatans\n- `sub_company_uuid` — UUID dari sub_companies (untuk pegawai cabang)\n- `shift_uuid` — UUID dari abs_shifts"
+      }
+    },
+    {
+      "name": "Show Employee",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/operational/employees/{{uuid}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "operational", "employees", "{{uuid}}"]
+        },
+        "description": "Detail karyawan termasuk profil, riwayat lembur, kasbon, dan payroll.\n\n**Role akses:** SUPERADMIN, OWNER, ADMIN, HRD"
+      }
+    },
+    {
+      "name": "Update Employee",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Budi Santoso Update\",\n  \"phone\": \"081377778888\",\n  \"role\": \"KARYAWAN\",\n  \"is_active\": true,\n  \"jabatan_uuid\": \"uuid-jabatan-disini\",\n  \"sub_company_uuid\": null,\n  \"shift_uuid\": null\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/operational/employees/{{uuid}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "operational", "employees", "{{uuid}}"]
+        },
+        "description": "Update data karyawan. Hanya field yang dikirim yang akan diupdate.\n\n**Role akses:** SUPERADMIN, ADMIN, HRD"
+      }
+    },
+    {
+      "name": "Deactivate Employee",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/operational/employees/{{uuid}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "operational", "employees", "{{uuid}}"]
+        },
+        "description": "Menonaktifkan karyawan (soft deactivate — set `is_active = false`).\n\n**Role akses:** SUPERADMIN, ADMIN, HRD"
+      }
+    },
+    {
+      "name": "Toggle Active",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/operational/employees/{{uuid}}/toggle-active",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "operational", "employees", "{{uuid}}", "toggle-active"]
+        },
+        "description": "Toggle status aktif/nonaktif karyawan. Jika aktif jadi nonaktif, sebaliknya.\n\n**Role akses:** SUPERADMIN, ADMIN, HRD"
+      }
+    },
+    {
+      "name": "Reset Password",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"password\": \"passwordbaru123\",\n  \"password_confirmation\": \"passwordbaru123\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/operational/employees/{{uuid}}/reset-password",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "operational", "employees", "{{uuid}}", "reset-password"]
+        },
+        "description": "Reset password karyawan.\n\n**Role akses:** SUPERADMIN, ADMIN, HRD"
+      }
+    }
+  ]
+}

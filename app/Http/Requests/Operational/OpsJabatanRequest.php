@@ -31,6 +31,7 @@ class OpsJabatanRequest extends FormRequest
                 'numeric',
                 'min:0',
             ],
+            'reason' => ['nullable', 'string', 'max:255'],
         ];
     }
 }
