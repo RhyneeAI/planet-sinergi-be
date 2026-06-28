@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Absence;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class AbsOvertimeRequest extends FormRequest
 {
@@ -22,12 +21,8 @@ class AbsOvertimeRequest extends FormRequest
         ];
 
         if ($this->isMethod('post')) {
-            $rules['user_ids'] = ['required', 'array', 'min:1'];
-            $rules['user_ids.*'] = ['required', 'exists:users,id'];
-        }
-
-        if ($this->isMethod('put') || $this->isMethod('patch')) {
-            $rules['user_id'] = ['sometimes', 'exists:users,id'];
+            $rules['user_uuids'] = ['required', 'array', 'min:1'];
+            $rules['user_uuids.*'] = ['required', 'uuid', 'exists:users,uuid'];
         }
 
         return $rules;

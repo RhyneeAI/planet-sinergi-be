@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Absence;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class AbsLoanRequest extends FormRequest
 {
@@ -15,7 +14,7 @@ class AbsLoanRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => ['required', 'exists:users,id'],
+            'user_uuid' => ['required', 'uuid', 'exists:users,uuid'],
             'amount' => ['required', 'numeric', 'min:1'],
             'reason' => ['required', 'string', 'max:2000'],
             'tenor_months' => ['required', 'integer', 'min:1', 'max:4'],

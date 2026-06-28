@@ -15,7 +15,7 @@ class AbsLoanController extends Controller
     {
         $loans = AbsLoan::with('user')
             ->when($request->status, fn($q, $s) => $q->where('status', $s))
-            ->when($request->user_id, fn($q, $id) => $q->where('user_id', $id))
+            ->when($request->user_uuid, fn($q, $uuid) => $q->whereHas('user', fn($uq) => $uq->where('uuid', $uuid)))
             ->orderBy($request->input('order_by', 'created_at'), $request->input('order_by_value', 'DESC'))
             ->paginate($request->input('per_page', 15));
 
@@ -32,9 +32,10 @@ class AbsLoanController extends Controller
         $amount = (float) $data['amount'];
         $tenor = (int) $data['tenor_months'];
         $monthlyInstallment = round($amount / $tenor, 2);
+        $userId = \App\Models\User::where('uuid', $data['user_uuid'])->value('id');
 
         $loan = AbsLoan::create([
-            'user_id' => $data['user_id'],
+            'user_id' => $userId,
             'amount' => $amount,
             'reason' => $data['reason'],
             'tenor_months' => $tenor,

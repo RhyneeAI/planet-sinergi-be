@@ -1,0 +1,501 @@
+{
+  "info": {
+    "name": "Gudang Planet — Absensi API (v1)",
+    "description": "Collection untuk modul Absensi Gudang Planet.\n\n**Base URL:** `{{base_url}}/api/v1/abs`\n\n**Auth:** Bearer token dari `POST /api/v1/login` (phone + password).\n\n**Fitur:**\n- **Employees** — List & detail karyawan (HRD/Admin/Superadmin)\n- **Overtimes** — Pengajuan lembur batch, approve/reject oleh HRD/Admin\n- **Loans** — Pengajuan kasbon dengan tenor 1-4 bulan, approve/reject oleh HRD/Admin\n- **Payroll** — Otomatis potong cicilan kasbon saat finalize\n\n**Alur Overtime:**\n1. HRD/Admin input lembur batch (pilih beberapa karyawan) → status `pending`\n2. HRD/Admin approve atau reject\n3. Data approved dipakai kalkulasi payroll\n\n**Alur Kasbon:**\n1. HRD/Admin input kasbon atas nama karyawan → status `pending`, `remaining_balance = amount`\n2. HRD/Admin approve → `remaining_balance` mulai terpotong cicilan per bulan\n3. Saat payroll difinalisasi: potong `monthly_installment` dari gaji, kurangi `remaining_balance`\n4. Jika `remaining_balance <= 0` → status `paid`\n\n**Demo credentials (company 1):**\n| Role | Phone | Password |\n|------|-------|----------|\n| ADMIN | 081122223333 | admin_gp |\n| HRD | — | — |\n| KARYAWAN | — | — |",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000", "type": "string" },
+    { "key": "token", "value": "", "type": "string" },
+    { "key": "employee_uuid", "value": "", "type": "string" },
+    { "key": "overtime_id", "value": "", "type": "string" },
+    { "key": "loan_id", "value": "", "type": "string" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data.token) {",
+                  "    pm.collectionVariables.set('token', json.data.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"081122223333\",\n  \"password\": \"admin_gp\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "login"]
+            },
+            "description": "Login sebagai ADMIN. Token otomatis disimpan ke collection variable `token`."
+          }
+        },
+        {
+          "name": "Login (HRD)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data.token) {",
+                  "    pm.collectionVariables.set('token', json.data.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"081976567086\",\n  \"password\": \"hrd_gp\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "login"]
+            },
+            "description": "Login sebagai HRD. Token otomatis disimpan ke collection variable `token`."
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Dashboard Summary",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/abs/dashboard",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "abs", "dashboard"],
+              "query": [
+                { "key": "period", "value": "weekly", "description": "weekly | monthly" }
+              ]
+            },
+            "description": "Ringkasan dashboard absensi.\n\nRole: SUPERADMIN, OWNER, ADMIN, HRD."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Employees",
+      "item": [
+        {
+          "name": "List Employees",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/abs/employees",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "abs", "employees"],
+              "query": [
+                { "key": "search", "value": "", "disabled": true, "description": "Cari nama/phone" },
+                { "key": "role", "value": "", "disabled": true, "description": "Filter role" },
+                { "key": "is_active", "value": "", "disabled": true, "description": "true | false" },
+                { "key": "order_by", "value": "name", "disabled": true },
+                { "key": "order_by_value", "value": "ASC", "disabled": true },
+                { "key": "per_page", "value": "15", "disabled": true }
+              ]
+            },
+            "description": "List semua user (Owner, Superadmin, Admin, HRD, Karyawan, dll).\nJika role = MARKETING/MARKETING_TETAP, tidak perlu absensi & payroll.\n\nRole: SUPERADMIN, OWNER, ADMIN, HRD."
+          }
+        },
+        {
+          "name": "Show Employee",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/abs/employees/{{employee_uuid}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "abs", "employees", "{{employee_uuid}}"]
+            },
+            "description": "Detail employee: profil, jabatan, sub_company, shift.\nJuga riwayat overtimes, loans, dan payroll periods.\n\nRole: SUPERADMIN, OWNER, ADMIN, HRD.\n\nUntuk selain OWNER ada aksi lihat Detail. OWNER tidak melihat aksi ini."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Overtimes",
+      "item": [
+        {
+          "name": "List Overtimes",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/abs/overtimes",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "abs", "overtimes"],
+              "query": [
+                { "key": "status", "value": "", "disabled": true, "description": "pending | approved | rejected" },
+                { "key": "date", "value": "", "disabled": true, "description": "YYYY-MM-DD" },
+                { "key": "user_uuid", "value": "", "disabled": true, "description": "Filter by user UUID" },
+                { "key": "order_by", "value": "date", "disabled": true },
+                { "key": "order_by_value", "value": "DESC", "disabled": true },
+                { "key": "per_page", "value": "15", "disabled": true }
+              ]
+            },
+            "description": "List semua lembur. Bisa filter status, user_uuid, dan sortir.\n\nRole: SUPERADMIN, OWNER, ADMIN, HRD."
+          }
+        },
+        {
+          "name": "Create Overtime (Batch)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_uuids\": [\"uuid-user-1\", \"uuid-user-2\", \"uuid-user-3\"],\n  \"date\": \"2026-06-28\",\n  \"start_time\": \"18:00\",\n  \"end_time\": \"21:00\",\n  \"reason\": \"Stock opname akhir bulan\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/abs/overtimes",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "abs", "overtimes"]
+            },
+            "description": "Input lembur batch untuk beberapa karyawan sekaligus.\nSemua dibuat dengan status `pending`.\n\nRole: SUPERADMIN, ADMIN, HRD."
+          }
+        },
+        {
+          "name": "Show Overtime",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/abs/overtimes/{{overtime_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "abs", "overtimes", "{{overtime_id}}"]
+            },
+            "description": "Detail lembur.\n\nRole: SUPERADMIN, OWNER, ADMIN, HRD."
+          }
+        },
+        {
+          "name": "Approve Overtime",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/abs/overtimes/{{overtime_id}}/approve",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "abs", "overtimes", "{{overtime_id}}", "approve"]
+            },
+            "description": "ACC lembur. Status menjadi `approved`, `approved_by` diisi dengan user ID yang ACC.\n\nRole: SUPERADMIN, ADMIN, HRD."
+          }
+        },
+        {
+          "name": "Reject Overtime",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Lembur tidak disetujui karena tidak ada approval atasan\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/abs/overtimes/{{overtime_id}}/reject",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "abs", "overtimes", "{{overtime_id}}", "reject"]
+            },
+            "description": "Tolak lembur. Status menjadi `rejected`.\n\nRole: SUPERADMIN, ADMIN, HRD."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Loans",
+      "item": [
+        {
+          "name": "List Loans",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/abs/loans",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "abs", "loans"],
+              "query": [
+                { "key": "status", "value": "", "disabled": true, "description": "pending | approved | rejected | paid" },
+                { "key": "user_uuid", "value": "", "disabled": true, "description": "Filter by user UUID" },
+                { "key": "order_by", "value": "created_at", "disabled": true },
+                { "key": "order_by_value", "value": "DESC", "disabled": true },
+                { "key": "per_page", "value": "15", "disabled": true }
+              ]
+            },
+            "description": "List semua kasbon. Bisa filter status dan user.\n\nRole: SUPERADMIN, OWNER, ADMIN, HRD."
+          }
+        },
+        {
+          "name": "Create Loan",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_uuid\": \"uuid-user-1\",\n  \"amount\": 1000000,\n  \"reason\": \"Biaya pengobatan keluarga\",\n  \"tenor_months\": 3\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/abs/loans",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "abs", "loans"]
+            },
+            "description": "Input kasbon. `tenor_months` antara 1-4. `monthly_installment` auto-calculate = amount / tenor.\nStatus awal `pending`, `remaining_balance = amount`.\n\nRole: SUPERADMIN, ADMIN, HRD."
+          }
+        },
+        {
+          "name": "Show Loan",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/abs/loans/{{loan_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "abs", "loans", "{{loan_id}}"]
+            },
+            "description": "Detail kasbon.\n\nRole: SUPERADMIN, OWNER, ADMIN, HRD."
+          }
+        },
+        {
+          "name": "Approve Loan",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/abs/loans/{{loan_id}}/approve",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "abs", "loans", "{{loan_id}}", "approve"]
+            },
+            "description": "ACC kasbon. Status menjadi `approved`. Saat payroll difinalisasi, `monthly_installment` akan otomatis dipotong dari gaji.\n\nRole: SUPERADMIN, ADMIN, HRD."
+          }
+        },
+        {
+          "name": "Reject Loan",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/abs/loans/{{loan_id}}/reject",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "abs", "loans", "{{loan_id}}", "reject"]
+            },
+            "description": "Tolak kasbon. Status menjadi `rejected`.\n\nRole: SUPERADMIN, ADMIN, HRD."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Attendances (Admin)",
+      "item": [
+        {
+          "name": "List Attendances",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/abs/attendances",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "abs", "attendances"],
+              "query": [
+                { "key": "date", "value": "", "disabled": true, "description": "YYYY-MM-DD" },
+                { "key": "date_from", "value": "", "disabled": true, "description": "YYYY-MM-DD" },
+                { "key": "date_to", "value": "", "disabled": true, "description": "YYYY-MM-DD" },
+                { "key": "sub_company_uuid", "value": "", "disabled": true },
+                { "key": "status", "value": "", "disabled": true, "description": "hadir | terlambat | pulang_awal | terlambat_pulang_awal | absen" },
+                { "key": "per_page", "value": "15", "disabled": true }
+              ]
+            },
+            "description": "List absensi semua karyawan (Admin/HRD view).\n\nRole: SUPERADMIN, OWNER, ADMIN, HRD."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payrolls",
+      "item": [
+        {
+          "name": "List Payrolls",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/abs/payrolls",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "abs", "payrolls"],
+              "query": [
+                { "key": "month", "value": "", "disabled": true, "description": "1-12, default: current" },
+                { "key": "year", "value": "", "disabled": true, "description": "YYYY, default: current" },
+                { "key": "status", "value": "", "disabled": true, "description": "draft | final" },
+                { "key": "per_page", "value": "15", "disabled": true }
+              ]
+            },
+            "description": "Lihat payroll periode tertentu.\n\nRole: SUPERADMIN, OWNER, ADMIN, HRD."
+          }
+        },
+        {
+          "name": "Generate Payroll",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"month\": 6,\n  \"year\": 2026\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/abs/payrolls/generate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "abs", "payrolls", "generate"]
+            },
+            "description": "Generate payroll untuk semua karyawan aktif (kecuali MARKETING & MARKETING_TETAP).\n\nRole: SUPERADMIN, ADMIN."
+          }
+        },
+        {
+          "name": "Finalize Payroll",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/abs/payrolls/{payroll_ulid}/finalize",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "abs", "payrolls", "{payroll_ulid}", "finalize"]
+            },
+            "description": "Finalisasi payroll. Otomatis memotong cicilan kasbon (LOAN#) yang aktif.\n\nRole: SUPERADMIN, ADMIN."
+          }
+        },
+        {
+          "name": "Unlock Payroll",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/abs/payrolls/{payroll_ulid}/unlock",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "abs", "payrolls", "{payroll_ulid}", "unlock"]
+            },
+            "description": "Unlock payroll draft. Otomatis mengembalikan cicilan kasbon dan menghapus potongan LOAN#.\n\nRole: SUPERADMIN, ADMIN."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Shifts",
+      "item": [
+        {
+          "name": "List Shifts",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/abs/shifts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "abs", "shifts"]
+            },
+            "description": "List shift kerja.\n\nRole: SUPERADMIN, OWNER, ADMIN, HRD."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "Attendance Report",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/abs/reports/attendance",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "abs", "reports", "attendance"],
+              "query": [
+                { "key": "date_from", "value": "", "disabled": true },
+                { "key": "date_to", "value": "", "disabled": true },
+                { "key": "sub_company_uuid", "value": "", "disabled": true },
+                { "key": "employee_uuid", "value": "", "disabled": true },
+                { "key": "per_page", "value": "15", "disabled": true }
+              ]
+            },
+            "description": "Laporan absensi.\n\nRole: SUPERADMIN, OWNER, ADMIN, HRD."
+          }
+        },
+        {
+          "name": "Payroll Report",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/abs/reports/payroll",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "abs", "reports", "payroll"],
+              "query": [
+                { "key": "month", "value": "", "disabled": true },
+                { "key": "year", "value": "", "disabled": true },
+                { "key": "employee_uuid", "value": "", "disabled": true },
+                { "key": "per_page", "value": "15", "disabled": true }
+              ]
+            },
+            "description": "Laporan payroll.\n\nRole: SUPERADMIN, OWNER, ADMIN, HRD."
+          }
+        }
+      ]
+    }
+  ]
+}

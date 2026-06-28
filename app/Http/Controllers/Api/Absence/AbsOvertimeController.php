@@ -17,7 +17,7 @@ class AbsOvertimeController extends Controller
         $overtimes = AbsOvertime::with('user')
             ->when($request->status, fn($q, $s) => $q->where('status', $s))
             ->when($request->date, fn($q, $d) => $q->whereDate('date', $d))
-            ->when($request->user_id, fn($q, $id) => $q->where('user_id', $id))
+            ->when($request->user_uuid, fn($q, $uuid) => $q->whereHas('user', fn($uq) => $uq->where('uuid', $uuid)))
             ->orderBy($request->input('order_by', 'date'), $request->input('order_by_value', 'DESC'))
             ->paginate($request->input('per_page', 15));
 
@@ -32,7 +32,7 @@ class AbsOvertimeController extends Controller
     {
         $companyId = $request->user()->company_id;
         $data = $request->validated();
-        $userIds = $data['user_ids'];
+        $userIds = \App\Models\User::whereIn('uuid', $data['user_uuids'])->pluck('id');
         $baseData = [
             'date' => $data['date'],
             'start_time' => $data['start_time'],
@@ -42,7 +42,7 @@ class AbsOvertimeController extends Controller
             'company_id' => $companyId,
         ];
 
-        $overtimes = collect($userIds)->map(fn($userId) => AbsOvertime::create([
+        $overtimes = $userIds->map(fn($userId) => AbsOvertime::create([
             ...$baseData,
             'user_id' => $userId,
         ]));
