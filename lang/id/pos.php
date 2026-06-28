@@ -285,7 +285,4 @@ return [
             'qty_exceeds_available'      => 'Tidak dapat retur lebih dari :available item untuk produk ini.',
         ],
     ],
-    'stock_card' => [
-        'detail' => 'Kartu stok berhasil diambil.',
-    ],
 ];

@@ -1052,34 +1052,6 @@
       "name": "Stock",
       "item": [
         {
-          "name": "Stock Card by Product",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept-Language",
-                "value": "{{lang}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/stock-card/{{product_uuid}}",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "stock-card",
-                "{{product_uuid}}"
-              ]
-            }
-          }
-        },
-        {
           "name": "List Stock Mutations (by products)",
           "request": {
             "method": "GET",

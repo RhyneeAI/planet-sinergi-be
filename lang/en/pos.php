@@ -285,7 +285,4 @@ return [
             'qty_exceeds_available'      => 'Cannot return more than :available items for this product.',
         ],
     ],
-    'stock_card' => [
-        'detail' => 'Stock card retrieved successfully.',
-    ],
 ];

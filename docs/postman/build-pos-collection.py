@@ -169,7 +169,6 @@ collection = {
             req("DELETE", ["products", "{{product_uuid}}"], "Delete Product"),
         ], "Pricing: base_price, leader_price, marketing_price, sell_price"),
         folder("Stock", [
-            req("GET", ["stock-card", "{{product_uuid}}"], "Stock Card by Product"),
             req("GET", ["stock-mutations", "products"], "List Stock Mutations (by products)"),
             req("GET", ["stock-mutations", "products", "{{product_uuid}}"], "Stock Mutations by Product"),
             req("POST", ["stock-mutations"], "Create Stock Mutation", (
