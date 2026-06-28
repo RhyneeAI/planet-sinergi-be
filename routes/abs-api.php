@@ -1,9 +1,13 @@
 <?php
 
 use App\Http\Controllers\Api\Absence\AbsAdminAttendanceController;
+use App\Http\Controllers\Api\Absence\AbsCustomConfigurationController;
 use App\Http\Controllers\Api\Absence\AbsDashboardController;
 use App\Http\Controllers\Api\Absence\AbsEmployeeAttendanceController;
+use App\Http\Controllers\Api\Absence\AbsEmployeeController;
 use App\Http\Controllers\Api\Absence\AbsEmployeePayrollController;
+use App\Http\Controllers\Api\Absence\AbsLoanController;
+use App\Http\Controllers\Api\Absence\AbsOvertimeController;
 use App\Http\Controllers\Api\Absence\AbsPayrollController;
 use App\Http\Controllers\Api\Absence\AbsReportController;
 use App\Http\Controllers\Api\Absence\AbsShiftController;
@@ -21,7 +25,7 @@ Route::prefix('v1/abs')->middleware(['throttle:api'])->group(function () {
             Route::get('/payroll/{absPayrollPeriod:ulid}/slip', [AbsEmployeePayrollController::class, 'slip']);
         });
 
-        Route::middleware(['role:SUPERADMIN,OWNER,ADMIN'])->group(function () {
+        Route::middleware(['role:SUPERADMIN,OWNER,ADMIN,HRD'])->group(function () {
             Route::get('/dashboard', [AbsDashboardController::class, 'index']);
 
             Route::get('/shifts', [AbsShiftController::class, 'index']);
@@ -38,6 +42,23 @@ Route::prefix('v1/abs')->middleware(['throttle:api'])->group(function () {
             Route::get('/reports/deductions', [AbsReportController::class, 'deductions']);
             Route::get('/reports/bonuses', [AbsReportController::class, 'bonuses']);
             Route::get('/reports/employees', [AbsReportController::class, 'employees']);
+
+            Route::get('/employees', [AbsEmployeeController::class, 'index']);
+            Route::get('/employees/{user:uuid}', [AbsEmployeeController::class, 'show']);
+
+            Route::get('/overtimes', [AbsOvertimeController::class, 'index']);
+            Route::get('/overtimes/{absOvertime}', [AbsOvertimeController::class, 'show']);
+
+            Route::get('/loans', [AbsLoanController::class, 'index']);
+            Route::get('/loans/{absLoan}', [AbsLoanController::class, 'show']);
+
+            Route::get('/custom-configurations', [AbsCustomConfigurationController::class, 'index']);
+            Route::get('/custom-configurations/{key}', [AbsCustomConfigurationController::class, 'show']);
+        });
+
+        Route::middleware(['role:SUPERADMIN,ADMIN,HRD'])->group(function () {
+            Route::post('/custom-configurations', [AbsCustomConfigurationController::class, 'store']);
+            Route::put('/custom-configurations/{key}', [AbsCustomConfigurationController::class, 'update']);
         });
 
         Route::middleware(['role:SUPERADMIN,ADMIN'])->group(function () {
@@ -55,6 +76,16 @@ Route::prefix('v1/abs')->middleware(['throttle:api'])->group(function () {
             Route::delete('/payrolls/{absPayrollPeriod}/bonuses/{absBonus}', [AbsPayrollController::class, 'destroyBonus']);
             Route::put('/payrolls/{absPayrollPeriod}/finalize', [AbsPayrollController::class, 'finalize']);
             Route::put('/payrolls/{absPayrollPeriod}/unlock', [AbsPayrollController::class, 'unlock']);
+        });
+
+        Route::middleware(['role:SUPERADMIN,ADMIN,HRD'])->group(function () {
+            Route::post('/overtimes', [AbsOvertimeController::class, 'store']);
+            Route::put('/overtimes/{absOvertime}/approve', [AbsOvertimeController::class, 'approve']);
+            Route::put('/overtimes/{absOvertime}/reject', [AbsOvertimeController::class, 'reject']);
+
+            Route::post('/loans', [AbsLoanController::class, 'store']);
+            Route::put('/loans/{absLoan}/approve', [AbsLoanController::class, 'approve']);
+            Route::put('/loans/{absLoan}/reject', [AbsLoanController::class, 'reject']);
         });
     });
 });

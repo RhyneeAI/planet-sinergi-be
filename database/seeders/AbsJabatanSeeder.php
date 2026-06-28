@@ -14,6 +14,7 @@ class AbsJabatanSeeder extends Seeder
             ['name' => 'Super Admin', 'daily_rate' => 0],
             ['name' => 'Owner', 'daily_rate' => 0],
             ['name' => 'Admin', 'daily_rate' => 0],
+            ['name' => 'Hrd', 'daily_rate' => 0],
             ['name' => 'Marketing Leader', 'daily_rate' => 0],
             ['name' => 'Marketing', 'daily_rate' => 0],
             ['name' => 'Kasir', 'daily_rate' => 0],

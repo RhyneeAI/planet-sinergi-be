@@ -364,3 +364,60 @@ it('forbids mandor from updating sub company', function () {
         ])
         ->assertForbidden();
 });
+
+it('creates sub company with kepala mandor role', function () {
+    $response = $this->actingAs($this->admin)
+        ->postJson('/api/v1/sub-companies', [
+            'mandor' => [
+                'name' => 'Mandor Kepala',
+                'phone' => '081234567899',
+                'email' => 'kepala@test.com',
+                'address' => 'Jl. Kepala No. 1',
+                'role' => 'KEPALA_MANDOR',
+            ],
+            'sub_company' => [
+                'name' => 'Cabang Kepala',
+                'address' => 'Jl. Cabang Kepala No. 2',
+            ],
+        ]);
+
+    $response->assertCreated()
+        ->assertJsonPath('success', true);
+
+    $mandor = User::where('phone', '081234567899')->first();
+    expect($mandor->role)->toBe(Role::KEPALA_MANDOR);
+});
+
+it('defaults mandor role to MANDOR when not specified', function () {
+    $response = $this->actingAs($this->admin)
+        ->postJson('/api/v1/sub-companies', [
+            'mandor' => [
+                'name' => 'Mandor Biasa',
+                'phone' => '081234567898',
+            ],
+            'sub_company' => [
+                'name' => 'Cabang Biasa',
+            ],
+        ]);
+
+    $response->assertCreated();
+
+    $mandor = User::where('phone', '081234567898')->first();
+    expect($mandor->role)->toBe(Role::MANDOR);
+});
+
+it('rejects invalid mandor role value', function () {
+    $this->actingAs($this->admin)
+        ->postJson('/api/v1/sub-companies', [
+            'mandor' => [
+                'name' => 'Mandor Invalid',
+                'phone' => '081234567897',
+                'role' => 'SUPERADMIN',
+            ],
+            'sub_company' => [
+                'name' => 'Cabang Invalid',
+            ],
+        ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['mandor.role']);
+});

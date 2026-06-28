@@ -32,6 +32,7 @@ class DatabaseSeeder extends Seeder
             AbsJabatanSeeder::class,
             AbsShiftSeeder::class,
             AbsEmployeeProfileSeeder::class,
+            CustomConfigurationSeeder::class,
 
             OpsIncomeExpenseSeeder::class,
 

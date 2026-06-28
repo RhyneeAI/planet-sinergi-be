@@ -377,8 +377,10 @@ class OpsReportController extends Controller
         $endDate   = Carbon::parse($request->end_date)->endOfDay();
         $perPage   = $request->input('per_page', 15);
 
-        $incomes = OpsIncome::query();
-        $expenses = OpsExpense::query();
+        $user       = $request->user();
+        $isKepala   = $user->role === Role::KEPALA_MANDOR;
+        $incomes    = OpsIncome::query();
+        $expenses   = OpsExpense::query();
 
         if ($request->filled('mandor_uuid')) {
             $mandorId = User::where('uuid', $request->mandor_uuid)
@@ -387,6 +389,9 @@ class OpsReportController extends Controller
 
             $incomes->where('mandor_id', $mandorId);
             $expenses->where('mandor_id', $mandorId)->where('expense_type', '!=', OpsExpenseType::MANDOR);
+        } elseif ($isKepala) {
+            $incomes->whereNotNull('mandor_id');
+            $expenses->whereNotNull('mandor_id')->where('expense_type', '!=', OpsExpenseType::MANDOR);
         } else {
             $incomes->whereNull('mandor_id');
             $expenses->where(function (Builder $q) {
