@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Api\Pos;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Pos\PosCustomerRequest;
 use App\Http\Resources\Pos\PosCustomerResource;
+use App\Http\Traits\DataTablesResponse;
 use App\Models\PosCustomer;
 use Illuminate\Http\Request;
 
 class PosCustomerController extends Controller
 {
+    use DataTablesResponse;
+
     protected array $sortableColumns = ['name', 'phone', 'created_at'];
 
     public function index(Request $request)
@@ -30,11 +33,13 @@ class PosCustomerController extends Controller
             ->orderBy($orderByKey, $orderByValue)
             ->paginate($request->input('per_page', 15));
 
-        return response()->json([
-            'success' => true,
-            'message' => __('pos.customers.list'),
-            'data'    => PosCustomerResource::collection($customers),
-        ]);
+        return response()->json(
+            $this->dataTablesResponse($request, $customers, [
+                'success' => true,
+                'message' => __('pos.customers.list'),
+                'data'    => PosCustomerResource::collection($customers),
+            ])
+        );
     }
 
 

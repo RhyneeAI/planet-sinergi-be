@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Api\Absence;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Absence\AbsShiftRequest;
 use App\Http\Resources\Absence\AbsShiftResource;
+use App\Http\Traits\DataTablesResponse;
 use App\Models\AbsShift;
 use Illuminate\Http\Request;
 
 class AbsShiftController extends Controller
 {
+    use DataTablesResponse;
+
     public function index(Request $request)
     {
         $orderByKey = $request->input('order_by', 'name');
@@ -21,11 +24,13 @@ class AbsShiftController extends Controller
             ->orderBy($orderByKey, $orderByValue)
             ->paginate($request->input('per_page', 15));
 
-        return response()->json([
-            'success' => true,
-            'message' => __('absence.shifts.list'),
-            'data' => AbsShiftResource::collection($shifts),
-        ]);
+        return response()->json(
+            $this->dataTablesResponse($request, $shifts, [
+                'success' => true,
+                'message' => __('absence.shifts.list'),
+                'data' => AbsShiftResource::collection($shifts),
+            ])
+        );
     }
 
     public function store(AbsShiftRequest $request)

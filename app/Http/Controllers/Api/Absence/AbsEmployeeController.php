@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Api\Absence;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Absence\AbsEmployeeDetailResource;
 use App\Http\Resources\Absence\AbsEmployeeListResource;
+use App\Http\Traits\DataTablesResponse;
 use App\Models\User;
 use Illuminate\Http\Request;
 
 class AbsEmployeeController extends Controller
 {
+    use DataTablesResponse;
+
     public function index(Request $request)
     {
         $employees = User::with('absEmployeeProfile.jabatan', 'absEmployeeProfile.subCompany', 'absEmployeeProfile.shift')
@@ -24,11 +27,13 @@ class AbsEmployeeController extends Controller
             ->orderBy($request->input('order_by', 'name'), $request->input('order_by_value', 'ASC'))
             ->paginate($request->input('per_page', 15));
 
-        return response()->json([
-            'success' => true,
-            'message' => __('absence.employees.list'),
-            'data' => AbsEmployeeListResource::collection($employees),
-        ]);
+        return response()->json(
+            $this->dataTablesResponse($request, $employees, [
+                'success' => true,
+                'message' => __('absence.employees.list'),
+                'data' => AbsEmployeeListResource::collection($employees),
+            ])
+        );
     }
 
     public function show(User $user)

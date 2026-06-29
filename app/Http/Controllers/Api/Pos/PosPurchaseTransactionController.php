@@ -7,11 +7,14 @@ use App\Http\Requests\Pos\PosPurchaseTransactionRequest;
 use App\Http\Resources\Pos\PosPurchaseTransactionResource;
 use App\Models\PosPurchaseTransaction;
 use App\Services\Pos\PosPurchaseService;
+use App\Http\Traits\DataTablesResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 class PosPurchaseTransactionController extends Controller
 {
+    use DataTablesResponse;
+
     protected array $sortableColumns = ['transaction_code', 'transaction_date', 'transaction_status', 'total'];
 
     public function __construct(
@@ -51,11 +54,13 @@ class PosPurchaseTransactionController extends Controller
             ->orderBy($orderByKey, $orderByValue)
             ->paginate($request->input('per_page', 15));
 
-        return response()->json([
-            'success' => true,
-            'message' => __('pos.purchase_transactions.list'),
-            'data'    => PosPurchaseTransactionResource::collection($transactions),
-        ]);
+        return response()->json(
+            $this->dataTablesResponse($request, $transactions, [
+                'success' => true,
+                'message' => __('pos.purchase_transactions.list'),
+                'data'    => PosPurchaseTransactionResource::collection($transactions),
+            ])
+        );
     }
 
     public function store(PosPurchaseTransactionRequest $request)

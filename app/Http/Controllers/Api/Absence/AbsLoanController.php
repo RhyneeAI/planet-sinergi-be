@@ -6,11 +6,14 @@ use App\Enums\AbsLoanStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Absence\AbsLoanRequest;
 use App\Http\Resources\Absence\AbsLoanResource;
+use App\Http\Traits\DataTablesResponse;
 use App\Models\AbsLoan;
 use Illuminate\Http\Request;
 
 class AbsLoanController extends Controller
 {
+    use DataTablesResponse;
+
     public function index(Request $request)
     {
         $loans = AbsLoan::with('user')
@@ -19,11 +22,13 @@ class AbsLoanController extends Controller
             ->orderBy($request->input('order_by', 'created_at'), $request->input('order_by_value', 'DESC'))
             ->paginate($request->input('per_page', 15));
 
-        return response()->json([
-            'success' => true,
-            'message' => __('absence.loans.list'),
-            'data' => AbsLoanResource::collection($loans),
-        ]);
+        return response()->json(
+            $this->dataTablesResponse($request, $loans, [
+                'success' => true,
+                'message' => __('absence.loans.list'),
+                'data' => AbsLoanResource::collection($loans),
+            ])
+        );
     }
 
     public function store(AbsLoanRequest $request)

@@ -14,12 +14,14 @@ use App\Models\OpsTransferConfirmation;
 use App\Services\Operational\OpsFileService;
 use App\Services\Operational\OpsTransferConfirmationAccess;
 use App\Services\Operational\OpsWalletService;
+use App\Http\Traits\DataTablesResponse;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class OpsTransferConfirmationController extends Controller
 {
+    use DataTablesResponse;
     use ReturnsEmptyShowResponse;
 
     public function __construct(
@@ -48,11 +50,13 @@ class OpsTransferConfirmationController extends Controller
             ->orderByDesc('created_at')
             ->paginate($request->input('per_page', 15));
 
-        return response()->json([
-            'success' => true,
-            'message' => __('operational.confirmations.list'),
-            'data' => OpsTransferConfirmationResource::collection($confirmations),
-        ]);
+        return response()->json(
+            $this->dataTablesResponse($request, $confirmations, [
+                'success' => true,
+                'message' => __('operational.confirmations.list'),
+                'data' => OpsTransferConfirmationResource::collection($confirmations),
+            ])
+        );
     }
 
     public function show(Request $request, string $uuid)

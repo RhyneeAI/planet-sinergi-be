@@ -14,12 +14,14 @@ use App\Services\Operational\OpsFileService;
 use App\Services\Operational\OpsOperationalConfigService;
 use App\Services\Operational\OpsWalletService;
 use App\Services\SubCompanyService;
+use App\Http\Traits\DataTablesResponse;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class OpsIncomeController extends Controller
 {
+    use DataTablesResponse;
     use ReturnsEmptyShowResponse;
     use ScopesOperationalBySubCompany;
     use HandlesOperationalProofFiles;
@@ -430,11 +432,13 @@ class OpsIncomeController extends Controller
             ->orderBy($orderByKey, $orderByValue)
             ->paginate($request->input('per_page', 15));
 
-        return response()->json([
-            'success' => true,
-            'message' => __('operational.incomes.list'),
-            'data' => OpsIncomeResource::collection($incomes),
-        ]);
+        return response()->json(
+            $this->dataTablesResponse($request, $incomes, [
+                'success' => true,
+                'message' => __('operational.incomes.list'),
+                'data' => OpsIncomeResource::collection($incomes),
+            ])
+        );
     }
 
     protected function showResponse(OpsIncome $opsIncome)

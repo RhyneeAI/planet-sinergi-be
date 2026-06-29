@@ -13,11 +13,14 @@ use App\Models\PosSalesTransaction;
 use App\Services\Pos\PosStockMutationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Http\Traits\DataTablesResponse;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class PosReturnController extends Controller
 {
+    use DataTablesResponse;
+
     public function __construct(
         protected PosStockMutationService $stockMutationService,
     ) {}
@@ -33,11 +36,13 @@ class PosReturnController extends Controller
             ->orderBy('created_at', 'DESC')
             ->paginate($request->input('per_page', 15));
 
-        return response()->json([
-            'success' => true,
-            'message' => __('pos.returns.list'),
-            'data'    => PosReturnResource::collection($returns),
-        ]);
+        return response()->json(
+            $this->dataTablesResponse($request, $returns, [
+                'success' => true,
+                'message' => __('pos.returns.list'),
+                'data'    => PosReturnResource::collection($returns),
+            ])
+        );
     }
 
     public function store(PosReturnRequest $request)

@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Api\Pos;
 use App\Enums\Role;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
+use App\Http\Traits\DataTablesResponse;
 use App\Models\User;
 use Illuminate\Http\Request;
 
 class PosMarketingController extends Controller
 {
+    use DataTablesResponse;
+
     protected array $sortableColumns = ['name', 'phone', 'email', 'created_at']; // ← username → phone
 
     public function index(Request $request)
@@ -31,11 +34,13 @@ class PosMarketingController extends Controller
             ->orderBy($orderByKey, $orderByValue)
             ->paginate($request->input('per_page', 15));
 
-        return response()->json([
-            'success' => true,
-            'message' => __('pos.marketings.list'),
-            'data'    => UserResource::collection($marketings),
-        ]);
+        return response()->json(
+            $this->dataTablesResponse($request, $marketings, [
+                'success' => true,
+                'message' => __('pos.marketings.list'),
+                'data'    => UserResource::collection($marketings),
+            ])
+        );
     }
 
     public function show(User $marketing)

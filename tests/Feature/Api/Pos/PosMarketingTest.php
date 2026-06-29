@@ -144,21 +144,21 @@ it('returns 404 when accessing marketing from other company', function () {
 // STORE — READ-ONLY (405)
 // =============================
 
-it('returns 405 when trying to store marketing via POS', function () {
+it('returns 404 when trying to store marketing via POS (read-only)', function () {
     $this->actingAs($this->user)
         ->postJson('/api/v1/marketings', [
             'name'    => 'Ahmad Fauzi',
             'email'   => 'ahmad@example.com',
             'phone'   => '08123456789',
         ])
-        ->assertStatus(405);
+        ->assertStatus(404);
 });
 
 // =============================
-// UPDATE — READ-ONLY (405)
+// UPDATE — READ-ONLY (404)
 // =============================
 
-it('returns 405 when trying to update marketing via POS', function () {
+it('returns 404 when trying to update marketing via POS (read-only)', function () {
     $marketing = User::factory()->marketing()->create([
         'company_id' => $this->company->id,
     ]);
@@ -167,19 +167,19 @@ it('returns 405 when trying to update marketing via POS', function () {
         ->patchJson("/api/v1/marketings/{$marketing->uuid}", [
             'name' => 'Updated Name',
         ])
-        ->assertStatus(405);
+        ->assertStatus(404);
 });
 
 // =============================
-// DESTROY — READ-ONLY (405)
+// DESTROY — READ-ONLY (404)
 // =============================
 
-it('returns 405 when trying to delete marketing via POS', function () {
+it('returns 404 when trying to delete marketing via POS (read-only)', function () {
     $marketing = User::factory()->marketing()->create([
         'company_id' => $this->company->id,
     ]);
 
     $this->actingAs($this->user)
         ->deleteJson("/api/v1/marketings/{$marketing->uuid}")
-        ->assertStatus(405);
+        ->assertStatus(404);
 });

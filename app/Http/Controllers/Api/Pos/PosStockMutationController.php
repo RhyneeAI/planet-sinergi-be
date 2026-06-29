@@ -8,11 +8,14 @@ use App\Http\Requests\Pos\PosStockMutationRequest;
 use App\Http\Resources\Pos\PosStockMutationResource;
 use App\Models\PosProduct;
 use App\Models\PosStockMutation;
+use App\Http\Traits\DataTablesResponse;
 use App\Services\Pos\PosStockMutationService;
 use Illuminate\Http\Request;
 
 class PosStockMutationController extends Controller
 {
+    use DataTablesResponse;
+
     public function __construct(
         protected PosStockMutationService $stockMutationService,
     ) {}
@@ -60,17 +63,19 @@ class PosStockMutationController extends Controller
 
         $products = $products->paginate($request->input('per_page', 15));
 
-        return response()->json([
-            'success' => true,
-            'message' => __('pos.stock_mutations.product_list'),
-            'data' => PosStockMutationResource::collection($products),
-            'meta' => [
-                'current_page' => $products->currentPage(),
-                'per_page' => $products->perPage(),
-                'total' => $products->total(),
-                'last_page' => $products->lastPage(),
-            ],
-        ]);
+        return response()->json(
+            $this->dataTablesResponse($request, $products, [
+                'success' => true,
+                'message' => __('pos.stock_mutations.product_list'),
+                'data' => PosStockMutationResource::collection($products),
+                'meta' => [
+                    'current_page' => $products->currentPage(),
+                    'per_page' => $products->perPage(),
+                    'total' => $products->total(),
+                    'last_page' => $products->lastPage(),
+                ],
+            ])
+        );
     }
 
     public function store(PosStockMutationRequest $request)

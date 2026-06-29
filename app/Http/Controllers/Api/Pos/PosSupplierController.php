@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Api\Pos;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Pos\PosSupplierRequest;
 use App\Http\Resources\Pos\PosSupplierResource;
+use App\Http\Traits\DataTablesResponse;
 use App\Models\PosSupplier;
 use Illuminate\Http\Request;
 
 class PosSupplierController extends Controller
 {
+    use DataTablesResponse;
+
     protected array $sortableColumns = ['name', 'created_at'];
 
     public function index(Request $request)
@@ -28,11 +31,13 @@ class PosSupplierController extends Controller
             ->orderBy($orderByKey, $orderByValue)
             ->paginate($request->input('per_page', 15));
 
-        return response()->json([
-            'success' => true,
-            'message' => __('pos.suppliers.list'),
-            'data' => PosSupplierResource::collection($suppliers),
-        ]);
+        return response()->json(
+            $this->dataTablesResponse($request, $suppliers, [
+                'success' => true,
+                'message' => __('pos.suppliers.list'),
+                'data' => PosSupplierResource::collection($suppliers),
+            ])
+        );
     }
 
     public function store(PosSupplierRequest $request)

@@ -19,12 +19,14 @@ use App\Services\Operational\OpsNotificationService;
 use App\Services\Operational\OpsOperationalConfigService;
 use App\Services\Operational\OpsWalletService;
 use App\Services\SubCompanyService;
+use App\Http\Traits\DataTablesResponse;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class OpsExpenseController extends Controller
 {
+    use DataTablesResponse;
     use ReturnsEmptyShowResponse;
     use ScopesOperationalBySubCompany;
     use HandlesOperationalProofFiles;
@@ -604,11 +606,13 @@ class OpsExpenseController extends Controller
             ->orderBy($orderByKey, $orderByValue)
             ->paginate($request->input('per_page', 15));
 
-        return response()->json([
-            'success' => true,
-            'message' => __('operational.expenses.list'),
-            'data' => OpsExpenseResource::collection($expenses),
-        ]);
+        return response()->json(
+            $this->dataTablesResponse($request, $expenses, [
+                'success' => true,
+                'message' => __('operational.expenses.list'),
+                'data' => OpsExpenseResource::collection($expenses),
+            ])
+        );
     }
 
     protected function showResponse(OpsExpense $opsExpense)

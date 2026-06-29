@@ -7,11 +7,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Operational\OpsMarketingRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Http\Traits\DataTablesResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class OpsMarketingController extends Controller
 {
+    use DataTablesResponse;
+
     protected array $sortableColumns = ['name', 'phone', 'email', 'created_at'];
 
     public function index(Request $request)
@@ -33,11 +36,13 @@ class OpsMarketingController extends Controller
             ->orderBy($orderByKey, $orderByValue)
             ->paginate($request->input('per_page', 15));
 
-        return response()->json([
-            'success' => true,
-            'message' => __('operational.marketings.list'),
-            'data'    => UserResource::collection($marketings),
-        ]);
+        return response()->json(
+            $this->dataTablesResponse($request, $marketings, [
+                'success' => true,
+                'message' => __('operational.marketings.list'),
+                'data'    => UserResource::collection($marketings),
+            ])
+        );
     }
 
     public function store(OpsMarketingRequest $request)

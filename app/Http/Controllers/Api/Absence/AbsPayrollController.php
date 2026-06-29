@@ -12,11 +12,14 @@ use App\Models\AbsAttendance;
 use App\Models\AbsBonus;
 use App\Models\AbsDeduction;
 use App\Models\AbsPayrollPeriod;
+use App\Http\Traits\DataTablesResponse;
 use App\Services\Absence\AbsPayrollService;
 use Illuminate\Http\Request;
 
 class AbsPayrollController extends Controller
 {
+    use DataTablesResponse;
+
     public function __construct(
         protected AbsPayrollService $payrollService,
     ) {}
@@ -36,11 +39,13 @@ class AbsPayrollController extends Controller
             ->orderBy($orderByKey, $orderByValue)
             ->paginate($request->input('per_page', 15));
 
-        return response()->json([
-            'success' => true,
-            'message' => __('absence.payroll.list'),
-            'data' => AbsPayrollPeriodResource::collection($records),
-        ]);
+        return response()->json(
+            $this->dataTablesResponse($request, $records, [
+                'success' => true,
+                'message' => __('absence.payroll.list'),
+                'data' => AbsPayrollPeriodResource::collection($records),
+            ])
+        );
     }
 
     public function generate(Request $request)

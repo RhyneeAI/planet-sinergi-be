@@ -8,12 +8,15 @@ use App\Http\Resources\Operational\OpsEmployeeResource;
 use App\Models\User;
 use App\Services\Absence\AbsEmployeeProfileService;
 use Illuminate\Http\Request;
+use App\Http\Traits\DataTablesResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
 class OpsEmployeeController extends Controller
 {
+    use DataTablesResponse;
+
     public function __construct(
         protected AbsEmployeeProfileService $employeeProfileService,
     ) {}
@@ -41,11 +44,13 @@ class OpsEmployeeController extends Controller
             ->orderBy($orderByKey, $orderByValue)
             ->paginate($request->input('per_page', 15));
 
-        return response()->json([
-            'success' => true,
-            'message' => __('operational.employees.list'),
-            'data' => OpsEmployeeResource::collection($employees),
-        ]);
+        return response()->json(
+            $this->dataTablesResponse($request, $employees, [
+                'success' => true,
+                'message' => __('operational.employees.list'),
+                'data' => OpsEmployeeResource::collection($employees),
+            ])
+        );
     }
 
     public function store(OpsEmployeeRequest $request)

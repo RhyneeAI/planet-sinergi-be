@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Api\Pos;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Pos\PosUnitRequest;
 use App\Http\Resources\Pos\PosUnitResource;
+use App\Http\Traits\DataTablesResponse;
 use App\Models\PosUnit;
 use Illuminate\Http\Request;
 
 class PosUnitController extends Controller
 {
+    use DataTablesResponse;
+
     protected array $sortableColumns = ['name', 'created_at'];
 
     public function index(Request $request)
@@ -28,11 +31,13 @@ class PosUnitController extends Controller
             ->orderBy($orderByKey, $orderByValue)
             ->paginate($request->input('per_page', 15));
 
-        return response()->json([
-            'success' => true,
-            'message' => __('pos.units.list'),
-            'data' => PosUnitResource::collection($units),
-        ]);
+        return response()->json(
+            $this->dataTablesResponse($request, $units, [
+                'success' => true,
+                'message' => __('pos.units.list'),
+                'data' => PosUnitResource::collection($units),
+            ])
+        );
     }
 
     public function store(PosUnitRequest $request)
