@@ -9,7 +9,6 @@ use App\Exports\OpsIncomeExpenseExport;
 use App\Helpers\FileHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Operational\OpsReportRequest;
-use App\Http\Traits\DataTablesResponse;
 use App\Models\OpsExpense;
 use App\Models\OpsIncome;
 use App\Models\User;
@@ -19,14 +18,12 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 
 class OpsReportController extends Controller
 {
-    use DataTablesResponse;
     public function __construct(
         protected ExportService $exportService,
         protected OpsFileService $fileService,
@@ -195,8 +192,7 @@ class OpsReportController extends Controller
             $hasMandorData = $incomes->isNotEmpty()
                 || $expenses->isNotEmpty()
                 || $mandorSaldoAwalIncome > 0
-                || $mandorSaldoAwalExpense > 0
-                || $mandorSubCompanies->isNotEmpty();
+                || $mandorSaldoAwalExpense > 0;
 
             if ($hasMandorData) {
                 $totalIncome  = (float) $incomes->sum('amount');
@@ -390,10 +386,10 @@ class OpsReportController extends Controller
                 ->value('id');
 
             $incomes->where('mandor_id', $mandorId);
-            $expenses->where('mandor_id', $mandorId);
+            $expenses->where('mandor_id', $mandorId)->where('expense_type', '!=', OpsExpenseType::MANDOR);
         } elseif ($isKepala) {
             $incomes->whereNotNull('mandor_id');
-            $expenses->whereNotNull('mandor_id');
+            $expenses->whereNotNull('mandor_id')->where('expense_type', '!=', OpsExpenseType::MANDOR);
         } else {
             $incomes->whereNull('mandor_id');
             $expenses->where(function (Builder $q) {
@@ -410,8 +406,7 @@ class OpsReportController extends Controller
         $expenses->whereDate('date', '>=', $startDate)
             ->whereDate('date', '<=', $endDate)
             ->orderBy('date')
-            ->orderBy('created_at')
-            ->with(['mandor', 'subCompany']);
+            ->orderBy('created_at');
 
         $incomeResults = $incomes->get()->map(fn ($income) => [
             'type'           => 'income',
@@ -435,45 +430,27 @@ class OpsReportController extends Controller
             'expense_type'   => $expense->expense_type->value,
             'note'           => $expense->note,
             'proof_files'    => $this->mapProofFiles($expense->proof_files ?? []),
-            'mandor'         => $expense->mandor ? [
-                'uuid' => $expense->mandor->uuid,
-                'name' => $expense->mandor->name,
-            ] : null,
-            'sub_company'    => $expense->subCompany ? [
-                'uuid' => $expense->subCompany->uuid,
-                'name' => $expense->subCompany->name,
-                'code' => $expense->subCompany->code,
-            ] : null,
         ]);
 
         $merged = $incomeResults->concat($expenseResults)
             ->sortBy('date')
             ->values();
 
-        $page  = (int) $request->integer('page', 1);
+        $page = $request->integer('page', 1);
         $total = $merged->count();
         $items = $merged->forPage($page, $perPage)->values();
 
-        $paginator = new LengthAwarePaginator(
-            $items,
-            $total,
-            (int) $perPage,
-            $page,
-        );
-
-        return response()->json(
-            $this->dataTablesResponse($request, $paginator, [
-                'success' => true,
-                'message' => __('operational.report.income_expense_detail'),
-                'data' => $items,
-                'meta' => [
-                    'current_page' => $paginator->currentPage(),
-                    'per_page'     => $paginator->perPage(),
-                    'total'        => $paginator->total(),
-                    'last_page'    => $paginator->lastPage(),
-                ],
-            ])
-        );
+        return response()->json([
+            'success' => true,
+            'message' => __('operational.report.income_expense_detail'),
+            'data' => $items,
+            'meta' => [
+                'current_page' => $page,
+                'per_page'     => (int) $perPage,
+                'total'        => $total,
+                'last_page'    => max(1, (int) ceil($total / $perPage)),
+            ],
+        ]);
     }
 
     protected function generatePdf($request, array $data): string
