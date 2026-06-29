@@ -195,7 +195,8 @@ class OpsReportController extends Controller
             $hasMandorData = $incomes->isNotEmpty()
                 || $expenses->isNotEmpty()
                 || $mandorSaldoAwalIncome > 0
-                || $mandorSaldoAwalExpense > 0;
+                || $mandorSaldoAwalExpense > 0
+                || $mandorSubCompanies->isNotEmpty();
 
             if ($hasMandorData) {
                 $totalIncome  = (float) $incomes->sum('amount');
