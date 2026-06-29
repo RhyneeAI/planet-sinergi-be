@@ -9,6 +9,7 @@ use App\Exports\OpsIncomeExpenseExport;
 use App\Helpers\FileHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Operational\OpsReportRequest;
+use App\Http\Traits\DataTablesResponse;
 use App\Models\OpsExpense;
 use App\Models\OpsIncome;
 use App\Models\User;
@@ -18,12 +19,14 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 
 class OpsReportController extends Controller
 {
+    use DataTablesResponse;
     public function __construct(
         protected ExportService $exportService,
         protected OpsFileService $fileService,
@@ -103,9 +106,7 @@ class OpsReportController extends Controller
         $saldoAwalMethods   = $this->paymentMethodSaldo($incomeQuery, $expenseQuery, '<', $startDate);
         $saldoAkhirMethods  = $this->paymentMethodSaldo($incomeQuery, $expenseQuery, '<=', $endDate);
 
-        $mandorRoles = $isKepala
-            ? [Role::MANDOR, Role::KEPALA_MANDOR]
-            : [Role::MANDOR];
+        $mandorRoles = [Role::MANDOR, Role::KEPALA_MANDOR];
 
         $mandors = User::where('company_id', $companyId)
             ->whereIn('role', $mandorRoles)
@@ -438,21 +439,30 @@ class OpsReportController extends Controller
             ->sortBy('date')
             ->values();
 
-        $page = $request->integer('page', 1);
+        $page  = (int) $request->integer('page', 1);
         $total = $merged->count();
         $items = $merged->forPage($page, $perPage)->values();
 
-        return response()->json([
-            'success' => true,
-            'message' => __('operational.report.income_expense_detail'),
-            'data' => $items,
-            'meta' => [
-                'current_page' => $page,
-                'per_page'     => (int) $perPage,
-                'total'        => $total,
-                'last_page'    => max(1, (int) ceil($total / $perPage)),
-            ],
-        ]);
+        $paginator = new LengthAwarePaginator(
+            $items,
+            $total,
+            (int) $perPage,
+            $page,
+        );
+
+        return response()->json(
+            $this->dataTablesResponse($request, $paginator, [
+                'success' => true,
+                'message' => __('operational.report.income_expense_detail'),
+                'data' => $items,
+                'meta' => [
+                    'current_page' => $paginator->currentPage(),
+                    'per_page'     => $paginator->perPage(),
+                    'total'        => $paginator->total(),
+                    'last_page'    => $paginator->lastPage(),
+                ],
+            ])
+        );
     }
 
     protected function generatePdf($request, array $data): string
