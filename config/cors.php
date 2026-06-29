@@ -25,7 +25,11 @@ return [
         'https://www.planetsinergi.com',
         'https://operational.planetsinergi.com',
         'https://staging.planetsinergi.com',
-        'https://operational-gp.vercel.app'
+        'https://operational-gp.vercel.app',
+
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'http://localhost:8000',
     ],
 
     'allowed_origins_patterns' => [],
