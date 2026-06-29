@@ -16,6 +16,12 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1/operational')->middleware(['auth:sanctum'])->group(function () {
 
+    Route::middleware(['role:SUPERADMIN,OWNER,ADMIN'])->group(function () {
+
+        Route::get('incomes/pusat', [OpsIncomeController::class, 'pusat']);
+        Route::get('expenses/pusat', [OpsExpenseController::class, 'pusat']);
+    });
+
     Route::middleware(['role:SUPERADMIN,OWNER,ADMIN,MANDOR,KEPALA_MANDOR'])->group(function () {
 
         Route::get('dashboard/admin', [OpsDashboardController::class, 'adminDashboard']);

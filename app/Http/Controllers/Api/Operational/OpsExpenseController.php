@@ -45,6 +45,32 @@ class OpsExpenseController extends Controller
         return $this->indexResponse($request);
     }
 
+    public function pusat(Request $request)
+    {
+        $orderByKey = in_array($request->input('order_by_key', 'date'), $this->sortableColumns)
+            ? $request->input('order_by_key', 'date')
+            : 'date';
+        $orderByValue = strtoupper($request->input('order_by_value', 'DESC')) === 'ASC' ? 'ASC' : 'DESC';
+
+        $expenses = OpsExpense::with(['createdBy'])
+            ->where('expense_type', OpsExpenseType::INTERNAL)
+            ->when($request->date_from, fn($q, $date) => $q->whereDate('date', '>=', $date))
+            ->when($request->date_to, fn($q, $date) => $q->whereDate('date', '<=', $date))
+            ->when($request->search, function ($query, $search) {
+                $query->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($search) . '%']);
+            })
+            ->orderBy($orderByKey, $orderByValue)
+            ->paginate($request->input('per_page', 15));
+
+        return response()->json(
+            $this->dataTablesResponse($request, $expenses, [
+                'success' => true,
+                'message' => __('operational.expenses.list'),
+                'data' => OpsExpenseResource::collection($expenses),
+            ])
+        );
+    }
+
     public function store(OpsExpenseRequest $request)
     {
         if ($response = $this->validateOperationalStoreDate('expense', $request->date)) {
