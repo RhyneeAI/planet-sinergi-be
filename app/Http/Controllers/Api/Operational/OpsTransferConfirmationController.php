@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\Operational\ReturnsEmptyShowResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Operational\OpsTransferConfirmationRequest;
 use App\Http\Resources\Operational\OpsTransferConfirmationResource;
+use App\Models\OpsExpense;
 use App\Models\OpsIncome;
 use App\Models\OpsTransferConfirmation;
 use App\Services\Operational\OpsFileService;
@@ -168,18 +169,27 @@ class OpsTransferConfirmationController extends Controller
             ], 422);
         }
 
-        $opsTransferConfirmation->update([
-            'status' => OpsTransferConfirmationStatus::REJECTED,
-            'confirmed_at' => now(),
-            'note' => $request->input('note'),
-            'confirmed_by' => $user->id,
-        ]);
+        $income = $this->transferAccess->resolveIncome($opsTransferConfirmation);
+
+        DB::transaction(function () use ($opsTransferConfirmation, $income, $request, $user) {
+            $opsTransferConfirmation->update([
+                'status' => OpsTransferConfirmationStatus::REJECTED,
+                'confirmed_at' => now(),
+                'note' => $request->input('note'),
+                'confirmed_by' => $user->id,
+            ]);
+
+            if ($income) {
+                OpsIncome::where('id', $income->id)->delete();
+                OpsExpense::where('transfer_income_id', $income->id)->delete();
+            }
+        });
 
         return response()->json([
             'success' => true,
             'message' => __('operational.confirmations.rejected'),
             'data' => new OpsTransferConfirmationResource(
-                $opsTransferConfirmation->fresh()->load(['confirmable.subCompany', 'confirmable.mandor', 'confirmedBy'])
+                $opsTransferConfirmation->fresh()->load(['confirmable' => fn ($q) => $q->withTrashed(), 'confirmable.subCompany', 'confirmable.mandor', 'confirmedBy'])
             ),
         ]);
     }
