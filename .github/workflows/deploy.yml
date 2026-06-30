@@ -26,11 +26,6 @@ on:
         default: false
         type: boolean
 
-env:
-  SSH_USER: ${{ vars.SSH_USER }}
-  SSH_HOST: ${{ vars.SSH_HOST }}
-  SSH_PORT: ${{ vars.SSH_PORT || '22' }}
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -45,45 +40,56 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -p $SSH_PORT $SSH_HOST >> ~/.ssh/known_hosts
+          ssh-keyscan -p ${{ secrets.SSH_PORT || '22' }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
       - name: Execute deploy
+        env:
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT || '22' }}
+          DEPLOY_PATH_STAGING: ${{ secrets.DEPLOY_PATH_STAGING }}
+          DEPLOY_PATH_PRODUCTION: ${{ secrets.DEPLOY_PATH_PRODUCTION }}
+          PHP_BIN: ${{ secrets.PHP_BIN }}
+          COMPOSER_BIN: ${{ secrets.COMPOSER_BIN }}
         run: |
-          ssh -p $SSH_PORT $SSH_USER@$SSH_HOST << 'ENDSSH'
+          DEPLOY_PATH="$DEPLOY_PATH_STAGING"
+          if [ "${{ github.event.inputs.environment }}" = "production" ]; then
+            DEPLOY_PATH="$DEPLOY_PATH_PRODUCTION"
+          fi
+
+          if [ -z "$DEPLOY_PATH" ]; then
+            echo "Error: DEPLOY_PATH_$(echo ${{ github.event.inputs.environment }} | tr '[:lower:]' '[:upper:]') is not set"
+            exit 1
+          fi
+
+          PHP="${PHP_BIN:-php}"
+          COMPOSER="${COMPOSER_BIN:-composer}"
+
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" << ENDSSH
             set -e
-
-            DEPLOY_PATH="${{ vars.DEPLOY_PATH }}"
-            if [ "${{ github.event.inputs.environment }}" = "production" ]; then
-              DEPLOY_PATH="${{ vars.DEPLOY_PATH_PRODUCTION }}"
-            fi
-
             cd "$DEPLOY_PATH"
 
             git fetch origin
             git checkout ${{ github.event.inputs.branch }}
             git pull origin ${{ github.event.inputs.branch }}
 
-            # PHP version
-            PHP_BIN="${{ vars.PHP_BIN || 'php' }}"
-            COMPOSER_BIN="${{ vars.COMPOSER_BIN || 'composer' }}"
-
-            $COMPOSER_BIN install --no-dev --optimize-autoloader
+            $COMPOSER install --no-dev --optimize-autoloader
 
             if [ "${{ github.event.inputs.migrate }}" = "true" ]; then
-              $PHP_BIN artisan migrate --force
+              $PHP artisan migrate --force
             fi
 
             if [ "${{ github.event.inputs.optimize }}" = "true" ]; then
-              $PHP_BIN artisan config:cache
-              $PHP_BIN artisan route:cache
-              $PHP_BIN artisan view:cache
+              $PHP artisan config:cache
+              $PHP artisan route:cache
+              $PHP artisan view:cache
             else
-              $PHP_BIN artisan config:clear
-              $PHP_BIN artisan route:clear
-              $PHP_BIN artisan view:clear
+              $PHP artisan config:clear
+              $PHP artisan route:clear
+              $PHP artisan view:clear
             fi
 
-            $PHP_BIN artisan queue:restart || true
+            $PHP artisan queue:restart || true
 
             echo "Deploy to ${{ github.event.inputs.environment }} complete"
           ENDSSH
