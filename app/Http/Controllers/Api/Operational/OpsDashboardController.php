@@ -152,6 +152,7 @@ class OpsDashboardController extends Controller
             ->sum('amount');
 
         $totalExpense = OpsExpense::where('mandor_id', $user->id)
+            ->where('expense_type', '!=', \App\Enums\OpsExpenseType::MANDOR)
             ->whereBetween('date', [$dateFrom, $dateTo])
             ->sum('amount');
 
