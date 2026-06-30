@@ -144,6 +144,14 @@ it('creates income visible in incomes index after confirm transfer', function ()
 
     $responseAll->assertOk()
         ->assertJsonFragment(['name' => 'Transfer Dana']);
+
+    $responseMandor = $this->actingAs($this->mandor)
+        ->getJson('/api/v1/operational/incomes');
+
+    $responseMandor->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.source_type', OpsSourceType::MANDOR->value)
+        ->assertJsonPath('data.0.name', 'Transfer Dana');
 });
 
 it('still lists transfer for original mandor after sub company reassignment', function () {
