@@ -6,7 +6,7 @@ on:
       environment:
         description: 'Target environment'
         required: true
-        default: 'staging'
+        default: 'production'
         type: choice
         options:
           - staging
@@ -19,11 +19,6 @@ on:
         description: 'Run migrations?'
         required: true
         default: true
-        type: boolean
-      optimize:
-        description: 'Cache config/route/view?'
-        required: true
-        default: false
         type: boolean
 
 jobs:
@@ -50,7 +45,6 @@ jobs:
           DEPLOY_PATH_STAGING: ${{ secrets.DEPLOY_PATH_STAGING }}
           DEPLOY_PATH_PRODUCTION: ${{ secrets.DEPLOY_PATH_PRODUCTION }}
           PHP_BIN: ${{ secrets.PHP_BIN }}
-          COMPOSER_BIN: ${{ secrets.COMPOSER_BIN }}
         run: |
           DEPLOY_PATH="$DEPLOY_PATH_STAGING"
           if [ "${{ github.event.inputs.environment }}" = "production" ]; then
@@ -58,35 +52,23 @@ jobs:
           fi
 
           if [ -z "$DEPLOY_PATH" ]; then
-            echo "Error: DEPLOY_PATH_$(echo ${{ github.event.inputs.environment }} | tr '[:lower:]' '[:upper:]') is not set"
+            echo "Error: DEPLOY_PATH for ${{ github.event.inputs.environment }} is not set"
             exit 1
           fi
 
           PHP="${PHP_BIN:-php}"
-          COMPOSER="${COMPOSER_BIN:-composer}"
 
           ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" << ENDSSH
             set -e
             cd "$DEPLOY_PATH"
 
             git fetch origin
-            git checkout ${{ github.event.inputs.branch }}
-            git pull origin ${{ github.event.inputs.branch }}
-
-            $COMPOSER install --no-dev --optimize-autoloader
+            git checkout -f ${{ github.event.inputs.branch }}
+            git clean -fd
+            git reset --hard origin/${{ github.event.inputs.branch }}
 
             if [ "${{ github.event.inputs.migrate }}" = "true" ]; then
               $PHP artisan migrate --force
-            fi
-
-            if [ "${{ github.event.inputs.optimize }}" = "true" ]; then
-              $PHP artisan config:cache
-              $PHP artisan route:cache
-              $PHP artisan view:cache
-            else
-              $PHP artisan config:clear
-              $PHP artisan route:clear
-              $PHP artisan view:clear
             fi
 
             $PHP artisan queue:restart || true
