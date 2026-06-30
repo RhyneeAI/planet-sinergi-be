@@ -81,8 +81,10 @@ class OpsExpenseController extends Controller
         $orderByValue = strtoupper($request->input('order_by_value', 'DESC')) === 'ASC' ? 'ASC' : 'DESC';
 
         $expenses = OpsExpense::with(['createdBy'])
-            ->where('expense_type', OpsExpenseType::INTERNAL)
-            ->whereNull('mandor_id')
+            ->where(function ($q) {
+                $q->where('expense_type', OpsExpenseType::INTERNAL)->whereNull('mandor_id')
+                  ->orWhere('expense_type', OpsExpenseType::MANDOR);
+            })
             ->when($request->date_from, fn($q, $date) => $q->whereDate('date', '>=', $date))
             ->when($request->date_to, fn($q, $date) => $q->whereDate('date', '<=', $date))
             ->when($request->search, function ($query, $search) {
