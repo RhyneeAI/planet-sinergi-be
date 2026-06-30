@@ -50,6 +50,7 @@ class OpsIncomeController extends Controller
 
         $incomes = OpsIncome::with(['createdBy'])
             ->where('source_type', OpsSourceType::INTERNAL)
+            ->whereNull('mandor_id')
             ->when($request->date_from, fn($q, $date) => $q->whereDate('date', '>=', $date))
             ->when($request->date_to, fn($q, $date) => $q->whereDate('date', '<=', $date))
             ->when($request->search, function ($query, $search) {

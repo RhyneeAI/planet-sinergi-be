@@ -54,6 +54,7 @@ class OpsExpenseController extends Controller
 
         $expenses = OpsExpense::with(['createdBy'])
             ->where('expense_type', OpsExpenseType::INTERNAL)
+            ->whereNull('mandor_id')
             ->when($request->date_from, fn($q, $date) => $q->whereDate('date', '>=', $date))
             ->when($request->date_to, fn($q, $date) => $q->whereDate('date', '<=', $date))
             ->when($request->search, function ($query, $search) {
