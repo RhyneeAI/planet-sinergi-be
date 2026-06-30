@@ -20,7 +20,7 @@ it('can get supplier list', function () {
     PosSupplier::factory(5)->create(['company_id' => $this->company->id]);
 
     $this->actingAs($this->user)
-        ->getJson('/api/v1/suppliers')
+        ->getJson('/api/v1/pos/suppliers')
         ->assertStatus(200)
         ->assertJsonStructure([
             'success',
@@ -38,7 +38,7 @@ it('only returns suppliers belonging to the same company', function () {
     PosSupplier::factory(2)->create(['company_id' => $this->company->id]);
 
     $response = $this->actingAs($this->user)
-        ->getJson('/api/v1/suppliers');
+        ->getJson('/api/v1/pos/suppliers');
 
     $response->assertStatus(200);
     expect($response->json('data'))->toHaveCount(2);
@@ -49,7 +49,7 @@ it('can filter suppliers by search name', function () {
     PosSupplier::factory()->create(['name' => 'Mouse Wireless', 'company_id' => $this->company->id]);
 
     $response = $this->actingAs($this->user)
-        ->getJson('/api/v1/suppliers?search=laptop');
+        ->getJson('/api/v1/pos/suppliers?search=laptop');
 
     expect($response->json('data'))->toHaveCount(1);
     expect($response->json('data.0.name'))->toBe('Laptop Gaming');
@@ -61,7 +61,7 @@ it('can sort suppliers by name', function () {
     PosSupplier::factory()->create(['name' => 'Banana', 'company_id' => $this->company->id]);
 
     $response = $this->actingAs($this->user)
-        ->getJson('/api/v1/suppliers?order_by_key=name&order_by_value=asc');
+        ->getJson('/api/v1/pos/suppliers?order_by_key=name&order_by_value=asc');
 
     expect($response->json('data.0.name'))->toBe('Apple');
     expect($response->json('data.1.name'))->toBe('Banana');
@@ -72,14 +72,14 @@ it('can paginate suppliers with custom per_page', function () {
     PosSupplier::factory(20)->create(['company_id' => $this->company->id]);
 
     $response = $this->actingAs($this->user)
-        ->getJson('/api/v1/suppliers?per_page=5');
+        ->getJson('/api/v1/pos/suppliers?per_page=5');
 
     $response->assertStatus(200);
     expect($response->json('data'))->toHaveCount(5);
 });
 
 it('returns 401 when not authenticated on index', function () {
-    $this->getJson('/api/v1/suppliers')->assertStatus(401);
+    $this->getJson('/api/v1/pos/suppliers')->assertStatus(401);
 });
 
 // =============================
@@ -88,7 +88,7 @@ it('returns 401 when not authenticated on index', function () {
 
 it('can create a supplier', function () {
     $this->actingAs($this->user)
-        ->postJson('/api/v1/suppliers', [
+        ->postJson('/api/v1/pos/suppliers', [
             'name'    => 'PT Maju Jaya',
             'address' => 'Jl. Sudirman No. 1',
             'phone'   => '08123456789',
@@ -100,7 +100,7 @@ it('can create a supplier', function () {
 
 it('can create a supplier without optional fields', function () {
     $this->actingAs($this->user)
-        ->postJson('/api/v1/suppliers', ['name' => 'PT Maju Jaya'])
+        ->postJson('/api/v1/pos/suppliers', ['name' => 'PT Maju Jaya'])
         ->assertStatus(201)
         ->assertJsonPath('data.address', null)
         ->assertJsonPath('data.phone', null);
@@ -108,14 +108,14 @@ it('can create a supplier without optional fields', function () {
 
 it('returns 422 when name is empty on store', function () {
     $this->actingAs($this->user)
-        ->postJson('/api/v1/suppliers', ['name' => ''])
+        ->postJson('/api/v1/pos/suppliers', ['name' => ''])
         ->assertStatus(422)
         ->assertJsonPath('success', false);
 });
 
 it('returns 422 when name exceeds 255 characters', function () {
     $this->actingAs($this->user)
-        ->postJson('/api/v1/suppliers', ['name' => str_repeat('a', 256)])
+        ->postJson('/api/v1/pos/suppliers', ['name' => str_repeat('a', 256)])
         ->assertStatus(422);
 });
 
@@ -126,7 +126,7 @@ it('returns 422 when name is duplicate within same company', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->postJson('/api/v1/suppliers', ['name' => 'PT Maju Jaya'])
+        ->postJson('/api/v1/pos/suppliers', ['name' => 'PT Maju Jaya'])
         ->assertStatus(422);
 });
 
@@ -138,13 +138,13 @@ it('allows same supplier name in different companies', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->postJson('/api/v1/suppliers', ['name' => 'PT Maju Jaya'])
+        ->postJson('/api/v1/pos/suppliers', ['name' => 'PT Maju Jaya'])
         ->assertStatus(201);
 });
 
 it('returns 422 when phone format is invalid', function () {
     $this->actingAs($this->user)
-        ->postJson('/api/v1/suppliers', [
+        ->postJson('/api/v1/pos/suppliers', [
             'name'  => 'PT Maju Jaya',
             'phone' => 'abc-invalid',
         ])
@@ -153,7 +153,7 @@ it('returns 422 when phone format is invalid', function () {
 
 it('returns 422 when phone exceeds 20 characters', function () {
     $this->actingAs($this->user)
-        ->postJson('/api/v1/suppliers', [
+        ->postJson('/api/v1/pos/suppliers', [
             'name'  => 'PT Maju Jaya',
             'phone' => '081234567890123456789',
         ])
@@ -161,7 +161,7 @@ it('returns 422 when phone exceeds 20 characters', function () {
 });
 
 it('returns 401 when not authenticated on store', function () {
-    $this->postJson('/api/v1/suppliers', ['name' => 'PT Maju Jaya'])
+    $this->postJson('/api/v1/pos/suppliers', ['name' => 'PT Maju Jaya'])
         ->assertStatus(401);
 });
 
@@ -173,7 +173,7 @@ it('can get supplier detail', function () {
     $supplier = PosSupplier::factory()->create(['company_id' => $this->company->id]);
 
     $this->actingAs($this->user)
-        ->getJson("/api/v1/suppliers/{$supplier->uuid}")
+        ->getJson("/api/v1/pos/suppliers/{$supplier->uuid}")
         ->assertStatus(200)
         ->assertJsonPath('success', true)
         ->assertJsonPath('data.uuid', $supplier->uuid);
@@ -181,7 +181,7 @@ it('can get supplier detail', function () {
 
 it('returns 404 when supplier not found on show', function () {
     $this->actingAs($this->user)
-        ->getJson('/api/v1/suppliers/uuid-tidak-ada')
+        ->getJson('/api/v1/pos/suppliers/uuid-tidak-ada')
         ->assertStatus(404);
 });
 
@@ -190,7 +190,7 @@ it('returns 404 when accessing supplier from other company', function () {
     $supplier     = PosSupplier::factory()->create(['company_id' => $otherCompany->id]);
 
     $this->actingAs($this->user)
-        ->getJson("/api/v1/suppliers/{$supplier->uuid}")
+        ->getJson("/api/v1/pos/suppliers/{$supplier->uuid}")
         ->assertStatus(404);
 });
 
@@ -202,7 +202,7 @@ it('can update a supplier', function () {
     $supplier = PosSupplier::factory()->create(['company_id' => $this->company->id]);
 
     $this->actingAs($this->user)
-        ->patchJson("/api/v1/suppliers/{$supplier->uuid}", ['name' => 'PT Updated'])
+        ->patchJson("/api/v1/pos/suppliers/{$supplier->uuid}", ['name' => 'PT Updated'])
         ->assertStatus(200)
         ->assertJsonPath('data.name', 'PT Updated');
 });
@@ -214,7 +214,7 @@ it('can partial update (PATCH) supplier without sending all fields', function ()
     ]);
 
     $this->actingAs($this->user)
-        ->patchJson("/api/v1/suppliers/{$supplier->uuid}", [])
+        ->patchJson("/api/v1/pos/suppliers/{$supplier->uuid}", [])
         ->assertStatus(200)
         ->assertJsonPath('data.name', 'PT Original');
 });
@@ -227,7 +227,7 @@ it('can update only address without affecting other fields', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->patchJson("/api/v1/suppliers/{$supplier->uuid}", [
+        ->patchJson("/api/v1/pos/suppliers/{$supplier->uuid}", [
             'address' => 'Jl. Baru No. 99',
         ])
         ->assertStatus(200)
@@ -248,7 +248,7 @@ it('returns 422 when updating with duplicate name', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->patchJson("/api/v1/suppliers/{$supplier->uuid}", ['name' => 'PT Maju Jaya'])
+        ->patchJson("/api/v1/pos/suppliers/{$supplier->uuid}", ['name' => 'PT Maju Jaya'])
         ->assertStatus(422);
 });
 
@@ -257,13 +257,13 @@ it('returns 404 when updating supplier from other company', function () {
     $supplier     = PosSupplier::factory()->create(['company_id' => $otherCompany->id]);
 
     $this->actingAs($this->user)
-        ->patchJson("/api/v1/suppliers/{$supplier->uuid}", ['name' => 'Hacked'])
+        ->patchJson("/api/v1/pos/suppliers/{$supplier->uuid}", ['name' => 'Hacked'])
         ->assertStatus(404);
 });
 
 it('returns 404 when updating non-existent supplier', function () {
     $this->actingAs($this->user)
-        ->patchJson('/api/v1/suppliers/invalid-uuid', ['name' => 'New Name'])
+        ->patchJson('/api/v1/pos/suppliers/invalid-uuid', ['name' => 'New Name'])
         ->assertStatus(404);
 });
 
@@ -275,7 +275,7 @@ it('can delete a supplier', function () {
     $supplier = PosSupplier::factory()->create(['company_id' => $this->company->id]);
 
     $this->actingAs($this->user)
-        ->deleteJson("/api/v1/suppliers/{$supplier->uuid}")
+        ->deleteJson("/api/v1/pos/suppliers/{$supplier->uuid}")
         ->assertStatus(200)
         ->assertJsonPath('success', true);
 
@@ -291,7 +291,7 @@ it('returns 422 when deleting supplier that has purchase transactions', function
     ]);
 
     $this->actingAs($this->user)
-        ->deleteJson("/api/v1/suppliers/{$supplier->uuid}")
+        ->deleteJson("/api/v1/pos/suppliers/{$supplier->uuid}")
         ->assertStatus(422)
         ->assertJsonPath('success', false);
 });
@@ -301,19 +301,19 @@ it('returns 404 when deleting supplier from other company', function () {
     $supplier     = PosSupplier::factory()->create(['company_id' => $otherCompany->id]);
 
     $this->actingAs($this->user)
-        ->deleteJson("/api/v1/suppliers/{$supplier->uuid}")
+        ->deleteJson("/api/v1/pos/suppliers/{$supplier->uuid}")
         ->assertStatus(404);
 });
 
 it('returns 404 when deleting non-existent supplier', function () {
     $this->actingAs($this->user)
-        ->deleteJson('/api/v1/suppliers/invalid-uuid')
+        ->deleteJson('/api/v1/pos/suppliers/invalid-uuid')
         ->assertStatus(404);
 });
 
 it('returns 401 when not authenticated on delete', function () {
     $supplier = PosSupplier::factory()->create(['company_id' => $this->company->id]);
 
-    $this->deleteJson("/api/v1/suppliers/{$supplier->uuid}")
+    $this->deleteJson("/api/v1/pos/suppliers/{$supplier->uuid}")
         ->assertStatus(401);
 });

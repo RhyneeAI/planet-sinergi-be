@@ -25,4 +25,5 @@ Homestead.yaml
 Thumbs.db
 *.sqlite
 gudang_planet
+gudang_planet_testing
 .aider*

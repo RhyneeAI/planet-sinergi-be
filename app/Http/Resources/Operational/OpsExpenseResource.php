@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Operational;
 
+use App\Http\Resources\Operational\OpsTransferConfirmationResource;
 use App\Services\Operational\OpsFileService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -39,6 +40,7 @@ class OpsExpenseResource extends JsonResource
             'edit_logs' => $this->whenLoaded('editLogs', fn() => OpsEditLogResource::collection($this->editLogs)),
             'edit_count' => $this->when(isset($this->edit_logs_count), fn() => (int) $this->edit_logs_count),
             'transfer_income' => $this->whenLoaded('transferIncome', fn () => new OpsIncomeResource($this->transferIncome)),
+            'transfer_confirmation' => $this->whenLoaded('transferConfirmation', fn () => new OpsTransferConfirmationResource($this->transferConfirmation)),
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
         ];

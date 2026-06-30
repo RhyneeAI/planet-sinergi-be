@@ -43,7 +43,7 @@ it('can get home dashboard with day period', function () {
     ]);
 
     $response = $this->actingAs($this->user)
-        ->getJson('/api/v1/home?period=day');
+        ->getJson('/api/v1/pos/home?period=day');
 
     $response->assertStatus(200)
         ->assertJsonPath('success', true)
@@ -70,7 +70,7 @@ it('can get home dashboard with month period', function () {
     ]);
 
     $response = $this->actingAs($this->user)
-        ->getJson('/api/v1/home?period=month');
+        ->getJson('/api/v1/pos/home?period=month');
 
     $response->assertStatus(200)
         ->assertJsonPath('data.period', 'month')
@@ -96,7 +96,7 @@ it('can get home dashboard with year period', function () {
     ]);
 
     $response = $this->actingAs($this->user)
-        ->getJson('/api/v1/home?period=year');
+        ->getJson('/api/v1/pos/home?period=year');
 
     $response->assertStatus(200)
         ->assertJsonPath('data.period', 'year')
@@ -111,7 +111,7 @@ it('defaults to day period when period is not provided', function () {
     PosProduct::factory(1)->create(['company_id' => $this->company->id]);
 
     $response = $this->actingAs($this->user)
-        ->getJson('/api/v1/home');
+        ->getJson('/api/v1/pos/home');
 
     $response->assertStatus(200)
         ->assertJsonPath('data.period', 'day');
@@ -119,7 +119,7 @@ it('defaults to day period when period is not provided', function () {
 
 it('returns 422 when period is invalid', function () {
     $this->actingAs($this->user)
-        ->getJson('/api/v1/home?period=invalid')
+        ->getJson('/api/v1/pos/home?period=invalid')
         ->assertStatus(422)
         ->assertJsonPath('success', false);
 });
@@ -134,7 +134,7 @@ it('only returns data for users company', function () {
     User::factory(5)->marketing()->create(['company_id' => $this->otherCompany->id]);
 
     $response = $this->actingAs($this->user)
-        ->getJson('/api/v1/home?period=day');
+        ->getJson('/api/v1/pos/home?period=day');
 
     $response->assertStatus(200)
         ->assertJsonPath('data.total_products', 5)
@@ -143,7 +143,7 @@ it('only returns data for users company', function () {
 
 it('returns zero values when no data exists', function () {
     $response = $this->actingAs($this->user)
-        ->getJson('/api/v1/home?period=day');
+        ->getJson('/api/v1/pos/home?period=day');
 
     $response->assertStatus(200)
         ->assertJsonPath('data.total_products', 0)
@@ -173,7 +173,7 @@ it('excludes sales transactions outside the period', function () {
     ]);
 
     $response = $this->actingAs($this->user)
-        ->getJson('/api/v1/home?period=day');
+        ->getJson('/api/v1/pos/home?period=day');
 
     // Day period should only include today
     $response->assertStatus(200)
@@ -182,13 +182,13 @@ it('excludes sales transactions outside the period', function () {
 });
 
 it('returns 401 when not authenticated', function () {
-    $this->getJson('/api/v1/home')
+    $this->getJson('/api/v1/pos/home')
         ->assertStatus(401);
 });
 
 it('response has correct json structure', function () {
     $response = $this->actingAs($this->user)
-        ->getJson('/api/v1/home');
+        ->getJson('/api/v1/pos/home');
 
     $response->assertStatus(200)
         ->assertJsonStructure([

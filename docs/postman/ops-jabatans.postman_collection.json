@@ -1,0 +1,233 @@
+{
+  "info": {
+    "name": "Gudang Planet — Ops Jabatans",
+    "description": "Collection untuk endpoint Management Jabatan modul Operasional.\n\n**Base URL:** `{{base_url}}/api/v1/operational/jabatans`\n\n**Auth:** Bearer token dari `POST /api/v1/login`.\n\n**Salary edit log:** Perubahan `daily_rate` otomatis tercatat di `GET /api/v1/operational/edit-logs` dengan `loggable_type: 'abs_jabatans'`.\n\n**Demo credentials (company 1):**\n| Role | Phone | Password |\n|------|-------|----------|\n| SUPERADMIN | 085155118899 | superadmin_gp |\n| ADMIN | 081122223333 | admin_gp |\n| HRD | 081155556666 | hrd_gp |",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000", "type": "string" },
+    { "key": "token", "value": "", "type": "string" },
+    { "key": "uuid", "value": "", "type": "string" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data.token) {",
+                  "    pm.collectionVariables.set('token', json.data.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"081122223333\",\n  \"password\": \"admin_gp\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "login"]
+            },
+            "description": "Login sebagai ADMIN. Token otomatis disimpan ke collection variable `token`."
+          }
+        },
+        {
+          "name": "Login (HRD)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data.token) {",
+                  "    pm.collectionVariables.set('token', json.data.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"081155556666\",\n  \"password\": \"hrd_gp\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "login"]
+            },
+            "description": "Login sebagai HRD. Token otomatis disimpan ke collection variable `token`."
+          }
+        }
+      ]
+    },
+    {
+      "name": "List Jabatans",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const json = pm.response.json();",
+              "if (json.data && json.data.data && json.data.data.length > 0) {",
+              "    pm.collectionVariables.set('uuid', json.data.data[0].uuid);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/operational/jabatans?per_page=15&order_by=name&order_by_value=ASC",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "operational", "jabatans"],
+          "query": [
+            { "key": "per_page", "value": "15", "description": "Jumlah per halaman" },
+            { "key": "order_by", "value": "name", "description": "Kolom sorting (name, daily_rate, created_at)" },
+            { "key": "order_by_value", "value": "ASC", "description": "ASC atau DESC" },
+            { "key": "search", "value": null, "description": "Cari berdasarkan nama jabatan" }
+          ],
+          "variable": []
+        },
+        "description": "Mendapatkan daftar semua jabatan.\n\n**Role akses:** SUPERADMIN, OWNER, ADMIN, HRD"
+      }
+    },
+    {
+      "name": "Create Jabatan",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const json = pm.response.json();",
+              "if (json.data && json.data.uuid) {",
+              "    pm.collectionVariables.set('uuid', json.data.uuid);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Staff Gudang\",\n  \"daily_rate\": 75000\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/operational/jabatans",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "operational", "jabatans"]
+        },
+        "description": "Membuat jabatan baru.\n\n**Role akses:** SUPERADMIN, ADMIN, HRD"
+      }
+    },
+    {
+      "name": "Show Jabatan",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/operational/jabatans/{{uuid}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "operational", "jabatans", "{{uuid}}"]
+        },
+        "description": "Detail jabatan.\n\n**Role akses:** SUPERADMIN, OWNER, ADMIN, HRD"
+      }
+    },
+    {
+      "name": "Update Jabatan",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Staff Gudang Senior\",\n  \"daily_rate\": 85000,\n  \"reason\": \"Penyesuaian UMR 2026\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/operational/jabatans/{{uuid}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "operational", "jabatans", "{{uuid}}"]
+        },
+        "description": "Update jabatan. Jika `daily_rate` berubah, otomatis tercatat ke edit logs.\n\n**Role akses:** SUPERADMIN, ADMIN, HRD\n\nField opsional:\n- `reason` — alasan edit (tercatat di edit log)"
+      }
+    },
+    {
+      "name": "Delete Jabatan",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/operational/jabatans/{{uuid}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "operational", "jabatans", "{{uuid}}"]
+        },
+        "description": "Hapus jabatan (soft delete). Gagal (422) jika masih digunakan oleh karyawan.\n\n**Role akses:** SUPERADMIN, ADMIN, HRD"
+      }
+    },
+    {
+      "name": "List Edit Logs",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/operational/edit-logs?loggable_type=abs_jabatans&per_page=15",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "operational", "edit-logs"],
+          "query": [
+            { "key": "loggable_type", "value": "abs_jabatans", "description": "Filter: abs_jabatans, ops_incomes, ops_expenses" },
+            { "key": "per_page", "value": "15", "description": "Jumlah per halaman" }
+          ],
+          "variable": []
+        },
+        "description": "Mendapatkan riwayat edit log. Filter `loggable_type=abs_jabatans` untuk melihat riwayat perubahan salary jabatan.\n\n**Role akses:** SUPERADMIN, OWNER, ADMIN, HRD"
+      }
+    }
+  ]
+}

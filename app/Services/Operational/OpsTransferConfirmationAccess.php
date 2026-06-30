@@ -47,7 +47,7 @@ class OpsTransferConfirmationAccess
     {
         return $query->whereHasMorph(
             'confirmable',
-            [OpsIncome::class],
+            [OpsExpense::class, OpsIncome::class],
             fn (Builder $incomeQuery) => $incomeQuery->where(function (Builder $inner) use ($mandor) {
                 $inner->where('mandor_id', $mandor->id)
                     ->orWhereHas(

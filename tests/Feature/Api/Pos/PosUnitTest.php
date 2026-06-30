@@ -20,7 +20,7 @@ it('can get unit list', function () {
     PosUnit::factory(5)->create(['company_id' => $this->company->id]);
 
     $this->actingAs($this->user)
-        ->getJson('/api/v1/units')
+        ->getJson('/api/v1/pos/units')
         ->assertStatus(200)
         ->assertJsonStructure([
             'success',
@@ -38,7 +38,7 @@ it('only returns units belonging to the same company', function () {
     PosUnit::factory(2)->create(['company_id' => $this->company->id]);
 
     $response = $this->actingAs($this->user)
-        ->getJson('/api/v1/units');
+        ->getJson('/api/v1/pos/units');
 
     $response->assertStatus(200);
     expect($response->json('data'))->toHaveCount(2);
@@ -48,14 +48,14 @@ it('can paginate units with custom per_page', function () {
     PosUnit::factory(20)->create(['company_id' => $this->company->id]);
 
     $response = $this->actingAs($this->user)
-        ->getJson('/api/v1/units?per_page=5');
+        ->getJson('/api/v1/pos/units?per_page=5');
 
     $response->assertStatus(200);
     expect($response->json('data'))->toHaveCount(5);
 });
 
 it('returns 401 when not authenticated on index', function () {
-    $this->getJson('/api/v1/units')->assertStatus(401);
+    $this->getJson('/api/v1/pos/units')->assertStatus(401);
 });
 
 // =============================
@@ -64,7 +64,7 @@ it('returns 401 when not authenticated on index', function () {
 
 it('can create a unit', function () {
     $this->actingAs($this->user)
-        ->postJson('/api/v1/units', ['name' => 'Pcs'])
+        ->postJson('/api/v1/pos/units', ['name' => 'Pcs'])
         ->assertStatus(201)
         ->assertJsonPath('success', true)
         ->assertJsonPath('data.name', 'Pcs');
@@ -72,14 +72,14 @@ it('can create a unit', function () {
 
 it('returns 422 when name is empty on store', function () {
     $this->actingAs($this->user)
-        ->postJson('/api/v1/units', ['name' => ''])
+        ->postJson('/api/v1/pos/units', ['name' => ''])
         ->assertStatus(422)
         ->assertJsonPath('success', false);
 });
 
 it('returns 422 when name exceeds 255 characters', function () {
     $this->actingAs($this->user)
-        ->postJson('/api/v1/units', ['name' => str_repeat('a', 256)])
+        ->postJson('/api/v1/pos/units', ['name' => str_repeat('a', 256)])
         ->assertStatus(422);
 });
 
@@ -90,7 +90,7 @@ it('returns 422 when name is duplicate within same company', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->postJson('/api/v1/units', ['name' => 'Pcs'])
+        ->postJson('/api/v1/pos/units', ['name' => 'Pcs'])
         ->assertStatus(422);
 });
 
@@ -102,12 +102,12 @@ it('allows same unit name in different companies', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->postJson('/api/v1/units', ['name' => 'Pcs'])
+        ->postJson('/api/v1/pos/units', ['name' => 'Pcs'])
         ->assertStatus(201);
 });
 
 it('returns 401 when not authenticated on store', function () {
-    $this->postJson('/api/v1/units', ['name' => 'Pcs'])
+    $this->postJson('/api/v1/pos/units', ['name' => 'Pcs'])
         ->assertStatus(401);
 });
 
@@ -119,7 +119,7 @@ it('can get unit detail', function () {
     $unit = PosUnit::factory()->create(['company_id' => $this->company->id]);
 
     $this->actingAs($this->user)
-        ->getJson("/api/v1/units/{$unit->uuid}")
+        ->getJson("/api/v1/pos/units/{$unit->uuid}")
         ->assertStatus(200)
         ->assertJsonPath('success', true)
         ->assertJsonPath('data.uuid', $unit->uuid);
@@ -127,7 +127,7 @@ it('can get unit detail', function () {
 
 it('returns 404 when unit not found on show', function () {
     $this->actingAs($this->user)
-        ->getJson('/api/v1/units/uuid-tidak-ada')
+        ->getJson('/api/v1/pos/units/uuid-tidak-ada')
         ->assertStatus(404);
 });
 
@@ -136,7 +136,7 @@ it('returns 404 when accessing unit from other company', function () {
     $unit         = PosUnit::factory()->create(['company_id' => $otherCompany->id]);
 
     $this->actingAs($this->user)
-        ->getJson("/api/v1/units/{$unit->uuid}")
+        ->getJson("/api/v1/pos/units/{$unit->uuid}")
         ->assertStatus(404);
 });
 
@@ -148,7 +148,7 @@ it('can update a unit', function () {
     $unit = PosUnit::factory()->create(['company_id' => $this->company->id]);
 
     $this->actingAs($this->user)
-        ->patchJson("/api/v1/units/{$unit->uuid}", ['name' => 'Lusin'])
+        ->patchJson("/api/v1/pos/units/{$unit->uuid}", ['name' => 'Lusin'])
         ->assertStatus(200)
         ->assertJsonPath('data.name', 'Lusin');
 });
@@ -160,7 +160,7 @@ it('can partial update (PATCH) unit without sending all fields', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->patchJson("/api/v1/units/{$unit->uuid}", [])
+        ->patchJson("/api/v1/pos/units/{$unit->uuid}", [])
         ->assertStatus(200)
         ->assertJsonPath('data.name', 'Original');
 });
@@ -177,7 +177,7 @@ it('returns 422 when updating with duplicate name', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->patchJson("/api/v1/units/{$unit->uuid}", ['name' => 'Pcs'])
+        ->patchJson("/api/v1/pos/units/{$unit->uuid}", ['name' => 'Pcs'])
         ->assertStatus(422);
 });
 
@@ -186,13 +186,13 @@ it('returns 404 when updating unit from other company', function () {
     $unit         = PosUnit::factory()->create(['company_id' => $otherCompany->id]);
 
     $this->actingAs($this->user)
-        ->patchJson("/api/v1/units/{$unit->uuid}", ['name' => 'Hacked'])
+        ->patchJson("/api/v1/pos/units/{$unit->uuid}", ['name' => 'Hacked'])
         ->assertStatus(404);
 });
 
 it('returns 404 when updating non-existent unit', function () {
     $this->actingAs($this->user)
-        ->patchJson('/api/v1/units/invalid-uuid', ['name' => 'New Name'])
+        ->patchJson('/api/v1/pos/units/invalid-uuid', ['name' => 'New Name'])
         ->assertStatus(404);
 });
 
@@ -204,7 +204,7 @@ it('can delete a unit', function () {
     $unit = PosUnit::factory()->create(['company_id' => $this->company->id]);
 
     $this->actingAs($this->user)
-        ->deleteJson("/api/v1/units/{$unit->uuid}")
+        ->deleteJson("/api/v1/pos/units/{$unit->uuid}")
         ->assertStatus(200)
         ->assertJsonPath('success', true);
 
@@ -220,7 +220,7 @@ it('returns 422 when deleting unit that has products', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->deleteJson("/api/v1/units/{$unit->uuid}")
+        ->deleteJson("/api/v1/pos/units/{$unit->uuid}")
         ->assertStatus(422)
         ->assertJsonPath('success', false);
 });
@@ -230,19 +230,19 @@ it('returns 404 when deleting unit from other company', function () {
     $unit         = PosUnit::factory()->create(['company_id' => $otherCompany->id]);
 
     $this->actingAs($this->user)
-        ->deleteJson("/api/v1/units/{$unit->uuid}")
+        ->deleteJson("/api/v1/pos/units/{$unit->uuid}")
         ->assertStatus(404);
 });
 
 it('returns 404 when deleting non-existent unit', function () {
     $this->actingAs($this->user)
-        ->deleteJson('/api/v1/units/invalid-uuid')
+        ->deleteJson('/api/v1/pos/units/invalid-uuid')
         ->assertStatus(404);
 });
 
 it('returns 401 when not authenticated on delete', function () {
     $unit = PosUnit::factory()->create(['company_id' => $this->company->id]);
 
-    $this->deleteJson("/api/v1/units/{$unit->uuid}")
+    $this->deleteJson("/api/v1/pos/units/{$unit->uuid}")
         ->assertStatus(401);
 });

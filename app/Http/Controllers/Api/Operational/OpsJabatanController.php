@@ -5,11 +5,15 @@ namespace App\Http\Controllers\Api\Operational;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Operational\OpsJabatanRequest;
 use App\Http\Resources\Absence\AbsJabatanResource;
+use App\Http\Traits\DataTablesResponse;
 use App\Models\AbsJabatan;
+use App\Models\OpsEditLog;
 use Illuminate\Http\Request;
 
 class OpsJabatanController extends Controller
 {
+    use DataTablesResponse;
+
     public function index(Request $request)
     {
         $orderByKey = $request->input('order_by', 'name');
@@ -21,11 +25,13 @@ class OpsJabatanController extends Controller
             ->orderBy($orderByKey, $orderByValue)
             ->paginate($request->input('per_page', 15));
 
-        return response()->json([
-            'success' => true,
-            'message' => __('operational.jabatans.list'),
-            'data' => AbsJabatanResource::collection($jabatans),
-        ]);
+        return response()->json(
+            $this->dataTablesResponse($request, $jabatans, [
+                'success' => true,
+                'message' => __('operational.jabatans.list'),
+                'data' => AbsJabatanResource::collection($jabatans),
+            ])
+        );
     }
 
     public function store(OpsJabatanRequest $request)
@@ -53,7 +59,23 @@ class OpsJabatanController extends Controller
 
     public function update(OpsJabatanRequest $request, AbsJabatan $absJabatan)
     {
+        $original = $absJabatan->replicate();
         $absJabatan->update($request->validated());
+
+        $originalDailyRate = (float) $original->daily_rate;
+        $newDailyRate = (float) $absJabatan->fresh()->daily_rate;
+
+        if ($originalDailyRate !== $newDailyRate) {
+            OpsEditLog::create([
+                'loggable_type' => 'abs_jabatans',
+                'loggable_id' => $absJabatan->id,
+                'reason' => $request->input('reason', 'Update salary jabatan'),
+                'old_data' => ['daily_rate' => $originalDailyRate],
+                'new_data' => ['daily_rate' => $newDailyRate],
+                'edited_by' => auth()->id(),
+                'company_id' => $request->user()->company_id,
+            ]);
+        }
 
         return response()->json([
             'success' => true,

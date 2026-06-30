@@ -83,7 +83,7 @@ it('can get sales transaction list', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->getJson('/api/v1/sales-transactions')
+        ->getJson('/api/v1/pos/sales-transactions')
         ->assertStatus(200)
         ->assertJsonStructure([
             'success',
@@ -119,7 +119,7 @@ it('only returns transactions belonging to the same company', function () {
     ]);
 
     $response = $this->actingAs($this->user)
-        ->getJson('/api/v1/sales-transactions');
+        ->getJson('/api/v1/pos/sales-transactions');
 
     $response->assertStatus(200);
     expect($response->json('data'))->toHaveCount(3);
@@ -140,7 +140,7 @@ it('can filter by date range', function () {
     ]);
 
     $response = $this->actingAs($this->user)
-        ->getJson('/api/v1/sales-transactions?date_from=2026-05-01&date_to=2026-05-31');
+        ->getJson('/api/v1/pos/sales-transactions?date_from=2026-05-01&date_to=2026-05-31');
 
     $response->assertStatus(200);
     expect($response->json('data'))->toHaveCount(0);
@@ -173,7 +173,7 @@ it('can filter by created_by_uuid', function () {
     ]);
 
     $response = $this->actingAs($this->user)
-        ->getJson("/api/v1/sales-transactions?created_by_uuid={$marketing->uuid}");
+        ->getJson("/api/v1/pos/sales-transactions?created_by_uuid={$marketing->uuid}");
 
     $response->assertStatus(200);
     expect($response->json('data'))->toHaveCount(2);
@@ -196,7 +196,7 @@ it('returns all transactions when created_by_uuid is not provided', function () 
     ]);
 
     $response = $this->actingAs($this->user)
-        ->getJson('/api/v1/sales-transactions');
+        ->getJson('/api/v1/pos/sales-transactions');
 
     $response->assertStatus(200);
     expect($response->json('data'))->toHaveCount(2);
@@ -214,14 +214,14 @@ it('returns empty when created_by_uuid has no transactions', function () {
     ]);
 
     $response = $this->actingAs($this->user)
-        ->getJson("/api/v1/sales-transactions?created_by_uuid={$marketing->uuid}");
+        ->getJson("/api/v1/pos/sales-transactions?created_by_uuid={$marketing->uuid}");
 
     $response->assertStatus(200);
     expect($response->json('data'))->toHaveCount(0);
 });
 
 it('returns 401 when not authenticated on index', function () {
-    $this->getJson('/api/v1/sales-transactions')->assertStatus(401);
+    $this->getJson('/api/v1/pos/sales-transactions')->assertStatus(401);
 });
 
 // =============================
@@ -230,7 +230,7 @@ it('returns 401 when not authenticated on index', function () {
 
 it('can create a sales transaction', function () {
     $response = $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $this->payload);
+        ->postJson('/api/v1/pos/sales-transactions', $this->payload);
 
     $response->assertStatus(201)
         ->assertJsonPath('success', true)
@@ -254,7 +254,7 @@ it('can create sales transaction without customer', function () {
     unset($payload['customer_uuid']);
 
     $response = $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $payload);
+        ->postJson('/api/v1/pos/sales-transactions', $payload);
 
     $response->assertStatus(201);
     expect($response->json('data.customer'))->toBeNull();
@@ -264,7 +264,7 @@ it('stock decreases after sales transaction', function () {
     $stockBefore = $this->product->stock;
 
     $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $this->payload);
+        ->postJson('/api/v1/pos/sales-transactions', $this->payload);
 
     $this->product->refresh();
     expect($this->product->stock)->toBe($stockBefore - 3);
@@ -272,7 +272,7 @@ it('stock decreases after sales transaction', function () {
 
 it('stock_mutation SALES_OUT is created after sales', function () {
     $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $this->payload);
+        ->postJson('/api/v1/pos/sales-transactions', $this->payload);
 
     $this->assertDatabaseHas('pos_stock_mutations', [
         'product_id' => $this->product->id,
@@ -296,7 +296,7 @@ it('returns 422 when stock is insufficient', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $payload)
+        ->postJson('/api/v1/pos/sales-transactions', $payload)
         ->assertStatus(422)
         ->assertJsonPath('success', false);
 });
@@ -322,7 +322,7 @@ it('returns 422 when product belongs to other company', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $payload)
+        ->postJson('/api/v1/pos/sales-transactions', $payload)
         ->assertStatus(422)
         ->assertJsonPath('success', false);
 });
@@ -331,7 +331,7 @@ it('returns 422 when items is empty', function () {
     $payload = array_merge($this->payload, ['items' => []]);
 
     $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $payload)
+        ->postJson('/api/v1/pos/sales-transactions', $payload)
         ->assertStatus(422);
 });
 
@@ -339,7 +339,7 @@ it('returns 422 when payment_type is invalid', function () {
     $payload = array_merge($this->payload, ['payment_type' => 'INVALID']);
 
     $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $payload)
+        ->postJson('/api/v1/pos/sales-transactions', $payload)
         ->assertStatus(422);
 });
 
@@ -351,7 +351,7 @@ it('returns 422 when discount is greater than total', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $payload)
+        ->postJson('/api/v1/pos/sales-transactions', $payload)
         ->assertStatus(422)
         ->assertJsonStructure(['errors' => ['discount']]);
 });
@@ -363,7 +363,7 @@ it('returns 422 when paid is lower than total', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $payload)
+        ->postJson('/api/v1/pos/sales-transactions', $payload)
         ->assertStatus(422)
         ->assertJsonStructure(['errors' => ['paid']]);
 });
@@ -373,14 +373,14 @@ it('returns 422 when transaction_date is missing', function () {
     unset($payload['transaction_date']);
 
     $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $payload)
+        ->postJson('/api/v1/pos/sales-transactions', $payload)
         ->assertStatus(422)
         ->assertJsonStructure(['errors' => ['transaction_date']]);
 });
 
 it('transaction_code is auto generated with SO prefix', function () {
     $response = $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $this->payload);
+        ->postJson('/api/v1/pos/sales-transactions', $this->payload);
 
     expect($response->json('data.transaction_code'))->toStartWith('SO-');
 });
@@ -408,7 +408,7 @@ it('each item creates a SALES_OUT stock mutation', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $payload);
+        ->postJson('/api/v1/pos/sales-transactions', $payload);
 
     $this->assertDatabaseCount('pos_stock_mutations', 2);
 });
@@ -422,7 +422,7 @@ it('can create sales transaction with additional cost', function () {
     ]);
 
     $response = $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $payload);
+        ->postJson('/api/v1/pos/sales-transactions', $payload);
 
     $response->assertStatus(201)
         ->assertJsonPath('data.additional_cost', 15000)
@@ -431,7 +431,7 @@ it('can create sales transaction with additional cost', function () {
 
 it('additional_cost defaults to 0 when not provided', function () {
     $response = $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $this->payload);
+        ->postJson('/api/v1/pos/sales-transactions', $this->payload);
 
     $response->assertStatus(201)
         ->assertJsonPath('data.additional_cost', 0);
@@ -441,7 +441,7 @@ it('returns 422 when additional_cost is negative', function () {
     $payload = array_merge($this->payload, ['additional_cost' => -5000]);
 
     $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $payload)
+        ->postJson('/api/v1/pos/sales-transactions', $payload)
         ->assertStatus(422);
 });
 
@@ -452,14 +452,14 @@ it('can create transaction with additional_cost_note only without amount', funct
     ]);
 
     $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $payload)
+        ->postJson('/api/v1/pos/sales-transactions', $payload)
         ->assertStatus(201)
         ->assertJsonPath('data.additional_cost', 0)
         ->assertJsonPath('data.additional_cost_note', 'Catatan biaya');
 });
 
 it('returns 401 when not authenticated on store', function () {
-    $this->postJson('/api/v1/sales-transactions', $this->payload)
+    $this->postJson('/api/v1/pos/sales-transactions', $this->payload)
         ->assertStatus(401);
 });
 
@@ -475,14 +475,14 @@ it('can get sales transaction detail', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->getJson("/api/v1/sales-transactions/{$transaction->ulid}")
+        ->getJson("/api/v1/pos/sales-transactions/{$transaction->ulid}")
         ->assertStatus(200)
         ->assertJsonPath('data.ulid', (string) $transaction->ulid);
 });
 
 it('returns 404 when transaction not found on show', function () {
     $this->actingAs($this->user)
-        ->getJson('/api/v1/sales-transactions/invalid-ulid')
+        ->getJson('/api/v1/pos/sales-transactions/invalid-ulid')
         ->assertStatus(404);
 });
 
@@ -506,7 +506,7 @@ it('returns 404 when accessing transaction from other company', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->getJson("/api/v1/sales-transactions/{$transaction->ulid}")
+        ->getJson("/api/v1/pos/sales-transactions/{$transaction->ulid}")
         ->assertStatus(404);
 });
 
@@ -516,14 +516,14 @@ it('returns 404 when accessing transaction from other company', function () {
 
 it('can cancel a sales transaction', function () {
     $response = $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $this->payload);
+        ->postJson('/api/v1/pos/sales-transactions', $this->payload);
 
     $ulid = $response->json('data.ulid');
 
     $stockAfterSales = $this->product->fresh()->stock;
 
     $this->actingAs($this->user)
-        ->patchJson("/api/v1/sales-transactions/{$ulid}/cancel")
+        ->patchJson("/api/v1/pos/sales-transactions/{$ulid}/cancel")
         ->assertStatus(200)
         ->assertJsonPath('data.transaction_status', PosTransactionStatus::CANCEL->value);
 
@@ -534,24 +534,24 @@ it('stock returns to original after cancel', function () {
     $stockOriginal = $this->product->stock;
 
     $response = $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $this->payload);
+        ->postJson('/api/v1/pos/sales-transactions', $this->payload);
 
     $ulid = $response->json('data.ulid');
 
     $this->actingAs($this->user)
-        ->patchJson("/api/v1/sales-transactions/{$ulid}/cancel");
+        ->patchJson("/api/v1/pos/sales-transactions/{$ulid}/cancel");
 
     expect($this->product->fresh()->stock)->toBe($stockOriginal);
 });
 
 it('cancel creates ADJUST_IN stock mutation', function () {
     $response = $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $this->payload);
+        ->postJson('/api/v1/pos/sales-transactions', $this->payload);
 
     $ulid = $response->json('data.ulid');
 
     $this->actingAs($this->user)
-        ->patchJson("/api/v1/sales-transactions/{$ulid}/cancel");
+        ->patchJson("/api/v1/pos/sales-transactions/{$ulid}/cancel");
 
     $this->assertDatabaseHas('pos_stock_mutations', [
         'product_id' => $this->product->id,
@@ -583,12 +583,12 @@ it('cancel creates ADJUST_IN for each item', function () {
     ]);
 
     $response = $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $payload);
+        ->postJson('/api/v1/pos/sales-transactions', $payload);
 
     $ulid = $response->json('data.ulid');
 
     $this->actingAs($this->user)
-        ->patchJson("/api/v1/sales-transactions/{$ulid}/cancel");
+        ->patchJson("/api/v1/pos/sales-transactions/{$ulid}/cancel");
 
     // 2 SALES_OUT + 2 ADJUST_IN
     $this->assertDatabaseCount('pos_stock_mutations', 4);
@@ -603,22 +603,22 @@ it('returns 422 when cancelling already cancelled transaction', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->patchJson("/api/v1/sales-transactions/{$transaction->ulid}/cancel")
+        ->patchJson("/api/v1/pos/sales-transactions/{$transaction->ulid}/cancel")
         ->assertStatus(422)
         ->assertJsonPath('success', false);
 });
 
 it('cancelled transaction cannot be cancelled again', function () {
     $response = $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $this->payload);
+        ->postJson('/api/v1/pos/sales-transactions', $this->payload);
 
     $ulid = $response->json('data.ulid');
 
     $this->actingAs($this->user)
-        ->patchJson("/api/v1/sales-transactions/{$ulid}/cancel");
+        ->patchJson("/api/v1/pos/sales-transactions/{$ulid}/cancel");
 
     $this->actingAs($this->user)
-        ->patchJson("/api/v1/sales-transactions/{$ulid}/cancel")
+        ->patchJson("/api/v1/pos/sales-transactions/{$ulid}/cancel")
         ->assertStatus(422)
         ->assertJsonPath('success', false);
 });
@@ -643,7 +643,7 @@ it('returns 404 when cancelling transaction from other company', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->patchJson("/api/v1/sales-transactions/{$transaction->ulid}/cancel")
+        ->patchJson("/api/v1/pos/sales-transactions/{$transaction->ulid}/cancel")
         ->assertStatus(404);
 });
 
@@ -654,7 +654,7 @@ it('returns 401 when not authenticated on cancel', function () {
         'company_id'  => $this->company->id,
     ]);
 
-    $this->patchJson("/api/v1/sales-transactions/{$transaction->ulid}/cancel")
+    $this->patchJson("/api/v1/pos/sales-transactions/{$transaction->ulid}/cancel")
         ->assertStatus(401);
 });
 
@@ -667,7 +667,7 @@ it('returns 422 when cancelling non-PAID transaction', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->patchJson("/api/v1/sales-transactions/{$transaction->ulid}/cancel")
+        ->patchJson("/api/v1/pos/sales-transactions/{$transaction->ulid}/cancel")
         ->assertStatus(422)
         ->assertJsonPath('success', false);
 });
@@ -691,7 +691,7 @@ it('can search by transaction_code', function () {
     ]);
 
     $response = $this->actingAs($this->user)
-        ->getJson('/api/v1/sales-transactions?search=ABC');
+        ->getJson('/api/v1/pos/sales-transactions?search=ABC');
 
     expect($response->json('data'))->toHaveCount(1);
 });
@@ -714,7 +714,7 @@ it('rolls back when error occurs during store', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $payload)
+        ->postJson('/api/v1/pos/sales-transactions', $payload)
         ->assertStatus(422);
 
     $this->assertDatabaseCount('pos_sales_transactions', 0);
@@ -726,7 +726,7 @@ it('returns 422 when customer_uuid not found', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $payload)
+        ->postJson('/api/v1/pos/sales-transactions', $payload)
         ->assertStatus(422);
 });
 
@@ -734,7 +734,7 @@ it('returns 422 when total is negative', function () {
     $payload = array_merge($this->payload, ['total' => -1000]);
 
     $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $payload)
+        ->postJson('/api/v1/pos/sales-transactions', $payload)
         ->assertStatus(422);
 });
 
@@ -742,7 +742,7 @@ it('returns 422 when paid is negative', function () {
     $payload = array_merge($this->payload, ['paid' => -1000]);
 
     $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $payload)
+        ->postJson('/api/v1/pos/sales-transactions', $payload)
         ->assertStatus(422);
 });
 
@@ -750,7 +750,7 @@ it('returns 422 when discount is negative', function () {
     $payload = array_merge($this->payload, ['discount' => -1000]);
 
     $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $payload)
+        ->postJson('/api/v1/pos/sales-transactions', $payload)
         ->assertStatus(422);
 });
 
@@ -768,7 +768,7 @@ it('returns 422 when quantity is zero', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $payload)
+        ->postJson('/api/v1/pos/sales-transactions', $payload)
         ->assertStatus(422);
 });
 
@@ -786,7 +786,7 @@ it('returns 422 when sell_price is negative', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $payload)
+        ->postJson('/api/v1/pos/sales-transactions', $payload)
         ->assertStatus(422);
 });
 
@@ -804,7 +804,7 @@ it('returns 422 when item discount is negative', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $payload)
+        ->postJson('/api/v1/pos/sales-transactions', $payload)
         ->assertStatus(422);
 });
 
@@ -826,7 +826,7 @@ it('returns 422 when customer belongs to other company', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->postJson('/api/v1/sales-transactions', $payload)
+        ->postJson('/api/v1/pos/sales-transactions', $payload)
         ->assertStatus(422);
 });
 

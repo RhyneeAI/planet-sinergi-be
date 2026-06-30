@@ -7,11 +7,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Absence\AbsOvertimeRejectRequest;
 use App\Http\Requests\Absence\AbsOvertimeRequest;
 use App\Http\Resources\Absence\AbsOvertimeResource;
+use App\Http\Traits\DataTablesResponse;
 use App\Models\AbsOvertime;
 use Illuminate\Http\Request;
 
 class AbsOvertimeController extends Controller
 {
+    use DataTablesResponse;
+
     public function index(Request $request)
     {
         $overtimes = AbsOvertime::with('user')
@@ -21,11 +24,13 @@ class AbsOvertimeController extends Controller
             ->orderBy($request->input('order_by', 'date'), $request->input('order_by_value', 'DESC'))
             ->paginate($request->input('per_page', 15));
 
-        return response()->json([
-            'success' => true,
-            'message' => __('absence.overtimes.list'),
-            'data' => AbsOvertimeResource::collection($overtimes),
-        ]);
+        return response()->json(
+            $this->dataTablesResponse($request, $overtimes, [
+                'success' => true,
+                'message' => __('absence.overtimes.list'),
+                'data' => AbsOvertimeResource::collection($overtimes),
+            ])
+        );
     }
 
     public function store(AbsOvertimeRequest $request)

@@ -9,12 +9,15 @@ use App\Http\Resources\Absence\AbsAttendanceResource;
 use App\Http\Resources\Absence\AbsJabatanResource;
 use App\Http\Resources\Absence\AbsShiftResource;
 use App\Http\Resources\SubCompanyResource;
+use App\Http\Traits\DataTablesResponse;
 use App\Models\AbsAttendance;
 use App\Services\Absence\AbsAttendanceService;
 use Illuminate\Http\Request;
 
 class AbsEmployeeAttendanceController extends Controller
 {
+    use DataTablesResponse;
+
     public function __construct(
         protected AbsAttendanceService $attendanceService,
     ) {}
@@ -143,10 +146,10 @@ class AbsEmployeeAttendanceController extends Controller
             ->orderByDesc('date')
             ->paginate($request->input('per_page', 15));
 
-        return response()->json([
+        return response()->json($this->dataTablesResponse($request, $records, [
             'success' => true,
             'message' => __('absence.attendance.history'),
             'data' => AbsAttendanceResource::collection($records),
-        ]);
+        ]));
     }
 }

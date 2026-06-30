@@ -129,28 +129,28 @@ function makeSalesTrx(array $data): PosSalesTransaction
 
 it('returns 422 when date_from is missing', function () {
     $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/marketing-commission?date_to=2026-05-01')
+        ->getJson('/api/v1/pos/reports/marketing-commission?date_to=2026-05-01')
         ->assertStatus(422)
         ->assertJsonStructure(['errors' => ['date_from']]);
 });
 
 it('returns 422 when date_to is missing', function () {
     $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01')
+        ->getJson('/api/v1/pos/reports/marketing-commission?date_from=2026-01-01')
         ->assertStatus(422)
         ->assertJsonStructure(['errors' => ['date_to']]);
 });
 
 it('returns 422 when date_to is before date_from', function () {
     $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/marketing-commission?date_from=2026-05-01&date_to=2026-01-01')
+        ->getJson('/api/v1/pos/reports/marketing-commission?date_from=2026-05-01&date_to=2026-01-01')
         ->assertStatus(422)
         ->assertJsonStructure(['errors' => ['date_to']]);
 });
 
 it('returns 422 when marketing_uuid not found', function () {
     $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31&marketing_uuid=' . Str::uuid())
+        ->getJson('/api/v1/pos/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31&marketing_uuid=' . Str::uuid())
         ->assertStatus(422)
         ->assertJsonStructure(['errors' => ['marketing_uuid']]);
 });
@@ -163,12 +163,12 @@ it('returns 404 when marketing_uuid belongs to non-marketing role', function () 
     ]);
 
     $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31&marketing_uuid=' . $admin->uuid)
+        ->getJson('/api/v1/pos/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31&marketing_uuid=' . $admin->uuid)
         ->assertStatus(404);
 });
 
 it('returns 401 when not authenticated', function () {
-    $this->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31')
+    $this->getJson('/api/v1/pos/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31')
         ->assertStatus(401);
 });
 
@@ -191,7 +191,7 @@ it('calculates commission correctly without discount', function () {
     ]);
 
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
+        ->getJson('/api/v1/pos/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
     expect($response->json('data.grand_total.total_commission'))->toEqual(7000);
@@ -215,7 +215,7 @@ it('calculates commission correctly with discount (store-level discount does not
     ]);
 
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
+        ->getJson('/api/v1/pos/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
     // marketing_profit = (9000 - 7000) * 2 = 4000 (tidak dipotong store discount)
@@ -236,7 +236,7 @@ it('commission is never negative even if discount exceeds gross commission', fun
     ]);
 
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
+        ->getJson('/api/v1/pos/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
     // marketing_profit = (6500 - 5000) * 1 = 1500 (store discount tidak mengurangi)
@@ -273,7 +273,7 @@ it('accumulates commission correctly across multiple transactions', function () 
     ]); // marketing_profit = (20000-15000)*1 = 5000
 
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
+        ->getJson('/api/v1/pos/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
     expect($response->json('data.grand_total.total_commission'))->toEqual(9000);
@@ -316,7 +316,7 @@ it('calculates commission all for each marketing', function () {
     ]);
 
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
+        ->getJson('/api/v1/pos/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
 
      // Cek grand total = 4000 + 6000 = 10000
     expect($response->json('data.grand_total.total_commission'))->toEqual(10000);
@@ -354,7 +354,7 @@ it('only includes transactions within date range', function () {
     ]);
 
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-03-31');
+        ->getJson('/api/v1/pos/reports/marketing-commission?date_from=2026-01-01&date_to=2026-03-31');
 
     $response->assertStatus(200);
     expect($response->json('data.grand_total.total_commission'))->toEqual(2000);
@@ -393,7 +393,7 @@ it('filters by specific marketing_uuid', function () {
     ]);
 
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31&marketing_uuid=' . $this->marketing->uuid);
+        ->getJson('/api/v1/pos/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31&marketing_uuid=' . $this->marketing->uuid);
 
     $response->assertStatus(200);
     expect($response->json('data.grand_total.total_commission'))->toEqual(2000);
@@ -414,7 +414,7 @@ it('excludes transactions created by non-marketing role', function () {
     ]);
 
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
+        ->getJson('/api/v1/pos/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
     expect($response->json('data.grand_total.total_commission'))->toEqual(0);
@@ -450,7 +450,7 @@ it('excludes cancelled transactions from commission', function () {
     ]);
 
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
+        ->getJson('/api/v1/pos/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
     expect($response->json('data.grand_total.total_commission'))->toEqual(2000);
@@ -458,7 +458,7 @@ it('excludes cancelled transactions from commission', function () {
 
 it('returns zero when no transactions in range', function () {
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
+        ->getJson('/api/v1/pos/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
     expect($response->json('data.grand_total.total_commission'))->toEqual(0);
@@ -490,7 +490,7 @@ it('returns zero when no transactions in range', function () {
 //     ]);
 
 //     $response = $this->actingAs($this->owner)
-//         ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
+//         ->getJson('/api/v1/pos/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
 
 //     $response->assertStatus(200);
 //     expect($response->json('data.grand_total.total_commission'))->toEqual(0);
@@ -510,7 +510,7 @@ it('returns correct response structure', function () {
     ]);
 
     $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31')
+        ->getJson('/api/v1/pos/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31')
         ->assertStatus(200)
         ->assertJsonStructure([
             'success',
@@ -548,7 +548,7 @@ it('calculates commission correctly with item-level discount only', function () 
 
     // marketing_profit = (10000 - 7000) × 2 = 6000 (item discount tidak mengurangi)
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
+        ->getJson('/api/v1/pos/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
     expect($response->json('data.grand_total.total_commission'))->toEqual(6000);
@@ -580,7 +580,7 @@ it('calculates commission correctly with both transaction discount and item disc
     // marketing_profit = (10000 - 7000) × 2 = 6000 (discount tidak mengurangi profit fields)
     
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
+        ->getJson('/api/v1/pos/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
     expect($response->json('data.grand_total.total_commission'))->toEqual(6000);
@@ -615,7 +615,7 @@ it('calculates commission correctly when item discount is per unit', function ()
     // Pastikan konsisten dengan controller Anda
     
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
+        ->getJson('/api/v1/pos/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
     
@@ -658,7 +658,7 @@ it('calculates commission correctly with multiple items having different discoun
     // Total commission = 8000
     
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
+        ->getJson('/api/v1/pos/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
     expect($response->json('data.grand_total.total_commission'))->toEqual(8000);
@@ -690,7 +690,7 @@ it('commission is never negative even with large discounts (item-level discount 
     // marketing_profit = (10000 - 7000) × 1 = 3000 (tidak dipotong discount)
     
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
+        ->getJson('/api/v1/pos/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
     expect($response->json('data.grand_total.total_commission'))->toEqual(3000);
@@ -735,7 +735,7 @@ it('calculates commission correctly for multiple marketing with discounts', func
     ]); // marketing_profit = (9000-7000)*3 = 6000
 
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
+        ->getJson('/api/v1/pos/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
     expect($response->json('data.grand_total.total_commission'))->toEqual(10000); // 4000 + 6000
@@ -763,7 +763,7 @@ it('calculates commission using lead_profit for MARKETING_LEAD role', function (
     ]);
 
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
+        ->getJson('/api/v1/pos/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
     expect($response->json('data.grand_total.total_commission'))->toEqual(8000);
@@ -798,7 +798,7 @@ it('includes both MARKETING and MARKETING_LEAD in the report', function () {
     ]);
 
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
+        ->getJson('/api/v1/pos/reports/marketing-commission?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
     expect($response->json('data.grand_total.total_commission'))->toEqual(10000); // 6000 + 4000

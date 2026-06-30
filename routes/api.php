@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ExportController;
-use App\Http\Controllers\Api\Pos\PosHomeController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\SubCompanyController;
 use Illuminate\Support\Facades\Route;
@@ -29,8 +28,6 @@ Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
         Route::post('/reset-password', [AuthController::class, 'resetPassword']);
         Route::post('/logout', [AuthController::class, 'logout']);
         
-        // Dashboard/Home
-        Route::get('/home',            [PosHomeController::class, 'index']);
         Route::get('/profile',         [ProfileController::class, 'show']);
         Route::patch('/profile',       [ProfileController::class, 'update']);
 

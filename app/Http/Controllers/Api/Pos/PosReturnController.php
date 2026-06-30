@@ -13,11 +13,14 @@ use App\Models\PosSalesTransaction;
 use App\Services\Pos\PosStockMutationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Http\Traits\DataTablesResponse;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class PosReturnController extends Controller
 {
+    use DataTablesResponse;
+
     public function __construct(
         protected PosStockMutationService $stockMutationService,
     ) {}
@@ -33,11 +36,13 @@ class PosReturnController extends Controller
             ->orderBy('created_at', 'DESC')
             ->paginate($request->input('per_page', 15));
 
-        return response()->json([
-            'success' => true,
-            'message' => __('pos.returns.list'),
-            'data'    => PosReturnResource::collection($returns),
-        ]);
+        return response()->json(
+            $this->dataTablesResponse($request, $returns, [
+                'success' => true,
+                'message' => __('pos.sales_transaction_returns.list'),
+                'data'    => PosReturnResource::collection($returns),
+            ])
+        );
     }
 
     public function store(PosReturnRequest $request)
@@ -48,13 +53,13 @@ class PosReturnController extends Controller
 
         if ($detail->sale_id !== $transaction->id) {
             throw ValidationException::withMessages([
-                'sales_detail_uuid' => [__('pos.returns.validation.detail_not_in_transaction')],
+                'sales_detail_uuid' => [__('pos.sales_transaction_returns.validation.detail_not_in_transaction')],
             ]);
         }
 
         if ($detail->product_id !== $product->id) {
             throw ValidationException::withMessages([
-                'product_uuid' => [__('pos.returns.validation.product_not_in_detail')],
+                'product_uuid' => [__('pos.sales_transaction_returns.validation.product_not_in_detail')],
             ]);
         }
 
@@ -63,7 +68,7 @@ class PosReturnController extends Controller
 
         if ($request->qty > $available) {
             throw ValidationException::withMessages([
-                'qty' => [__('pos.returns.validation.qty_exceeds_available', ['available' => $available])],
+                'qty' => [__('pos.sales_transaction_returns.validation.qty_exceeds_available', ['available' => $available])],
             ]);
         }
 
@@ -100,7 +105,7 @@ class PosReturnController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => __('pos.returns.stored'),
+                'message' => __('pos.sales_transaction_returns.stored'),
                 'data'    => new PosReturnResource(
                     $return->load(['product', 'salesTransaction', 'createdBy'])
                 ),

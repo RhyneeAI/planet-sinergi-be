@@ -41,4 +41,24 @@ enum Role: string
             self::KARYAWAN => 'KARYAWAN',
         };
     }
+
+    public static function commissionMarketingRoles(): array
+    {
+        return [self::MARKETING_LEAD, self::MARKETING];
+    }
+
+    public static function commissionMarketingValues(): array
+    {
+        return array_map(fn (self $role) => $role->value, self::commissionMarketingRoles());
+    }
+
+    public static function posMarketingPickerValues(): array
+    {
+        return [self::MARKETING_LEAD->value, self::MARKETING->value, self::MARKETING_TETAP->value];
+    }
+
+    public function isCommissionMarketing(): bool
+    {
+        return in_array($this, self::commissionMarketingRoles(), true);
+    }
 }

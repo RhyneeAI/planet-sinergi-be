@@ -16,6 +16,12 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1/operational')->middleware(['auth:sanctum'])->group(function () {
 
+    Route::middleware(['role:SUPERADMIN,OWNER,ADMIN'])->group(function () {
+
+        Route::get('incomes/pusat', [OpsIncomeController::class, 'pusat']);
+        Route::get('expenses/pusat', [OpsExpenseController::class, 'pusat']);
+    });
+
     Route::middleware(['role:SUPERADMIN,OWNER,ADMIN,MANDOR,KEPALA_MANDOR'])->group(function () {
 
         Route::get('dashboard/admin', [OpsDashboardController::class, 'adminDashboard']);
@@ -39,7 +45,7 @@ Route::prefix('v1/operational')->middleware(['auth:sanctum'])->group(function ()
         Route::get('mandors', [OpsMandorController::class, 'index']);
     });
 
-    Route::middleware(['role:SUPERADMIN,OWNER,ADMIN'])->group(function () {
+    Route::middleware(['role:SUPERADMIN,OWNER,ADMIN,HRD'])->group(function () {
 
         Route::apiResource('employees', OpsEmployeeController::class)
             ->parameters(['employees' => 'user:uuid'])
@@ -52,19 +58,20 @@ Route::prefix('v1/operational')->middleware(['auth:sanctum'])->group(function ()
         Route::get('edit-logs', [OpsEditLogController::class, 'index']);
     });
 
-    Route::middleware(['role:SUPERADMIN,OWNER,ADMIN,KEPALA_MANDOR'])->group(function () {
+    Route::middleware(['role:SUPERADMIN,OWNER,ADMIN,HRD,KEPALA_MANDOR'])->group(function () {
 
         Route::get('reports/income-expense', [OpsReportController::class, 'incomeExpenseReport']);
         Route::get('reports/income-expense/download', [OpsReportController::class, 'downloadIncomeExpenseReport']);
         Route::get('reports/income-expense/detail', [OpsReportController::class, 'incomeExpenseDetail']);
     });
 
-    Route::middleware(['role:SUPERADMIN,ADMIN'])->group(function () {
+    Route::middleware(['role:SUPERADMIN,ADMIN,HRD'])->group(function () {
 
         Route::apiResource('employees', OpsEmployeeController::class)
             ->parameters(['employees' => 'user:uuid'])
             ->only(['store', 'update', 'destroy']);
         Route::put('employees/{user:uuid}/reset-password', [OpsEmployeeController::class, 'resetPassword']);
+        Route::put('employees/{user:uuid}/toggle-active', [OpsEmployeeController::class, 'toggleActive']);
 
         Route::apiResource('jabatans', OpsJabatanController::class)
             ->parameters(['jabatans' => 'absJabatan:uuid'])
@@ -74,15 +81,17 @@ Route::prefix('v1/operational')->middleware(['auth:sanctum'])->group(function ()
     Route::middleware(['role:SUPERADMIN,OWNER,ADMIN,KEPALA_GUDANG,KEPALA_MANDOR,GUDANG'])->group(function () {
 
         Route::apiResource('marketings', OpsMarketingController::class)
-            ->parameters(['marketings' => 'marketing:uuid'])
-            ->only(['index', 'show']);
+            ->parameters(['marketings' => 'user:uuid'])
+            ->only(['index', 'show'])
+            ->names('operational.marketings');
     });
 
     Route::middleware(['role:SUPERADMIN,ADMIN,KEPALA_GUDANG,KEPALA_MANDOR'])->group(function () {
 
         Route::apiResource('marketings', OpsMarketingController::class)
-            ->parameters(['marketings' => 'marketing:uuid'])
-            ->only(['store', 'update', 'destroy']);
+            ->parameters(['marketings' => 'user:uuid'])
+            ->only(['store', 'update', 'destroy'])
+            ->names('operational.marketings');
     });
 
     Route::middleware(['role:MANDOR,KEPALA_MANDOR'])->group(function () {

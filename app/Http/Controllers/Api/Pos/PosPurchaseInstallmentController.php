@@ -8,11 +8,14 @@ use App\Http\Requests\Pos\PosInstallmentPaymentRequest;
 use App\Http\Resources\Pos\PosPurchaseInstallmentPlanResource;
 use App\Models\PosPurchaseInstallmentPlan;
 use App\Services\Pos\PosInstallmentService;
+use App\Http\Traits\DataTablesResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 class PosPurchaseInstallmentController extends Controller
 {
+    use DataTablesResponse;
+
     public function __construct(
         protected PosInstallmentService $installmentService,
     ) {}
@@ -36,11 +39,13 @@ class PosPurchaseInstallmentController extends Controller
             ->orderBy('created_at', 'DESC')
             ->paginate($request->input('per_page', 15));
 
-        return response()->json([
-            'success' => true,
-            'message' => __('pos.installments.list'),
-            'data'    => PosPurchaseInstallmentPlanResource::collection($plans),
-        ]);
+        return response()->json(
+            $this->dataTablesResponse($request, $plans, [
+                'success' => true,
+                'message' => __('pos.installments.list'),
+                'data'    => PosPurchaseInstallmentPlanResource::collection($plans),
+            ])
+        );
     }
 
     public function show(PosPurchaseInstallmentPlan $purchaseInstallmentPlan)

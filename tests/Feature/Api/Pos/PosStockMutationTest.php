@@ -25,7 +25,7 @@ it('can get product list that has stock mutations', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->getJson('/api/v1/stock-mutations/products') // ← route baru
+        ->getJson('/api/v1/pos/stock-mutations/products') // ← route baru
         ->assertStatus(200)
         ->assertJsonStructure([
             'success',
@@ -46,13 +46,13 @@ it('only returns products belonging to the same company', function () {
     PosStockMutation::factory(2)->create(['product_id' => $product2->id, 'company_id' => $this->company->id]);
 
     $response = $this->actingAs($this->user)
-        ->getJson('/api/v1/stock-mutations/products'); // ← route baru
+        ->getJson('/api/v1/pos/stock-mutations/products'); // ← route baru
 
     expect($response->json('data'))->toHaveCount(1);
 });
 
 it('returns 401 when not authenticated on index', function () {
-    $this->getJson('/api/v1/stock-mutations/products')->assertStatus(401); // ← route baru
+    $this->getJson('/api/v1/pos/stock-mutations/products')->assertStatus(401); // ← route baru
 });
 
 it('can filter stock mutations by date range', function () {
@@ -70,7 +70,7 @@ it('can filter stock mutations by date range', function () {
     ]);
 
     $response = $this->actingAs($this->user)
-        ->getJson('/api/v1/stock-mutations/products?date_from=2026-02-01&date_to=2026-02-28'); // ← route baru
+        ->getJson('/api/v1/pos/stock-mutations/products?date_from=2026-02-01&date_to=2026-02-28'); // ← route baru
 
     // Tetap return product karena ada mutasi dalam range tanggal
     expect($response->json('data'))->toHaveCount(1);
@@ -84,7 +84,7 @@ it('can sort products by name', function () {
     PosStockMutation::factory()->create(['product_id' => $product2->id, 'company_id' => $this->company->id]);
 
     $response = $this->actingAs($this->user)
-        ->getJson('/api/v1/stock-mutations/products?order_by_key=product_name&order_by_value=asc'); // ← route baru
+        ->getJson('/api/v1/pos/stock-mutations/products?order_by_key=product_name&order_by_value=asc'); // ← route baru
 
     expect($response->json('data.0.name'))->toBe('Apple');
     expect($response->json('data.1.name'))->toBe('Zebra');
@@ -102,7 +102,7 @@ it('can get stock mutations for a specific product', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->getJson("/api/v1/stock-mutations/products/{$product->uuid}") 
+        ->getJson("/api/v1/pos/stock-mutations/products/{$product->uuid}") 
         ->assertStatus(200)
         ->assertJsonStructure([
             'success',
@@ -144,7 +144,7 @@ it('can filter stock mutations by date range (show)', function () {
     ]);
 
     $response = $this->actingAs($this->user)
-        ->getJson("/api/v1/stock-mutations/products/{$product->uuid}?date_from=2026-01-16&date_to=2026-01-22");
+        ->getJson("/api/v1/pos/stock-mutations/products/{$product->uuid}?date_from=2026-01-16&date_to=2026-01-22");
 
     $response->assertStatus(200);
     expect($response->json('data.mutations.data'))->toHaveCount(1);
@@ -172,7 +172,7 @@ it('can filter stock mutations by type (show)', function () {
     ]);
 
     $response = $this->actingAs($this->user)
-        ->getJson("/api/v1/stock-mutations/products/{$product->uuid}?type=" . PosStockMutationType::PURCHASE_IN->value);
+        ->getJson("/api/v1/pos/stock-mutations/products/{$product->uuid}?type=" . PosStockMutationType::PURCHASE_IN->value);
 
     $response->assertStatus(200);
     expect($response->json('data.mutations.data'))->toHaveCount(1);
@@ -201,7 +201,7 @@ it('can search stock mutations by notes (show)', function () {
     ]);
 
     $response = $this->actingAs($this->user)
-        ->getJson("/api/v1/stock-mutations/products/{$product->uuid}?search=pembelian");
+        ->getJson("/api/v1/pos/stock-mutations/products/{$product->uuid}?search=pembelian");
 
     $response->assertStatus(200);
     expect($response->json('data.mutations.data'))->toHaveCount(1);
@@ -230,7 +230,7 @@ it('can sort stock mutations by quantity (show)', function () {
     ]);
 
     $response = $this->actingAs($this->user)
-        ->getJson("/api/v1/stock-mutations/products/{$product->uuid}?order_by_key=quantity&order_by_value=asc");
+        ->getJson("/api/v1/pos/stock-mutations/products/{$product->uuid}?order_by_key=quantity&order_by_value=asc");
 
     $response->assertStatus(200);
     $quantities = collect($response->json('data.mutations.data'))->pluck('quantity');
@@ -270,7 +270,7 @@ it('can combine multiple filters (date range, type, search) (show)', function ()
     ]);
 
     $response = $this->actingAs($this->user)
-        ->getJson("/api/v1/stock-mutations/products/{$product->uuid}?date_from=2026-01-15&date_to=2026-01-25&type=" . PosStockMutationType::PURCHASE_IN->value . "&search=supplier");
+        ->getJson("/api/v1/pos/stock-mutations/products/{$product->uuid}?date_from=2026-01-15&date_to=2026-01-25&type=" . PosStockMutationType::PURCHASE_IN->value . "&search=supplier");
 
     $response->assertStatus(200);
     expect($response->json('data.mutations.data'))->toHaveCount(1);
@@ -278,7 +278,7 @@ it('can combine multiple filters (date range, type, search) (show)', function ()
 
 it('returns 404 when product not found', function () {
     $this->actingAs($this->user)
-        ->getJson('/api/v1/stock-mutations/products/invalid-uuid') // ← route baru
+        ->getJson('/api/v1/pos/stock-mutations/products/invalid-uuid') // ← route baru
         ->assertStatus(404);
 });
 
@@ -287,7 +287,7 @@ it('returns 404 when accessing product from other company', function () {
     $product = PosProduct::factory()->create(['company_id' => $otherCompany->id]);
 
     $this->actingAs($this->user)
-        ->getJson("/api/v1/stock-mutations/products/{$product->uuid}") // ← route baru
+        ->getJson("/api/v1/pos/stock-mutations/products/{$product->uuid}") // ← route baru
         ->assertStatus(404);
 });
 
@@ -302,7 +302,7 @@ it('can create ADJUST_IN stock mutation', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->postJson('/api/v1/stock-mutations', [
+        ->postJson('/api/v1/pos/stock-mutations', [
             'type' => PosStockMutationType::ADJUST_IN->value,
             'quantity' => 50,
             'product_uuid' => $product->uuid, // ← ganti product_id ke product_uuid
@@ -322,7 +322,7 @@ it('can create ADJUST_OUT stock mutation', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->postJson('/api/v1/stock-mutations', [
+        ->postJson('/api/v1/pos/stock-mutations', [
             'type' => PosStockMutationType::ADJUST_OUT->value,
             'quantity' => 30,
             'product_uuid' => $product->uuid, // ← ganti product_id ke product_uuid
@@ -341,7 +341,7 @@ it('can create OPNAME stock mutation', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->postJson('/api/v1/stock-mutations', [
+        ->postJson('/api/v1/pos/stock-mutations', [
             'type' => PosStockMutationType::OPNAME->value,
             'quantity' => 120,
             'product_uuid' => $product->uuid, // ← ganti product_id ke product_uuid
@@ -360,7 +360,7 @@ it('returns 422 when adjusting more stock than available', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->postJson('/api/v1/stock-mutations', [
+        ->postJson('/api/v1/pos/stock-mutations', [
             'type' => PosStockMutationType::ADJUST_OUT->value,
             'quantity' => 100,
             'product_uuid' => $product->uuid, // ← ganti product_id ke product_uuid
@@ -370,7 +370,7 @@ it('returns 422 when adjusting more stock than available', function () {
 
 it('returns 422 when product not found on store', function () {
     $this->actingAs($this->user)
-        ->postJson('/api/v1/stock-mutations', [
+        ->postJson('/api/v1/pos/stock-mutations', [
             'type' => PosStockMutationType::ADJUST_IN->value,
             'quantity' => 50,
             'product_uuid' => 'invalid-uuid', // ← ganti
@@ -382,7 +382,7 @@ it('returns 422 when type is not allowed for manual creation', function () {
     $product = PosProduct::factory()->create(['company_id' => $this->company->id]);
 
     $this->actingAs($this->user)
-        ->postJson('/api/v1/stock-mutations', [
+        ->postJson('/api/v1/pos/stock-mutations', [
             'type' => PosStockMutationType::PURCHASE_IN->value,
             'quantity' => 50,
             'product_uuid' => $product->uuid, // ← ganti
@@ -391,6 +391,6 @@ it('returns 422 when type is not allowed for manual creation', function () {
 });
 
 it('returns 401 when not authenticated on store', function () {
-    $this->postJson('/api/v1/stock-mutations', [])
+    $this->postJson('/api/v1/pos/stock-mutations', [])
         ->assertStatus(401);
 });

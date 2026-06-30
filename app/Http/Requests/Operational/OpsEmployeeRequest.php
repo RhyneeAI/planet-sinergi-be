@@ -34,6 +34,7 @@ class OpsEmployeeRequest extends FormRequest
             'role' => [
                 $this->isMethod('post') ? 'required' : 'sometimes',
                 Rule::enum(Role::class),
+                Rule::notIn(Role::commissionMarketingValues()),
             ],
             'jabatan_uuid' => ['nullable', 'uuid', function ($attribute, $value, $fail) {
                 if ($value && !AbsJabatan::where('uuid', $value)->where('company_id', $this->user()->company_id)->exists()) {

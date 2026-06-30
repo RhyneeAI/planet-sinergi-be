@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Api\Pos;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Pos\PosCategoryRequest;
 use App\Http\Resources\Pos\PosCategoryResource;
+use App\Http\Traits\DataTablesResponse;
 use App\Models\PosCategory;
 use Illuminate\Http\Request;
 
 class PosCategoryController extends Controller
 {
+    use DataTablesResponse;
+
     public function index(Request $request)
     {
         $categories = PosCategory::with('createdBy') 
@@ -20,11 +23,13 @@ class PosCategoryController extends Controller
             ->orderBy('name')
             ->paginate($request->input('per_page', 15));
 
-        return response()->json([
-            'success' => true,
-            'message' => __('pos.categories.list'),
-            'data' => PosCategoryResource::collection($categories),
-        ]);
+        return response()->json(
+            $this->dataTablesResponse($request, $categories, [
+                'success' => true,
+                'message' => __('pos.categories.list'),
+                'data' => PosCategoryResource::collection($categories),
+            ])
+        );
     }
 
     public function store(PosCategoryRequest $request)

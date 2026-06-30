@@ -77,7 +77,7 @@ it('can get installment plan list', function () {
     ($this->makePlan)();
 
     $this->actingAs($this->owner)
-        ->getJson('/api/v1/purchase-installments')
+        ->getJson('/api/v1/pos/purchase-installments')
         ->assertStatus(200)
         ->assertJsonStructure([
             'success', 'message',
@@ -91,7 +91,7 @@ it('can filter by status', function () {
     ($this->makePlan)(); // ACTIVE
 
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/purchase-installments?status=COMPLETED');
+        ->getJson('/api/v1/pos/purchase-installments?status=COMPLETED');
 
     $response->assertStatus(200);
     expect($response->json('data'))->toHaveCount(1);
@@ -130,7 +130,7 @@ it('can filter by created_by_uuid', function () {
     ]);
 
     $response = $this->actingAs($this->owner)
-        ->getJson("/api/v1/purchase-installments?created_by_uuid={$admin->uuid}");
+        ->getJson("/api/v1/pos/purchase-installments?created_by_uuid={$admin->uuid}");
 
     $response->assertStatus(200);
     expect($response->json('data'))->toHaveCount(1);
@@ -141,7 +141,7 @@ it('returns all plans when created_by_uuid is not provided', function () {
     ($this->makePlan)();
 
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/purchase-installments');
+        ->getJson('/api/v1/pos/purchase-installments');
 
     $response->assertStatus(200);
     expect($response->json('data'))->toHaveCount(2);
@@ -156,14 +156,14 @@ it('returns empty when created_by_uuid has no purchase plans', function () {
     ]);
 
     $response = $this->actingAs($this->owner)
-        ->getJson("/api/v1/purchase-installments?created_by_uuid={$otherUser->uuid}");
+        ->getJson("/api/v1/pos/purchase-installments?created_by_uuid={$otherUser->uuid}");
 
     $response->assertStatus(200);
     expect($response->json('data'))->toHaveCount(0);
 });
 
 it('returns 401 when not authenticated', function () {
-    $this->getJson('/api/v1/purchase-installments')->assertStatus(401);
+    $this->getJson('/api/v1/pos/purchase-installments')->assertStatus(401);
 });
 
 // =============================
@@ -174,14 +174,14 @@ it('can get installment plan detail', function () {
     $plan = ($this->makePlan)();
 
     $this->actingAs($this->owner)
-        ->getJson("/api/v1/purchase-installments/{$plan->ulid}")
+        ->getJson("/api/v1/pos/purchase-installments/{$plan->ulid}")
         ->assertStatus(200)
         ->assertJsonPath('data.ulid', (string) $plan->ulid);
 });
 
 it('returns 404 when plan not found', function () {
     $this->actingAs($this->owner)
-        ->getJson('/api/v1/purchase-installments/invalid-ulid')
+        ->getJson('/api/v1/pos/purchase-installments/invalid-ulid')
         ->assertStatus(404);
 });
 
@@ -193,7 +193,7 @@ it('can record installment payment', function () {
     $plan = ($this->makePlan)(300000, 3);
 
     $this->actingAs($this->owner)
-        ->postJson("/api/v1/purchase-installments/{$plan->ulid}/pay", [
+        ->postJson("/api/v1/pos/purchase-installments/{$plan->ulid}/pay", [
             'paid_amount' => 100000,
         ])
         ->assertStatus(200)
@@ -207,10 +207,10 @@ it('installment_number increments on each payment', function () {
     $plan = ($this->makePlan)(300000, 3);
 
     $this->actingAs($this->owner)
-        ->postJson("/api/v1/purchase-installments/{$plan->ulid}/pay", ['paid_amount' => 50000]);
+        ->postJson("/api/v1/pos/purchase-installments/{$plan->ulid}/pay", ['paid_amount' => 50000]);
 
     $this->actingAs($this->owner)
-        ->postJson("/api/v1/purchase-installments/{$plan->ulid}/pay", ['paid_amount' => 50000]);
+        ->postJson("/api/v1/pos/purchase-installments/{$plan->ulid}/pay", ['paid_amount' => 50000]);
 
     $payments = $plan->fresh()->payments;
     expect($payments[0]->installment_number)->toBe(1);
@@ -221,7 +221,7 @@ it('status becomes COMPLETED when fully paid', function () {
     $plan = ($this->makePlan)(300000, 3);
 
     $this->actingAs($this->owner)
-        ->postJson("/api/v1/purchase-installments/{$plan->ulid}/pay", ['paid_amount' => 300000]);
+        ->postJson("/api/v1/pos/purchase-installments/{$plan->ulid}/pay", ['paid_amount' => 300000]);
 
     expect($plan->fresh()->status)->toEqual(PosInstallmentStatus::COMPLETED);
     expect($plan->fresh()->paid_amount)->toEqual(300000.0);
@@ -234,7 +234,7 @@ it('sales transaction status becomes PAID when installment completed', function 
     expect($trx->transaction_status)->toEqual(PosTransactionStatus::PENDING);
 
     $this->actingAs($this->owner)
-        ->postJson("/api/v1/purchase-installments/{$plan->ulid}/pay", ['paid_amount' => 300000]);
+        ->postJson("/api/v1/pos/purchase-installments/{$plan->ulid}/pay", ['paid_amount' => 300000]);
 
     expect($trx->fresh()->transaction_status)->toEqual(PosTransactionStatus::PAID);
     expect($trx->fresh()->paid)->toEqual(300000.0);
@@ -246,7 +246,7 @@ it('can pay in multiple small installments', function () {
     // Bayar 30x @10000
     for ($i = 0; $i < 30; $i++) {
         $this->actingAs($this->owner)
-            ->postJson("/api/v1/purchase-installments/{$plan->ulid}/pay", ['paid_amount' => 10000]);
+            ->postJson("/api/v1/pos/purchase-installments/{$plan->ulid}/pay", ['paid_amount' => 10000]);
     }
 
     expect($plan->fresh()->status)->toEqual(PosInstallmentStatus::COMPLETED);
@@ -257,7 +257,7 @@ it('returns 422 when payment exceeds remaining', function () {
     $plan = ($this->makePlan)(300000, 3);
 
     $this->actingAs($this->owner)
-        ->postJson("/api/v1/purchase-installments/{$plan->ulid}/pay", ['paid_amount' => 400000])
+        ->postJson("/api/v1/pos/purchase-installments/{$plan->ulid}/pay", ['paid_amount' => 400000])
         ->assertStatus(422)
         ->assertJsonPath('success', false);
 });
@@ -267,7 +267,7 @@ it('returns 422 when paying already completed installment', function () {
     $plan->update(['status' => PosInstallmentStatus::COMPLETED, 'paid_amount' => 300000]);
 
     $this->actingAs($this->owner)
-        ->postJson("/api/v1/purchase-installments/{$plan->ulid}/pay", ['paid_amount' => 1000])
+        ->postJson("/api/v1/pos/purchase-installments/{$plan->ulid}/pay", ['paid_amount' => 1000])
         ->assertStatus(422)
         ->assertJsonPath('success', false);
 });
@@ -276,7 +276,7 @@ it('returns 422 when paid_amount is zero', function () {
     $plan = ($this->makePlan)();
 
     $this->actingAs($this->owner)
-        ->postJson("/api/v1/purchase-installments/{$plan->ulid}/pay", ['paid_amount' => 0])
+        ->postJson("/api/v1/pos/purchase-installments/{$plan->ulid}/pay", ['paid_amount' => 0])
         ->assertStatus(422);
 });
 
@@ -306,6 +306,6 @@ it('returns 404 when plan from other company', function () {
     ]);
 
     $this->actingAs($this->owner)
-        ->postJson("/api/v1/purchase-installments/{$otherPlan->ulid}/pay", ['paid_amount' => 10000])
+        ->postJson("/api/v1/pos/purchase-installments/{$otherPlan->ulid}/pay", ['paid_amount' => 10000])
         ->assertStatus(404);
 });

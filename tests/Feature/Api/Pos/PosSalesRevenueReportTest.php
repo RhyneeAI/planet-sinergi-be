@@ -108,27 +108,27 @@ function makeSalesRevTrx(array $data): PosSalesTransaction
 
 it('returns 422 when date_from is missing', function () {
     $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/sales-revenue?date_to=2026-05-01')
+        ->getJson('/api/v1/pos/reports/sales-revenue?date_to=2026-05-01')
         ->assertStatus(422)
         ->assertJsonStructure(['errors' => ['date_from']]);
 });
 
 it('returns 422 when date_to is missing', function () {
     $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01')
+        ->getJson('/api/v1/pos/reports/sales-revenue?date_from=2026-01-01')
         ->assertStatus(422)
         ->assertJsonStructure(['errors' => ['date_to']]);
 });
 
 it('returns 422 when date_to is before date_from', function () {
     $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/sales-revenue?date_from=2026-05-01&date_to=2026-01-01')
+        ->getJson('/api/v1/pos/reports/sales-revenue?date_from=2026-05-01&date_to=2026-01-01')
         ->assertStatus(422)
         ->assertJsonStructure(['errors' => ['date_to']]);
 });
 
 it('returns 401 when not authenticated', function () {
-    $this->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31')
+    $this->getJson('/api/v1/pos/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31')
         ->assertStatus(401);
 });
 
@@ -149,7 +149,7 @@ it('calculates grand total qty and revenue correctly', function () {
     ]);
 
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31');
+        ->getJson('/api/v1/pos/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
     expect($response->json('data.grand_total.total_qty'))->toEqual(5);
@@ -178,7 +178,7 @@ it('accumulates revenue correctly across multiple transactions', function () {
     ]);
 
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31');
+        ->getJson('/api/v1/pos/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
     expect($response->json('data.grand_total.total_qty'))->toEqual(8);
@@ -204,7 +204,7 @@ it('calculates profit correctly for owner transactions', function () {
 
     // company_profit A: (5000-3000)*2 = 4000, B: (15000-10000)*1 = 5000
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31');
+        ->getJson('/api/v1/pos/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
     expect($response->json('data.grand_total.total_revenue'))->toEqual(50000);
@@ -226,7 +226,7 @@ it('calculates profit correctly for marketing transactions', function () {
 
     // company_profit A: (5000-3000)*2 = 4000, B: (15000-10000)*1 = 5000
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31');
+        ->getJson('/api/v1/pos/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
     expect($response->json('data.grand_total.total_revenue'))->toEqual(50000);
@@ -250,7 +250,7 @@ it('uses marketing_price from sales_details not from product for historical accu
     ]);
 
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31');
+        ->getJson('/api/v1/pos/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
     expect($response->json('data.grand_total.total_revenue'))->toEqual(50000);
@@ -284,7 +284,7 @@ it('only includes transactions within date range', function () {
     ]);
 
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-03-31');
+        ->getJson('/api/v1/pos/reports/sales-revenue?date_from=2026-01-01&date_to=2026-03-31');
 
     $response->assertStatus(200);
     expect($response->json('data.grand_total.total_qty'))->toEqual(3);
@@ -319,7 +319,7 @@ it('includes pending transactions', function () {
     ]);
 
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31');
+        ->getJson('/api/v1/pos/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
     expect($response->json('data.grand_total.total_qty'))->toEqual(8);
@@ -354,7 +354,7 @@ it('excludes cancelled transactions', function () {
     ]);
 
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31');
+        ->getJson('/api/v1/pos/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
     expect($response->json('data.grand_total.total_qty'))->toEqual(3);
@@ -399,7 +399,7 @@ it('only includes transactions from same company', function () {
     ]);
 
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31');
+        ->getJson('/api/v1/pos/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
     expect($response->json('data.grand_total.total_qty'))->toEqual(3);
@@ -411,7 +411,7 @@ it('only includes transactions from same company', function () {
 
 it('returns zero when no transactions in range', function () {
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31');
+        ->getJson('/api/v1/pos/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
     expect($response->json('data.grand_total.total_qty'))->toEqual(0);
@@ -434,7 +434,7 @@ it('returns correct response structure', function () {
     ]);
 
     $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31')
+        ->getJson('/api/v1/pos/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31')
         ->assertStatus(200)
         ->assertJsonStructure([
             'success',
@@ -463,7 +463,7 @@ it('uses sell_price from sales_details not products.leader_price', function () {
     ]);
 
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31');
+        ->getJson('/api/v1/pos/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31');
 
     $response->assertStatus(200);
     expect($response->json('data.grand_total.total_revenue'))->toEqual(14000);
@@ -500,7 +500,7 @@ it('filters transactions by specific marketing', function () {
     ]);
 
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31&marketing_uuid=' . $this->cashier->uuid);
+        ->getJson('/api/v1/pos/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31&marketing_uuid=' . $this->cashier->uuid);
 
     $response->assertStatus(200);
     expect($response->json('data.grand_total.total_qty'))->toEqual(3);
@@ -509,7 +509,7 @@ it('filters transactions by specific marketing', function () {
 
 it('returns 422 when marketing_uuid format is invalid', function () {
     $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31&marketing_uuid=invalid-uuid')
+        ->getJson('/api/v1/pos/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31&marketing_uuid=invalid-uuid')
         ->assertStatus(422)
         ->assertJsonStructure(['errors' => ['marketing_uuid']]);
 });
@@ -517,14 +517,14 @@ it('returns 422 when marketing_uuid format is invalid', function () {
 it('returns 422 when marketing_uuid does not exist', function () {
     $fakeUuid = '550e8400-e29b-41d4-a716-446655440000';
     $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31&marketing_uuid=' . $fakeUuid)
+        ->getJson('/api/v1/pos/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31&marketing_uuid=' . $fakeUuid)
         ->assertStatus(422)
         ->assertJsonStructure(['errors' => ['marketing_uuid']]);
 });
 
 it('returns 404 when marketing_uuid is not a marketing user (e.g., owner)', function () {
     $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31&marketing_uuid=' . $this->owner->uuid)
+        ->getJson('/api/v1/pos/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31&marketing_uuid=' . $this->owner->uuid)
         ->assertStatus(404);
 });
 
@@ -536,7 +536,7 @@ it('returns 422 when marketing belongs to different company', function () {
     ]);
 
     $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31&marketing_uuid=' . $otherMarketing->uuid)
+        ->getJson('/api/v1/pos/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31&marketing_uuid=' . $otherMarketing->uuid)
         ->assertStatus(422)
         ->assertJsonStructure(['errors' => ['marketing_uuid']]);
 });
@@ -558,7 +558,7 @@ it('returns zero when filtered marketing has no transactions', function () {
     ]);
 
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31&marketing_uuid=' . $anotherCashier->uuid);
+        ->getJson('/api/v1/pos/reports/sales-revenue?date_from=2026-01-01&date_to=2026-12-31&marketing_uuid=' . $anotherCashier->uuid);
 
     $response->assertStatus(200);
     expect($response->json('data.grand_total.total_qty'))->toEqual(0);

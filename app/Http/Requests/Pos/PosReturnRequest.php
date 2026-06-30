@@ -26,13 +26,13 @@ class PosReturnRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'sales_transaction_uuid.required' => __('pos.returns.validation.sales_transaction_required'),
-            'sales_detail_uuid.required'      => __('pos.returns.validation.sales_detail_required'),
-            'product_uuid.required'            => __('pos.returns.validation.product_required'),
-            'qty.required'                     => __('pos.returns.validation.qty_required'),
-            'qty.min'                          => __('pos.returns.validation.qty_min'),
-            'reason.required'                  => __('pos.returns.validation.reason_required'),
-            'refund_amount.required'           => __('pos.returns.validation.refund_amount_required'),
+            'sales_transaction_uuid.required' => __('pos.sales_transaction_returns.validation.sales_transaction_required'),
+            'sales_detail_uuid.required'      => __('pos.sales_transaction_returns.validation.sales_detail_required'),
+            'product_uuid.required'            => __('pos.sales_transaction_returns.validation.product_required'),
+            'qty.required'                     => __('pos.sales_transaction_returns.validation.qty_required'),
+            'qty.min'                          => __('pos.sales_transaction_returns.validation.qty_min'),
+            'reason.required'                  => __('pos.sales_transaction_returns.validation.reason_required'),
+            'refund_amount.required'           => __('pos.sales_transaction_returns.validation.refund_amount_required'),
         ];
     }
 }

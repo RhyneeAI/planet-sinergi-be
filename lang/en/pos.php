@@ -88,6 +88,7 @@ return [
     'marketings' => [
         'list'          => 'Marketing list retrieved successfully.',
         'detail'        => 'Marketing detail retrieved successfully.',
+        'not_found'     => 'Marketing not found.',
         'stored'        => 'Marketing created successfully.',
         'updated'       => 'Marketing updated successfully.',
         'deleted'       => 'Marketing deleted successfully.',
@@ -268,7 +269,7 @@ return [
             'name_unique'   => 'The unit name has already been taken.',
         ],
     ],
-    'returns' => [
+    'sales_transaction_returns' => [
         'list'   => 'Return list retrieved successfully.',
         'stored' => 'Return created successfully. Stock has been adjusted.',
         'validation' => [
@@ -283,8 +284,5 @@ return [
             'product_not_in_detail'      => 'Product does not match the sales detail.',
             'qty_exceeds_available'      => 'Cannot return more than :available items for this product.',
         ],
-    ],
-    'stock_card' => [
-        'detail' => 'Stock card retrieved successfully.',
     ],
 ];

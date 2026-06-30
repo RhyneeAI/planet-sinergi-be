@@ -72,6 +72,33 @@ class User extends Authenticatable
         return $this->hasMany(PosSalesTransaction::class, 'created_by', 'id');
     }
 
+    public function leaders()
+    {
+        return $this->hasMany(MarketingLeadMember::class, 'marketing_id');
+    }
+
+    public function leaderUser()
+    {
+        return $this->belongsToMany(User::class, 'marketing_lead_members', 'marketing_id', 'leader_id')
+            ->withTimestamps();
+    }
+
+    public function members()
+    {
+        return $this->hasMany(MarketingLeadMember::class, 'leader_id');
+    }
+
+    public function memberUsers()
+    {
+        return $this->belongsToMany(User::class, 'marketing_lead_members', 'leader_id', 'marketing_id')
+            ->withTimestamps();
+    }
+
+    public function marketingSalesTransactions()
+    {
+        return $this->hasMany(PosSalesTransaction::class, 'marketing_id');
+    }
+
     public function createdStockMutations()
     {
         return $this->hasMany(PosStockMutation::class, 'created_by');

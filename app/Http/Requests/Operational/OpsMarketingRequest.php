@@ -2,11 +2,11 @@
 
 namespace App\Http\Requests\Operational;
 
-use App\Models\AbsJabatan;
-use App\Models\AbsShift;
-use App\Models\SubCompany;
+use App\Enums\Role;
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class OpsMarketingRequest extends FormRequest
 {
@@ -17,58 +17,103 @@ class OpsMarketingRequest extends FormRequest
 
     public function rules(): array
     {
-        $userId = $this->marketing?->id;
+        $user = $this->route('user');
+        $userId = $user instanceof User ? $user->id : null;
         $companyId = $this->user()->company_id;
+        $isStore = $this->isMethod('POST');
 
         return [
-            'name'    => [$this->isMethod('POST') ? 'required' : 'sometimes', 'string', 'max:255'],
-            'phone'   => [
-                $this->isMethod('POST') ? 'required' : 'sometimes',
+            'name' => [$isStore ? 'required' : 'sometimes', 'string', 'max:255'],
+            'phone' => [
+                $isStore ? 'required' : 'sometimes',
                 'string',
                 'max:20',
                 Rule::unique('users', 'phone')
                     ->where('company_id', $companyId)
                     ->ignore($userId),
             ],
-            'email'   => [
-                'sometimes',
+            'email' => [
                 'nullable',
                 'email',
                 Rule::unique('users', 'email')
                     ->where('company_id', $companyId)
                     ->ignore($userId),
             ],
-            'address' => ['sometimes', 'nullable', 'string'],
-            'jabatan_uuid' => ['sometimes', 'nullable', 'uuid', function ($attribute, $value, $fail) use ($companyId) {
-                if ($value && !AbsJabatan::where('uuid', $value)->where('company_id', $companyId)->exists()) {
-                    $fail(__('absence.validation.jabatan_uuid_not_found'));
-                }
-            }],
-            'sub_company_uuid' => ['sometimes', 'nullable', 'uuid', function ($attribute, $value, $fail) use ($companyId) {
-                if ($value && !SubCompany::where('uuid', $value)->where('company_id', $companyId)->exists()) {
-                    $fail(__('absence.validation.sub_company_uuid_not_found'));
-                }
-            }],
-            'shift_uuid' => ['sometimes', 'nullable', 'uuid', function ($attribute, $value, $fail) use ($companyId) {
-                if ($value && !AbsShift::where('uuid', $value)->where('company_id', $companyId)->exists()) {
-                    $fail(__('absence.validation.shift_uuid_not_found'));
-                }
-            }],
-            'password' => ['sometimes', 'nullable', 'string', 'min:6'],
+            'address' => ['nullable', 'string'],
+            'password' => ['nullable', 'string', 'min:6'],
+            'role' => [
+                $isStore ? 'required' : 'prohibited',
+                Rule::in(Role::commissionMarketingValues()),
+            ],
+            'leader_uuid' => [
+                'nullable',
+                'uuid',
+                Rule::exists('users', 'uuid')
+                    ->where('company_id', $companyId)
+                    ->where('role', Role::MARKETING_LEAD->value),
+            ],
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator) {
+            if ($validator->errors()->isNotEmpty()) {
+                return;
+            }
+
+            $role = $this->isMethod('POST')
+                ? $this->input('role')
+                : $this->route('user')?->role?->value;
+
+            if ($role === Role::MARKETING->value && !$this->filled('leader_uuid')) {
+                $validator->errors()->add(
+                    'leader_uuid',
+                    __('operational.marketings.validation.leader_required')
+                );
+            }
+
+            if ($role === Role::MARKETING_LEAD->value && $this->filled('leader_uuid')) {
+                $validator->errors()->add(
+                    'leader_uuid',
+                    __('operational.marketings.validation.leader_prohibited')
+                );
+            }
+
+            $targetUser = $this->route('user');
+            if ($targetUser instanceof User && $this->has('leader_uuid') && $this->filled('leader_uuid')) {
+                if ($targetUser->role === Role::MARKETING_LEAD) {
+                    $validator->errors()->add(
+                        'leader_uuid',
+                        __('operational.marketings.validation.leader_prohibited')
+                    );
+                }
+
+                if ($targetUser->uuid === $this->leader_uuid) {
+                    $validator->errors()->add(
+                        'leader_uuid',
+                        __('operational.marketings.validation.leader_self')
+                    );
+                }
+            }
+        });
     }
 
     public function messages(): array
     {
         return [
-            'name.required'  => __('operational.marketings.validation.name_required'),
-            'name.max'       => __('operational.marketings.validation.name_max'),
+            'name.required' => __('operational.marketings.validation.name_required'),
+            'name.max' => __('operational.marketings.validation.name_max'),
             'phone.required' => __('operational.marketings.validation.phone_required'),
-            'phone.unique'   => __('operational.marketings.validation.phone_unique'),
-            'phone.max'      => __('operational.marketings.validation.phone_max'),
-            'email.email'    => __('operational.marketings.validation.email_invalid'),
-            'email.unique'   => __('operational.marketings.validation.email_unique'),
-            'password.min'   => __('operational.marketings.validation.password_min'),
+            'phone.unique' => __('operational.marketings.validation.phone_unique'),
+            'phone.max' => __('operational.marketings.validation.phone_max'),
+            'email.email' => __('operational.marketings.validation.email_invalid'),
+            'email.unique' => __('operational.marketings.validation.email_unique'),
+            'role.required' => __('operational.marketings.validation.role_required'),
+            'role.in' => __('operational.marketings.validation.role_invalid'),
+            'role.prohibited' => __('operational.marketings.validation.role_immutable'),
+            'leader_uuid.uuid' => __('operational.marketings.validation.leader_uuid'),
+            'leader_uuid.exists' => __('operational.marketings.validation.leader_not_found'),
         ];
     }
 }

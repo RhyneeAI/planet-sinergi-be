@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Pos\PosHomeController;
 use App\Http\Controllers\Api\Pos\PosCategoryController;
 use App\Http\Controllers\Api\Pos\PosCustomerController;
 use App\Http\Controllers\Api\Pos\PosCustomerTypeController;
@@ -11,18 +12,28 @@ use App\Http\Controllers\Api\Pos\PosPurchaseTransactionController;
 use App\Http\Controllers\Api\Pos\PosReturnController;
 use App\Http\Controllers\Api\Pos\PosSalesInstallmentController;
 use App\Http\Controllers\Api\Pos\PosSalesTransactionController;
-use App\Http\Controllers\Api\Pos\PosStockCardController;
 use App\Http\Controllers\Api\Pos\PosStockMutationController;
 use App\Http\Controllers\Api\Pos\PosSupplierController;
 use App\Http\Controllers\Api\Pos\PosUnitController;
 use App\Http\Controllers\Api\ReportController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
+Route::prefix('v1/pos')->middleware(['auth:sanctum'])->group(function () {
+
+    Route::get('home', [PosHomeController::class, 'index']);
 
     // Generate-code harus sebelum apiResource agar tidak tertelan route {product}
     Route::get('products/generate-code', [PosProductController::class, 'generateCode'])
         ->middleware('role:SUPERADMIN,ADMIN,GUDANG,KEPALA_GUDANG,KEPALA_MANDOR');
+
+    // =======================================================
+    // PRODUCTS — READ (termasuk KASIR untuk picker transaksi)
+    // =======================================================
+    Route::group(['middleware' => ['role:SUPERADMIN,OWNER,ADMIN,KEPALA_GUDANG,KEPALA_MANDOR,GUDANG,KASIR']], function () {
+        Route::apiResource('products', PosProductController::class)->parameters([
+            'products' => 'product:uuid',
+        ])->only(['index', 'show']);
+    });
 
     // =======================================================
     // MASTER DATA — READ (index & show)
@@ -34,12 +45,6 @@ Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
 
         Route::apiResource('units', PosUnitController::class)->parameters([
             'units' => 'unit:uuid',
-        ])->only(['index', 'show']);
-
-        Route::get('stock-card/{product:uuid}', [PosStockCardController::class, 'show']);
-
-        Route::apiResource('products', PosProductController::class)->parameters([
-            'products' => 'product:uuid',
         ])->only(['index', 'show']);
 
         Route::apiResource('suppliers', PosSupplierController::class)->parameters([
@@ -56,7 +61,7 @@ Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
 
         Route::apiResource('marketings', PosMarketingController::class)->parameters([
             'marketings' => 'marketing:uuid',
-        ])->only(['index', 'show']);
+        ])->only(['index', 'show'])->names('pos.marketings');
 
         Route::apiResource('marketing-products', PosMarketingProductController::class)->parameters([
             'marketing-products' => 'marketingProduct:uuid',
@@ -109,7 +114,7 @@ Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
     });
 
     // =======================================================
-    // SALES TRANSACTIONS, INSTALLMENTS & RETURNS
+    // SALES TRANSACTIONS, INSTALLMENTS & SALES TRANSACTION RETURNS
     // =======================================================
     Route::group(['middleware' => ['role:SUPERADMIN,OWNER,ADMIN,KEPALA_GUDANG,KEPALA_MANDOR,KASIR']], function () {
         Route::prefix('sales-transactions')->group(function () {
@@ -125,7 +130,7 @@ Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
             Route::post('/{salesInstallmentPlan:ulid}/pay', [PosSalesInstallmentController::class, 'pay']);
         });
 
-        Route::prefix('returns')->group(function () {
+        Route::prefix('sales-transaction-returns')->group(function () {
             Route::get('/',  [PosReturnController::class, 'index']);
             Route::post('/', [PosReturnController::class, 'store']);
         });

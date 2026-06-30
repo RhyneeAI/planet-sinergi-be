@@ -7,11 +7,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Operational\OpsMandorResource;
 use App\Models\User;
 use Carbon\Carbon;
+use App\Http\Traits\DataTablesResponse;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
 class OpsMandorController extends Controller
 {
+    use DataTablesResponse;
+
     public function index(Request $request)
     {
         $user = $request->user();
@@ -50,10 +53,12 @@ class OpsMandorController extends Controller
             ->orderBy('name')
             ->paginate($request->input('per_page', 15));
 
-        return response()->json([
-            'success' => true,
-            'message' => __('operational.mandors.list'),
-            'data' => OpsMandorResource::collection($mandors),
-        ]);
+        return response()->json(
+            $this->dataTablesResponse($request, $mandors, [
+                'success' => true,
+                'message' => __('operational.mandors.list'),
+                'data' => OpsMandorResource::collection($mandors),
+            ])
+        );
     }
 }

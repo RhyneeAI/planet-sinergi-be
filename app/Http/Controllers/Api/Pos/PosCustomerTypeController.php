@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Api\Pos;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Pos\PosCustomerTypeRequest;
 use App\Http\Resources\Pos\PosCustomerTypeResource;
+use App\Http\Traits\DataTablesResponse;
 use App\Models\PosCustomerType;
 use Illuminate\Http\Request;
 
 class PosCustomerTypeController extends Controller
 {
+    use DataTablesResponse;
+
     protected array $sortableColumns = ['type', 'discount', 'created_at'];
 
     public function index(Request $request)
@@ -26,11 +29,13 @@ class PosCustomerTypeController extends Controller
             ->orderBy($orderByKey, $orderByValue)
             ->paginate($request->input('per_page', 15));
 
-        return response()->json([
-            'success' => true,
-            'message' => __('pos.customer_types.list'),
-            'data'    => PosCustomerTypeResource::collection($customerTypes),
-        ]);
+        return response()->json(
+            $this->dataTablesResponse($request, $customerTypes, [
+                'success' => true,
+                'message' => __('pos.customer_types.list'),
+                'data'    => PosCustomerTypeResource::collection($customerTypes),
+            ])
+        );
     }
 
     public function store(PosCustomerTypeRequest $request)

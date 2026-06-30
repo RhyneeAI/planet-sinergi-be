@@ -55,7 +55,7 @@ it('can get marketing product list', function () {
     ]);
 
     $this->actingAs($this->owner)
-        ->getJson('/api/v1/marketing-products')
+        ->getJson('/api/v1/pos/marketing-products')
         ->assertStatus(200)
         ->assertJsonStructure([
             'success', 'message',
@@ -102,7 +102,7 @@ it('only returns marketing products belonging to the same company', function () 
     ]);
 
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/marketing-products');
+        ->getJson('/api/v1/pos/marketing-products');
 
     $response->assertStatus(200);
     expect($response->json('data'))->toHaveCount(2);
@@ -137,7 +137,7 @@ it('can filter by marketing_uuid', function () {
     ]);
 
     $response = $this->actingAs($this->owner)
-        ->getJson("/api/v1/marketing-products?marketing_uuid={$this->marketing->uuid}");
+        ->getJson("/api/v1/pos/marketing-products?marketing_uuid={$this->marketing->uuid}");
 
     $response->assertStatus(200);
     expect($response->json('data'))->toHaveCount(2);
@@ -174,7 +174,7 @@ it('can search marketing products by product name', function () {
     ]);
 
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/marketing-products?search=sabun');
+        ->getJson('/api/v1/pos/marketing-products?search=sabun');
 
     $response->assertStatus(200);
     expect($response->json('data'))->toHaveCount(1);
@@ -211,7 +211,7 @@ it('can search marketing products by product code', function () {
     ]);
 
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/marketing-products?search=PRD-SABUN');
+        ->getJson('/api/v1/pos/marketing-products?search=PRD-SABUN');
 
     $response->assertStatus(200);
     expect($response->json('data'))->toHaveCount(1);
@@ -247,7 +247,7 @@ it('can sort by product name ascending', function () {
     ]);
 
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/marketing-products?order_by_key=product_name&order_by_value=ASC');
+        ->getJson('/api/v1/pos/marketing-products?order_by_key=product_name&order_by_value=ASC');
 
     $response->assertStatus(200);
     expect($response->json('data.0.product.name'))->toBe('Aaa Product');
@@ -284,7 +284,7 @@ it('can sort by product name descending', function () {
     ]);
 
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/marketing-products?order_by_key=product_name&order_by_value=DESC');
+        ->getJson('/api/v1/pos/marketing-products?order_by_key=product_name&order_by_value=DESC');
 
     $response->assertStatus(200);
     expect($response->json('data.0.product.name'))->toBe('Zee Product');
@@ -309,7 +309,7 @@ it('can paginate marketing products', function () {
     }
 
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/marketing-products?per_page=5');
+        ->getJson('/api/v1/pos/marketing-products?per_page=5');
 
     $response->assertStatus(200);
     expect($response->json('data'))->toHaveCount(5);
@@ -317,14 +317,14 @@ it('can paginate marketing products', function () {
 
 it('returns empty data when no marketing products exist', function () {
     $response = $this->actingAs($this->owner)
-        ->getJson('/api/v1/marketing-products');
+        ->getJson('/api/v1/pos/marketing-products');
 
     $response->assertStatus(200);
     expect($response->json('data'))->toHaveCount(0);
 });
 
 it('returns 401 when not authenticated on index', function () {
-    $this->getJson('/api/v1/marketing-products')->assertStatus(401);
+    $this->getJson('/api/v1/pos/marketing-products')->assertStatus(401);
 });
 
 // =============================
@@ -333,7 +333,7 @@ it('returns 401 when not authenticated on index', function () {
 
 it('can create a marketing product', function () {
     $this->actingAs($this->owner)
-        ->postJson('/api/v1/marketing-products', $this->payload)
+        ->postJson('/api/v1/pos/marketing-products', $this->payload)
         ->assertStatus(201)
         ->assertJsonPath('success', true)
         ->assertJsonPath('data.marketing_price', 12000);
@@ -344,7 +344,7 @@ it('returns 422 when product_uuid is missing', function () {
     unset($payload['product_uuid']);
 
     $this->actingAs($this->owner)
-        ->postJson('/api/v1/marketing-products', $payload)
+        ->postJson('/api/v1/pos/marketing-products', $payload)
         ->assertStatus(422)
         ->assertJsonStructure(['errors' => ['product_uuid']]);
 });
@@ -354,7 +354,7 @@ it('returns 422 when marketing_uuid is missing', function () {
     unset($payload['marketing_uuid']);
 
     $this->actingAs($this->owner)
-        ->postJson('/api/v1/marketing-products', $payload)
+        ->postJson('/api/v1/pos/marketing-products', $payload)
         ->assertStatus(422)
         ->assertJsonStructure(['errors' => ['marketing_uuid']]);
 });
@@ -364,7 +364,7 @@ it('returns 422 when marketing_price is missing', function () {
     unset($payload['marketing_price']);
 
     $this->actingAs($this->owner)
-        ->postJson('/api/v1/marketing-products', $payload)
+        ->postJson('/api/v1/pos/marketing-products', $payload)
         ->assertStatus(422)
         ->assertJsonStructure(['errors' => ['marketing_price']]);
 });
@@ -372,12 +372,12 @@ it('returns 422 when marketing_price is missing', function () {
 it('returns 422 when product already assigned to same marketing', function () {
     // Buat marketing product pertama
     $this->actingAs($this->owner)
-        ->postJson('/api/v1/marketing-products', $this->payload)
+        ->postJson('/api/v1/pos/marketing-products', $this->payload)
         ->assertStatus(201);
 
     // Coba assign produk yang sama ke marketing yang sama
     $this->actingAs($this->owner)
-        ->postJson('/api/v1/marketing-products', $this->payload)
+        ->postJson('/api/v1/pos/marketing-products', $this->payload)
         ->assertStatus(422)
         ->assertJsonPath('success', false);
 });
@@ -387,12 +387,12 @@ it('allows same product assigned to different marketing', function () {
 
     // Assign product ke marketing 1
     $this->actingAs($this->owner)
-        ->postJson('/api/v1/marketing-products', $this->payload)
+        ->postJson('/api/v1/pos/marketing-products', $this->payload)
         ->assertStatus(201);
 
     // Assign product yang sama ke marketing 2 — boleh
     $this->actingAs($this->owner)
-        ->postJson('/api/v1/marketing-products', [
+        ->postJson('/api/v1/pos/marketing-products', [
             'product_uuid'    => $this->product->uuid,
             'marketing_uuid'  => $marketing2->uuid,
             'marketing_price' => 11000,
@@ -407,7 +407,7 @@ it('returns 422 when marketing_uuid is not a marketing role', function () {
     ]);
 
     $this->actingAs($this->owner)
-        ->postJson('/api/v1/marketing-products', $payload)
+        ->postJson('/api/v1/pos/marketing-products', $payload)
         ->assertStatus(422);
 });
 
@@ -415,12 +415,12 @@ it('returns 422 when marketing_price is negative', function () {
     $payload = array_merge($this->payload, ['marketing_price' => -1000]);
 
     $this->actingAs($this->owner)
-        ->postJson('/api/v1/marketing-products', $payload)
+        ->postJson('/api/v1/pos/marketing-products', $payload)
         ->assertStatus(422);
 });
 
 it('returns 401 when not authenticated on store', function () {
-    $this->postJson('/api/v1/marketing-products', $this->payload)
+    $this->postJson('/api/v1/pos/marketing-products', $this->payload)
         ->assertStatus(401);
 });
 
@@ -438,14 +438,14 @@ it('can get marketing product detail', function () {
     ]);
 
     $this->actingAs($this->owner)
-        ->getJson("/api/v1/marketing-products/{$mp->uuid}")
+        ->getJson("/api/v1/pos/marketing-products/{$mp->uuid}")
         ->assertStatus(200)
         ->assertJsonPath('data.uuid', $mp->uuid);
 });
 
 it('returns 404 when marketing product not found', function () {
     $this->actingAs($this->owner)
-        ->getJson('/api/v1/marketing-products/invalid-uuid')
+        ->getJson('/api/v1/pos/marketing-products/invalid-uuid')
         ->assertStatus(404);
 });
 
@@ -469,7 +469,7 @@ it('returns 404 when accessing marketing product from other company', function (
     ]);
 
     $this->actingAs($this->owner)
-        ->getJson("/api/v1/marketing-products/{$mp->uuid}")
+        ->getJson("/api/v1/pos/marketing-products/{$mp->uuid}")
         ->assertStatus(404);
 });
 
@@ -487,7 +487,7 @@ it('can update marketing price', function () {
     ]);
 
     $this->actingAs($this->owner)
-        ->patchJson("/api/v1/marketing-products/{$mp->uuid}", [
+        ->patchJson("/api/v1/pos/marketing-products/{$mp->uuid}", [
             'marketing_price' => 14000,
         ])
         ->assertStatus(200)
@@ -504,7 +504,7 @@ it('can partial update without sending product_uuid or marketing_uuid', function
     ]);
 
     $this->actingAs($this->owner)
-        ->patchJson("/api/v1/marketing-products/{$mp->uuid}", [
+        ->patchJson("/api/v1/pos/marketing-products/{$mp->uuid}", [
             'marketing_price' => 13000,
         ])
         ->assertStatus(200)
@@ -531,7 +531,7 @@ it('returns 404 when updating marketing product from other company', function ()
     ]);
 
     $this->actingAs($this->owner)
-        ->patchJson("/api/v1/marketing-products/{$mp->uuid}", ['marketing_price' => 99000])
+        ->patchJson("/api/v1/pos/marketing-products/{$mp->uuid}", ['marketing_price' => 99000])
         ->assertStatus(404);
 });
 
@@ -549,7 +549,7 @@ it('can delete a marketing product', function () {
     ]);
 
     $this->actingAs($this->owner)
-        ->deleteJson("/api/v1/marketing-products/{$mp->uuid}")
+        ->deleteJson("/api/v1/pos/marketing-products/{$mp->uuid}")
         ->assertStatus(200)
         ->assertJsonPath('success', true);
 
@@ -576,7 +576,7 @@ it('returns 404 when deleting marketing product from other company', function ()
     ]);
 
     $this->actingAs($this->owner)
-        ->deleteJson("/api/v1/marketing-products/{$mp->uuid}")
+        ->deleteJson("/api/v1/pos/marketing-products/{$mp->uuid}")
         ->assertStatus(404);
 });
 
@@ -589,6 +589,6 @@ it('returns 401 when not authenticated on delete', function () {
         'company_id'      => $this->company->id,
     ]);
 
-    $this->deleteJson("/api/v1/marketing-products/{$mp->uuid}")
+    $this->deleteJson("/api/v1/pos/marketing-products/{$mp->uuid}")
         ->assertStatus(401);
 });

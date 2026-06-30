@@ -102,6 +102,7 @@ it('filters attendance by status', function () {
         'abs_shift_id' => $this->shift->id,
         'company_id' => $this->company->id,
         'status' => 'hadir',
+        'date' => now()->subDays(2),
     ]);
 
     AbsAttendance::factory()->create([

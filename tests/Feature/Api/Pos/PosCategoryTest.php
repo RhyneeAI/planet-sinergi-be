@@ -20,7 +20,7 @@ it('can get category list', function () {
     PosCategory::factory(5)->create(['company_id' => $this->company->id]);
 
     $this->actingAs($this->user)
-        ->getJson('/api/v1/categories')
+        ->getJson('/api/v1/pos/categories')
         ->assertStatus(200)
         ->assertJsonStructure([
             'success',
@@ -41,14 +41,14 @@ it('only returns categories belonging to the same company', function () {
     PosCategory::factory(2)->create(['company_id' => $this->company->id]);
 
     $response = $this->actingAs($this->user)
-        ->getJson('/api/v1/categories');
+        ->getJson('/api/v1/pos/categories');
 
     $response->assertStatus(200);
     expect($response->json('data'))->toHaveCount(2);
 });
 
 it('returns 401 when not authenticated on index', function () {
-    $this->getJson('/api/v1/categories')->assertStatus(401);
+    $this->getJson('/api/v1/pos/categories')->assertStatus(401);
 });
 
 it('can filter categories by search', function () {
@@ -57,7 +57,7 @@ it('can filter categories by search', function () {
     PosCategory::factory()->create(['name' => 'Minuman',     'company_id' => $this->company->id]);
 
     $response = $this->actingAs($this->user)
-        ->getJson('/api/v1/categories?search=makan');
+        ->getJson('/api/v1/pos/categories?search=makan');
 
     $response->assertStatus(200);
     expect($response->json('data'))->toHaveCount(1);
@@ -68,7 +68,7 @@ it('can paginate categories with custom per_page', function () {
     PosCategory::factory(20)->create(['company_id' => $this->company->id]);
 
     $response = $this->actingAs($this->user)
-        ->getJson('/api/v1/categories?per_page=5');
+        ->getJson('/api/v1/pos/categories?per_page=5');
 
     $response->assertStatus(200);
     expect($response->json('data'))->toHaveCount(5);
@@ -80,7 +80,7 @@ it('can paginate categories with custom per_page', function () {
 
 it('can create a category', function () {
     $this->actingAs($this->user)
-        ->postJson('/api/v1/categories', ['name' => 'Elektronik'])
+        ->postJson('/api/v1/pos/categories', ['name' => 'Elektronik'])
         ->assertStatus(201)
         ->assertJsonPath('success', true)
         ->assertJsonPath('data.name', 'Elektronik');
@@ -90,13 +90,13 @@ it('returns 422 when name exceeds 255 characters', function () {
     $longName = str_repeat('a', 256);
 
     $this->actingAs($this->user)
-        ->postJson('/api/v1/categories', ['name' => $longName])
+        ->postJson('/api/v1/pos/categories', ['name' => $longName])
         ->assertStatus(422);
 });
 
 it('returns 422 when name is empty on store', function () {
     $this->actingAs($this->user)
-        ->postJson('/api/v1/categories', ['name' => ''])
+        ->postJson('/api/v1/pos/categories', ['name' => ''])
         ->assertStatus(422)
         ->assertJsonPath('success', false);
 });
@@ -108,7 +108,7 @@ it('returns 422 when name is duplicate within same company', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->postJson('/api/v1/categories', ['name' => 'Elektronik'])
+        ->postJson('/api/v1/pos/categories', ['name' => 'Elektronik'])
         ->assertStatus(422);
 });
 
@@ -119,7 +119,7 @@ it('prevents duplicate name with different case', function () {
     ]);
 
     $response = $this->actingAs($this->user)
-        ->postJson('/api/v1/categories', ['name' => 'ELEKTRONIK']);
+        ->postJson('/api/v1/pos/categories', ['name' => 'ELEKTRONIK']);
 
     if (DB::connection()->getDriverName() === 'sqlite') {
         $response->assertStatus(201);
@@ -136,12 +136,12 @@ it('allows same category name in different companies', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->postJson('/api/v1/categories', ['name' => 'Elektronik'])
+        ->postJson('/api/v1/pos/categories', ['name' => 'Elektronik'])
         ->assertStatus(201);
 });
 
 it('returns 401 when not authenticated on store', function () {
-    $this->postJson('/api/v1/categories', ['name' => 'Elektronik'])
+    $this->postJson('/api/v1/pos/categories', ['name' => 'Elektronik'])
         ->assertStatus(401);
 });
 
@@ -153,7 +153,7 @@ it('can get category detail', function () {
     $category = PosCategory::factory()->create(['company_id' => $this->company->id]);
 
     $this->actingAs($this->user)
-        ->getJson("/api/v1/categories/{$category->uuid}")
+        ->getJson("/api/v1/pos/categories/{$category->uuid}")
         ->assertStatus(200)
         ->assertJsonPath('success', true)
         ->assertJsonPath('data.uuid', $category->uuid);
@@ -161,7 +161,7 @@ it('can get category detail', function () {
 
 it('returns 404 when category not found on show', function () {
     $this->actingAs($this->user)
-        ->getJson('/api/v1/categories/uuid-tidak-ada')
+        ->getJson('/api/v1/pos/categories/uuid-tidak-ada')
         ->assertStatus(404);
 });
 
@@ -170,7 +170,7 @@ it('returns 404 when accessing category from other company', function () {
     $category     = PosCategory::factory()->create(['company_id' => $otherCompany->id]);
 
     $this->actingAs($this->user)
-        ->getJson("/api/v1/categories/{$category->uuid}")
+        ->getJson("/api/v1/pos/categories/{$category->uuid}")
         ->assertStatus(404);
 });
 
@@ -182,7 +182,7 @@ it('can update a category', function () {
     $category = PosCategory::factory()->create(['company_id' => $this->company->id]);
 
     $this->actingAs($this->user)
-        ->patchJson("/api/v1/categories/{$category->uuid}", ['name' => 'Updated'])
+        ->patchJson("/api/v1/pos/categories/{$category->uuid}", ['name' => 'Updated'])
         ->assertStatus(200)
         ->assertJsonPath('data.name', 'Updated');
 });
@@ -195,7 +195,7 @@ it('can partial update (PATCH) category without sending all fields', function ()
 
     // PATCH tanpa field name — tidak boleh error
     $this->actingAs($this->user)
-        ->patchJson("/api/v1/categories/{$category->uuid}", [])
+        ->patchJson("/api/v1/pos/categories/{$category->uuid}", [])
         ->assertStatus(200)
         ->assertJsonPath('data.name', 'Original'); 
 });
@@ -205,7 +205,7 @@ it('returns 404 when updating category from other company', function () {
     $category     = PosCategory::factory()->create(['company_id' => $otherCompany->id]);
 
     $this->actingAs($this->user)
-        ->patchJson("/api/v1/categories/{$category->uuid}", ['name' => 'Hacked'])
+        ->patchJson("/api/v1/pos/categories/{$category->uuid}", ['name' => 'Hacked'])
         ->assertStatus(404);
 });
 
@@ -221,13 +221,13 @@ it('returns 422 when updating with duplicate name', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->patchJson("/api/v1/categories/{$category->uuid}", ['name' => 'Elektronik'])
+        ->patchJson("/api/v1/pos/categories/{$category->uuid}", ['name' => 'Elektronik'])
         ->assertStatus(422);
 });
 
 it('returns 404 when updating non-existent category', function () {
     $this->actingAs($this->user)
-        ->patchJson('/api/v1/categories/invalid-uuid', ['name' => 'New Name'])
+        ->patchJson('/api/v1/pos/categories/invalid-uuid', ['name' => 'New Name'])
         ->assertStatus(404);
 });
 
@@ -239,7 +239,7 @@ it('can delete a category', function () {
     $category = PosCategory::factory()->create(['company_id' => $this->company->id]);
 
     $this->actingAs($this->user)
-        ->deleteJson("/api/v1/categories/{$category->uuid}")
+        ->deleteJson("/api/v1/pos/categories/{$category->uuid}")
         ->assertStatus(200)
         ->assertJsonPath('success', true);
 
@@ -249,7 +249,7 @@ it('can delete a category', function () {
 
 it('returns 404 when deleting non-existent category', function () {
     $this->actingAs($this->user)
-        ->deleteJson('/api/v1/categories/invalid-uuid')
+        ->deleteJson('/api/v1/pos/categories/invalid-uuid')
         ->assertStatus(404);
 });
 
@@ -263,7 +263,7 @@ it('returns 422 when deleting category that has products', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->deleteJson("/api/v1/categories/{$category->uuid}")
+        ->deleteJson("/api/v1/pos/categories/{$category->uuid}")
         ->assertStatus(422)
         ->assertJsonPath('success', false);
 });
@@ -273,13 +273,13 @@ it('returns 404 when deleting category from other company', function () {
     $category     = PosCategory::factory()->create(['company_id' => $otherCompany->id]);
 
     $this->actingAs($this->user)
-        ->deleteJson("/api/v1/categories/{$category->uuid}")
+        ->deleteJson("/api/v1/pos/categories/{$category->uuid}")
         ->assertStatus(404);
 });
 
 it('returns 401 when not authenticated on delete', function () {
     $category = PosCategory::factory()->create(['company_id' => $this->company->id]);
 
-    $this->deleteJson("/api/v1/categories/{$category->uuid}")
+    $this->deleteJson("/api/v1/pos/categories/{$category->uuid}")
         ->assertStatus(401);
 });
