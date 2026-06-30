@@ -38,7 +38,34 @@ class OpsIncomeController extends Controller
 
     public function index(Request $request)
     {
-        return $this->indexResponse($request);
+        $orderByKey = in_array($request->input('order_by_key', 'date'), $this->sortableColumns)
+            ? $request->input('order_by_key', 'date')
+            : 'date';
+        $orderByValue = strtoupper($request->input('order_by_value', 'DESC')) === 'ASC' ? 'ASC' : 'DESC';
+
+        $incomes = OpsIncome::with(['mandor', 'subCompany', 'createdBy', 'transferConfirmation', 'editLogs'])
+            ->when(true, fn (Builder $query) => $this->applySubCompanyFilter($query, $request))
+            ->when($request->date_from, fn($q, $date) => $q->whereDate('date', '>=', $date))
+            ->when($request->date_to, fn($q, $date) => $q->whereDate('date', '<=', $date))
+            ->when(
+                $request->mandor_uuid,
+                fn($q, $uuid) =>
+                $q->whereHas('mandor', fn($m) => $m->where('uuid', $uuid))
+            )
+            ->when($request->source_type, fn ($q, $type) => $q->where('source_type', $type))
+            ->when($request->search, function ($query, $search) {
+                $query->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($search) . '%']);
+            })
+            ->orderBy($orderByKey, $orderByValue)
+            ->paginate($request->input('per_page', 15));
+
+        return response()->json(
+            $this->dataTablesResponse($request, $incomes, [
+                'success' => true,
+                'message' => __('operational.incomes.list'),
+                'data' => OpsIncomeResource::collection($incomes),
+            ])
+        );
     }
 
     public function pusat(Request $request)
@@ -93,7 +120,13 @@ class OpsIncomeController extends Controller
             $this->authorizeMandorIncomeAccess($opsIncome);
         }
 
-        return $this->showResponse($opsIncome);
+        return response()->json([
+            'success' => true,
+            'message' => __('operational.incomes.detail'),
+            'data' => new OpsIncomeResource(
+                $opsIncome->load(['mandor', 'subCompany', 'createdBy', 'transferConfirmation', 'editLogs'])
+            ),
+        ]);
     }
 
     public function update(OpsIncomeRequest $request, string $uuid)
@@ -434,49 +467,6 @@ class OpsIncomeController extends Controller
             DB::rollBack();
             throw $th;
         }
-    }
-
-    protected function indexResponse(Request $request)
-    {
-        $orderByKey = in_array($request->input('order_by_key', 'date'), $this->sortableColumns)
-            ? $request->input('order_by_key', 'date')
-            : 'date';
-        $orderByValue = strtoupper($request->input('order_by_value', 'DESC')) === 'ASC' ? 'ASC' : 'DESC';
-
-        $incomes = OpsIncome::with(['mandor', 'subCompany', 'createdBy', 'transferConfirmation', 'editLogs'])
-            ->when(true, fn (Builder $query) => $this->applySubCompanyFilter($query, $request))
-            ->when($request->date_from, fn($q, $date) => $q->whereDate('date', '>=', $date))
-            ->when($request->date_to, fn($q, $date) => $q->whereDate('date', '<=', $date))
-            ->when(
-                $request->mandor_uuid,
-                fn($q, $uuid) =>
-                $q->whereHas('mandor', fn($m) => $m->where('uuid', $uuid))
-            )
-            ->when($request->source_type, fn ($q, $type) => $q->where('source_type', $type))
-            ->when($request->search, function ($query, $search) {
-                $query->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($search) . '%']);
-            })
-            ->orderBy($orderByKey, $orderByValue)
-            ->paginate($request->input('per_page', 15));
-
-        return response()->json(
-            $this->dataTablesResponse($request, $incomes, [
-                'success' => true,
-                'message' => __('operational.incomes.list'),
-                'data' => OpsIncomeResource::collection($incomes),
-            ])
-        );
-    }
-
-    protected function showResponse(OpsIncome $opsIncome)
-    {
-        return response()->json([
-            'success' => true,
-            'message' => __('operational.incomes.detail'),
-            'data' => new OpsIncomeResource(
-                $opsIncome->load(['mandor', 'subCompany', 'createdBy', 'transferConfirmation', 'editLogs'])
-            ),
-        ]);
     }
 
     protected function assertAdminEditableIncome(OpsIncome $income): ?\Illuminate\Http\JsonResponse

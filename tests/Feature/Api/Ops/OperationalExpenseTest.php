@@ -164,6 +164,106 @@ it('allows expense backdate on H-1', function () {
         ->assertJsonPath('data.payment_method', 'TRANSFER');
 });
 
+it('shows pusat internal and mandor transfer expenses via pusat endpoint', function () {
+    $admin = User::factory()->admin()->create([
+        'company_id' => $this->company->id,
+    ]);
+
+    $pusatExpense = OpsExpense::create([
+        'name' => 'Sewa Gedung',
+        'amount' => 2000000,
+        'date' => now()->toDateString(),
+        'proof_files' => ['proofs/test.jpg'],
+        'expense_type' => OpsExpenseType::INTERNAL,
+        'mandor_id' => null,
+        'sub_company_id' => $this->subCompany->id,
+        'created_by' => $admin->id,
+        'company_id' => $this->company->id,
+    ]);
+
+    $mandorTransferExpense = OpsExpense::create([
+        'name' => 'Transfer Dana',
+        'amount' => 500000,
+        'date' => now()->toDateString(),
+        'proof_files' => ['proofs/test.jpg'],
+        'expense_type' => OpsExpenseType::MANDOR,
+        'mandor_id' => $this->mandor->id,
+        'sub_company_id' => $this->subCompany->id,
+        'created_by' => $this->mandor->id,
+        'company_id' => $this->company->id,
+    ]);
+
+    $mandorOwnExpense = OpsExpense::create([
+        'name' => 'Belanja Cabang',
+        'amount' => 100000,
+        'date' => now()->toDateString(),
+        'proof_files' => ['proofs/test.jpg'],
+        'expense_type' => OpsExpenseType::INTERNAL,
+        'mandor_id' => $this->mandor->id,
+        'sub_company_id' => $this->subCompany->id,
+        'created_by' => $this->mandor->id,
+        'company_id' => $this->company->id,
+    ]);
+
+    $response = $this->actingAs($admin)
+        ->getJson('/api/v1/operational/expenses/pusat');
+
+    $response->assertOk()
+        ->assertJsonCount(2, 'data')
+        ->assertJsonFragment(['name' => 'Sewa Gedung'])
+        ->assertJsonFragment(['name' => 'Transfer Dana'])
+        ->assertJsonMissing(['name' => 'Belanja Cabang']);
+});
+
+it('filters pusat expenses by date range', function () {
+    $admin = User::factory()->admin()->create([
+        'company_id' => $this->company->id,
+    ]);
+
+    OpsExpense::create([
+        'name' => 'Pengeluaran Lama', 'amount' => 100000,
+        'date' => now()->subDays(5)->toDateString(), 'proof_files' => ['proofs/test.jpg'],
+        'expense_type' => OpsExpenseType::INTERNAL, 'mandor_id' => null,
+        'sub_company_id' => $this->subCompany->id, 'created_by' => $admin->id,
+        'company_id' => $this->company->id,
+    ]);
+    OpsExpense::create([
+        'name' => 'Pengeluaran Baru', 'amount' => 200000,
+        'date' => now()->toDateString(), 'proof_files' => ['proofs/test.jpg'],
+        'expense_type' => OpsExpenseType::INTERNAL, 'mandor_id' => null,
+        'sub_company_id' => $this->subCompany->id, 'created_by' => $admin->id,
+        'company_id' => $this->company->id,
+    ]);
+
+    $response = $this->actingAs($admin)
+        ->getJson('/api/v1/operational/expenses/pusat?date_from=' . now()->subDays(2)->toDateString());
+
+    $response->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonFragment(['name' => 'Pengeluaran Baru'])
+        ->assertJsonMissing(['name' => 'Pengeluaran Lama']);
+});
+
+it('returns empty pusat expenses when no data', function () {
+    $admin = User::factory()->admin()->create([
+        'company_id' => $this->company->id,
+    ]);
+
+    $response = $this->actingAs($admin)
+        ->getJson('/api/v1/operational/expenses/pusat');
+
+    $response->assertOk()
+        ->assertJsonCount(0, 'data')
+        ->assertJsonPath('recordsTotal', 0);
+});
+
+it('rejects pusat endpoint for non-admin roles', function () {
+    $response = $this->actingAs($this->mandor)
+        ->getJson('/api/v1/operational/expenses/pusat');
+
+    $response->assertForbidden();
+});
+
 it('rejects expense edit after H+1 from creation', function () {
     app(\App\Services\Operational\OpsWalletService::class)
         ->getOrCreateWallet($this->mandor, $this->subCompany);
