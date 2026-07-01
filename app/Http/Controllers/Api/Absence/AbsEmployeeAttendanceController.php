@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Absence\AbsCheckInRequest;
 use App\Http\Requests\Absence\AbsCheckOutRequest;
 use App\Http\Resources\Absence\AbsAttendanceResource;
-use App\Http\Resources\Absence\AbsJabatanResource;
 use App\Http\Resources\Absence\AbsShiftResource;
+use App\Http\Resources\PositionResource;
 use App\Http\Resources\SubCompanyResource;
 use App\Http\Traits\DataTablesResponse;
 use App\Models\AbsAttendance;
@@ -45,7 +45,7 @@ class AbsEmployeeAttendanceController extends Controller
             'data' => [
                 'employee' => [
                     'name' => $user->name,
-                    'jabatan' => $profile->jabatan ? new AbsJabatanResource($profile->jabatan) : null,
+                    'jabatan' => $profile->jabatan ? new PositionResource($profile->jabatan) : null,
                     'date' => now(config('absence.timezone'))->toDateString(),
                 ],
                 'shift' => $profile->shift ? new AbsShiftResource($profile->shift) : null,

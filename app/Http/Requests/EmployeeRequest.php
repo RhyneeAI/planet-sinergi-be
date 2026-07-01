@@ -3,8 +3,8 @@
 namespace App\Http\Requests;
 
 use App\Enums\Role;
-use App\Models\AbsJabatan;
 use App\Models\AbsShift;
+use App\Models\Position;
 use App\Models\SubCompany;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -35,8 +35,8 @@ class EmployeeRequest extends FormRequest
                 Rule::enum(Role::class),
                 Rule::notIn(Role::commissionMarketingValues()),
             ],
-            'jabatan_uuid' => ['nullable', 'uuid', function ($attribute, $value, $fail) {
-                if ($value && !AbsJabatan::where('uuid', $value)->where('company_id', $this->user()->company_id)->exists()) {
+            'position_uuid' => ['nullable', 'uuid', function ($attribute, $value, $fail) {
+                if ($value && !Position::where('uuid', $value)->where('company_id', $this->user()->company_id)->exists()) {
                     $fail(__('absence.validation.jabatan_uuid_not_found'));
                 }
             }],

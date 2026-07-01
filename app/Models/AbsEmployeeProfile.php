@@ -36,7 +36,7 @@ class AbsEmployeeProfile extends Model
 
     public function jabatan()
     {
-        return $this->belongsTo(AbsJabatan::class, 'abs_jabatan_id');
+        return $this->belongsTo(Position::class, 'abs_jabatan_id');
     }
 
     public function subCompany()

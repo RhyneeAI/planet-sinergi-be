@@ -4,7 +4,7 @@ namespace Database\Factories\Abs;
 
 use App\Models\User;
 use App\Models\Company;
-use App\Models\AbsJabatan;
+
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 

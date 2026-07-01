@@ -4,8 +4,8 @@ namespace App\Services\Absence;
 
 use App\Enums\Role;
 use App\Models\AbsEmployeeProfile;
-use App\Models\AbsJabatan;
 use App\Models\AbsShift;
+use App\Models\Position;
 use App\Models\SubCompany;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
@@ -40,8 +40,8 @@ class AbsEmployeeProfileService
     {
         $attributes = [];
 
-        if (!empty($input['jabatan_uuid'])) {
-            $attributes['abs_jabatan_id'] = AbsJabatan::where('uuid', $input['jabatan_uuid'])
+        if (!empty($input['position_uuid'])) {
+            $attributes['abs_jabatan_id'] = Position::where('uuid', $input['position_uuid'])
                 ->where('company_id', $user->company_id)
                 ->value('id');
         }
@@ -104,7 +104,7 @@ class AbsEmployeeProfileService
             $role = 'Super Admin';
         }
 
-        return AbsJabatan::where('company_id', $user->company_id)
+        return Position::where('company_id', $user->company_id)
             ->where('name', Str::title(str_replace('_', ' ', $role)))
             ->orderBy('name')
             ->value('id');

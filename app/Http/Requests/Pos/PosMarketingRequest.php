@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Pos;
 
-use App\Models\AbsJabatan;
+use App\Models\Position;
 use App\Models\AbsShift;
 use App\Models\SubCompany;
 use Illuminate\Foundation\Http\FormRequest;
@@ -40,7 +40,7 @@ class PosMarketingRequest extends FormRequest
             ],
             'address' => ['sometimes', 'nullable', 'string'],
             'jabatan_uuid' => ['sometimes', 'nullable', 'uuid', function ($attribute, $value, $fail) use ($companyId) {
-                if ($value && !AbsJabatan::where('uuid', $value)->where('company_id', $companyId)->exists()) {
+                if ($value && !Position::where('uuid', $value)->where('company_id', $companyId)->exists()) {
                     $fail(__('absence.validation.jabatan_uuid_not_found'));
                 }
             }],

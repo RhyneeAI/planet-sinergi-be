@@ -2,7 +2,7 @@
 
 use App\Models\AbsAttendance;
 use App\Models\AbsEmployeeProfile;
-use App\Models\AbsJabatan;
+use App\Models\Position;
 use App\Models\AbsShift;
 use App\Models\Company;
 use App\Models\SubCompany;
@@ -31,7 +31,7 @@ beforeEach(function () {
     ]);
     User::$skipSubCompanyAutoCreate = false;
 
-    $this->jabatan = AbsJabatan::factory()->create(['company_id' => $this->company->id]);
+    $this->jabatan = Position::factory()->create(['company_id' => $this->company->id]);
     $this->shift = AbsShift::factory()->create(['company_id' => $this->company->id]);
 
     $this->employee = User::factory()->karyawan()->create([

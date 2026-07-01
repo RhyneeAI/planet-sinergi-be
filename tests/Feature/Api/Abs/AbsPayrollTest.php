@@ -5,8 +5,8 @@ use App\Models\AbsAttendance;
 use App\Models\AbsBonus;
 use App\Models\AbsDeduction;
 use App\Models\AbsEmployeeProfile;
-use App\Models\AbsJabatan;
 use App\Models\AbsPayrollPeriod;
+use App\Models\Position;
 use App\Models\AbsShift;
 use App\Models\Company;
 use App\Models\SubCompany;
@@ -40,7 +40,7 @@ beforeEach(function () {
     ]);
     User::$skipSubCompanyAutoCreate = false;
 
-    $this->jabatan = AbsJabatan::create([
+    $this->jabatan = Position::create([
         'name' => 'Operator',
         'daily_rate' => 120000,
         'company_id' => $this->company->id,

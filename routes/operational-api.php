@@ -4,7 +4,6 @@ use App\Http\Controllers\Api\Operational\OpsDashboardController;
 use App\Http\Controllers\Api\Operational\OpsEditLogController;
 use App\Http\Controllers\Api\Operational\OpsExpenseController;
 use App\Http\Controllers\Api\Operational\OpsIncomeController;
-use App\Http\Controllers\Api\Operational\OpsJabatanController;
 use App\Http\Controllers\Api\Operational\OpsMandorController;
 use App\Http\Controllers\Api\Operational\OpsMarketingController;
 use App\Http\Controllers\Api\Operational\OpsNotificationController;
@@ -46,10 +45,6 @@ Route::prefix('v1/operational')->middleware(['auth:sanctum'])->group(function ()
 
     Route::middleware(['role:SUPERADMIN,OWNER,ADMIN,HRD'])->group(function () {
 
-        Route::apiResource('jabatans', OpsJabatanController::class)
-            ->parameters(['jabatans' => 'absJabatan:uuid'])
-            ->only(['index', 'show']);
-
         Route::get('edit-logs', [OpsEditLogController::class, 'index']);
     });
 
@@ -58,13 +53,6 @@ Route::prefix('v1/operational')->middleware(['auth:sanctum'])->group(function ()
         Route::get('reports/income-expense', [OpsReportController::class, 'incomeExpenseReport']);
         Route::get('reports/income-expense/download', [OpsReportController::class, 'downloadIncomeExpenseReport']);
         Route::get('reports/income-expense/detail', [OpsReportController::class, 'incomeExpenseDetail']);
-    });
-
-    Route::middleware(['role:SUPERADMIN,ADMIN,HRD'])->group(function () {
-
-        Route::apiResource('jabatans', OpsJabatanController::class)
-            ->parameters(['jabatans' => 'absJabatan:uuid'])
-            ->only(['store', 'update', 'destroy']);
     });
 
     Route::middleware(['role:SUPERADMIN,OWNER,ADMIN,KEPALA_GUDANG,KEPALA_MANDOR,GUDANG'])->group(function () {
