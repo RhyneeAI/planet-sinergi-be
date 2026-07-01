@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Gudang Planet — Ops Employees",
-    "description": "Collection untuk endpoint Management Karyawan modul Operasional.\n\n**Base URL:** `{{base_url}}/api/v1/operational/employees`\n\n**Auth:** Bearer token dari `POST /api/v1/login`.\n\n**Demo credentials (company 1):**\n| Role | Phone | Password |\n|------|-------|----------|\n| SUPERADMIN | 085155118899 | superadmin_gp |\n| ADMIN | 081122223333 | admin_gp |\n| HRD | 081155556666 | hrd_gp |",
+    "name": "Gudang Planet — Employees",
+    "description": "Collection untuk endpoint Management Karyawan (cross-module).\n\n**Base URL:** `{{base_url}}/api/v1/employees`\n\n**Auth:** Bearer token dari `POST /api/v1/login`.\n\n**Demo credentials (company 1):**\n| Role | Phone | Password |\n|------|-------|----------|\n| SUPERADMIN | 085155118899 | superadmin_gp |\n| ADMIN | 081122223333 | admin_gp |\n| HRD | 081155556666 | hrd_gp |\n\n**Filter by role:**\n- Pegawai (bisa login): `?role=KARYAWAN,ADMIN,HRD,KASIR,MANDOR`\n- Marketing (tidak bisa login): `?role=MARKETING,MARKETING_LEAD,MARKETING_TETAP`",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -125,7 +125,7 @@
       ]
     },
     {
-      "name": "List Employees",
+      "name": "List All Employees",
       "event": [
         {
           "listen": "test",
@@ -146,21 +146,61 @@
           { "key": "Accept", "value": "application/json" }
         ],
         "url": {
-          "raw": "{{base_url}}/api/v1/operational/employees?per_page=15&order_by=name&order_by_value=ASC",
+          "raw": "{{base_url}}/api/v1/employees?per_page=15&order_by=name&order_by_value=ASC",
           "host": ["{{base_url}}"],
-          "path": ["api", "v1", "operational", "employees"],
+          "path": ["api", "v1", "employees"],
           "query": [
             { "key": "per_page", "value": "15", "description": "Jumlah per halaman" },
             { "key": "order_by", "value": "name", "description": "Kolom sorting (name, phone, role, created_at)" },
             { "key": "order_by_value", "value": "ASC", "description": "ASC atau DESC" },
             { "key": "search", "value": null, "description": "Cari berdasarkan nama atau phone" },
-            { "key": "role", "value": null, "description": "Filter role (KARYAWAN, KASIR, MANDOR, dll)" },
+            { "key": "role", "value": null, "description": "Filter role (bisa comma-separated: KARYAWAN,KASIR)" },
             { "key": "sub_company_uuid", "value": null, "description": "Filter berdasarkan cabang" },
             { "key": "is_active", "value": null, "description": "Filter status aktif (true/false)" }
           ],
           "variable": []
         },
         "description": "Mendapatkan daftar semua karyawan. Mendukung filter, search, dan pagination.\n\n**Role akses:** SUPERADMIN, OWNER, ADMIN, HRD"
+      }
+    },
+    {
+      "name": "List Pegawai (Bisa Login)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/employees?role=KARYAWAN,KASIR,ADMIN,HRD,MANDOR,KEPALA_MANDOR,GUDANG,KEPALA_GUDANG",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "employees"],
+          "query": [
+            { "key": "role", "value": "KARYAWAN,KASIR,ADMIN,HRD,MANDOR,KEPALA_MANDOR,GUDANG,KEPALA_GUDANG", "description": "Filter role yang bisa login" },
+            { "key": "per_page", "value": "50" }
+          ],
+          "variable": []
+        },
+        "description": "Filter khusus pegawai yang bisa login (sub-menu FE: Pegawai)."
+      }
+    },
+    {
+      "name": "List Marketing (Tidak Bisa Login)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/employees?role=MARKETING,MARKETING_LEAD,MARKETING_TETAP",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "employees"],
+          "query": [
+            { "key": "role", "value": "MARKETING,MARKETING_LEAD,MARKETING_TETAP", "description": "Filter role marketing (marker komisi)" },
+            { "key": "per_page", "value": "50" }
+          ],
+          "variable": []
+        },
+        "description": "Filter khusus marketing (tidak bisa login). Sub-menu FE: Marketing."
       }
     },
     {
@@ -190,11 +230,11 @@
           "raw": "{\n  \"name\": \"Budi Santoso\",\n  \"phone\": \"081377778888\",\n  \"password\": \"budi123\",\n  \"password_confirmation\": \"budi123\",\n  \"role\": \"KARYAWAN\",\n  \"jabatan_uuid\": \"uuid-jabatan-disini\",\n  \"sub_company_uuid\": null,\n  \"shift_uuid\": null\n}"
         },
         "url": {
-          "raw": "{{base_url}}/api/v1/operational/employees",
+          "raw": "{{base_url}}/api/v1/employees",
           "host": ["{{base_url}}"],
-          "path": ["api", "v1", "operational", "employees"]
+          "path": ["api", "v1", "employees"]
         },
-        "description": "Membuat karyawan baru.\n\n**Role akses:** SUPERADMIN, ADMIN, HRD\n\n**Role yang bisa dibuat:** Semua role kecuali SUPERADMIN & OWNER (divalidasi di controller).\n\nField opsional:\n- `jabatan_uuid` — UUID dari abs_jabatans\n- `sub_company_uuid` — UUID dari sub_companies (untuk pegawai cabang)\n- `shift_uuid` — UUID dari abs_shifts"
+        "description": "Membuat karyawan baru.\n\n**Role akses:** SUPERADMIN, ADMIN, HRD\n\n**Role yang bisa dibuat:** Semua role kecuali SUPERADMIN, OWNER, MARKETING & MARKETING_LEAD (divalidasi di request).\n\nField opsional:\n- `jabatan_uuid` — UUID dari abs_jabatans\n- `sub_company_uuid` — UUID dari sub_companies (untuk pegawai cabang)\n- `shift_uuid` — UUID dari abs_shifts"
       }
     },
     {
@@ -205,9 +245,9 @@
           { "key": "Accept", "value": "application/json" }
         ],
         "url": {
-          "raw": "{{base_url}}/api/v1/operational/employees/{{uuid}}",
+          "raw": "{{base_url}}/api/v1/employees/{{uuid}}",
           "host": ["{{base_url}}"],
-          "path": ["api", "v1", "operational", "employees", "{{uuid}}"]
+          "path": ["api", "v1", "employees", "{{uuid}}"]
         },
         "description": "Detail karyawan termasuk profil, riwayat lembur, kasbon, dan payroll.\n\n**Role akses:** SUPERADMIN, OWNER, ADMIN, HRD"
       }
@@ -225,9 +265,9 @@
           "raw": "{\n  \"name\": \"Budi Santoso Update\",\n  \"phone\": \"081377778888\",\n  \"role\": \"KARYAWAN\",\n  \"is_active\": true,\n  \"jabatan_uuid\": \"uuid-jabatan-disini\",\n  \"sub_company_uuid\": null,\n  \"shift_uuid\": null\n}"
         },
         "url": {
-          "raw": "{{base_url}}/api/v1/operational/employees/{{uuid}}",
+          "raw": "{{base_url}}/api/v1/employees/{{uuid}}",
           "host": ["{{base_url}}"],
-          "path": ["api", "v1", "operational", "employees", "{{uuid}}"]
+          "path": ["api", "v1", "employees", "{{uuid}}"]
         },
         "description": "Update data karyawan. Hanya field yang dikirim yang akan diupdate.\n\n**Role akses:** SUPERADMIN, ADMIN, HRD"
       }
@@ -240,9 +280,9 @@
           { "key": "Accept", "value": "application/json" }
         ],
         "url": {
-          "raw": "{{base_url}}/api/v1/operational/employees/{{uuid}}",
+          "raw": "{{base_url}}/api/v1/employees/{{uuid}}",
           "host": ["{{base_url}}"],
-          "path": ["api", "v1", "operational", "employees", "{{uuid}}"]
+          "path": ["api", "v1", "employees", "{{uuid}}"]
         },
         "description": "Menonaktifkan karyawan (soft deactivate — set `is_active = false`).\n\n**Role akses:** SUPERADMIN, ADMIN, HRD"
       }
@@ -255,11 +295,11 @@
           { "key": "Accept", "value": "application/json" }
         ],
         "url": {
-          "raw": "{{base_url}}/api/v1/operational/employees/{{uuid}}/toggle-active",
+          "raw": "{{base_url}}/api/v1/employees/{{uuid}}/toggle-active",
           "host": ["{{base_url}}"],
-          "path": ["api", "v1", "operational", "employees", "{{uuid}}", "toggle-active"]
+          "path": ["api", "v1", "employees", "{{uuid}}", "toggle-active"]
         },
-        "description": "Toggle status aktif/nonaktif karyawan. Jika aktif jadi nonaktif, sebaliknya.\n\n**Role akses:** SUPERADMIN, ADMIN, HRD"
+        "description": "Toggle status aktif/nonaktif karyawan. Jika aktif jadi nonaktif, sebaliknya.\n\n**Role akses:** SUPERADMIN, ADMIN"
       }
     },
     {
@@ -275,9 +315,9 @@
           "raw": "{\n  \"password\": \"passwordbaru123\",\n  \"password_confirmation\": \"passwordbaru123\"\n}"
         },
         "url": {
-          "raw": "{{base_url}}/api/v1/operational/employees/{{uuid}}/reset-password",
+          "raw": "{{base_url}}/api/v1/employees/{{uuid}}/reset-password",
           "host": ["{{base_url}}"],
-          "path": ["api", "v1", "operational", "employees", "{{uuid}}", "reset-password"]
+          "path": ["api", "v1", "employees", "{{uuid}}", "reset-password"]
         },
         "description": "Reset password karyawan.\n\n**Role akses:** SUPERADMIN, ADMIN, HRD"
       }

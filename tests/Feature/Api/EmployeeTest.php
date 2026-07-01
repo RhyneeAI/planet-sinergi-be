@@ -32,26 +32,26 @@ it('admin can list employees', function () {
     User::factory()->karyawan()->count(3)->create(['company_id' => $this->company->id]);
 
     $this->actingAs($this->admin)
-        ->getJson('/api/v1/operational/employees')
+        ->getJson('/api/v1/employees')
         ->assertOk()
         ->assertJsonPath('success', true);
 });
 
 it('owner can list employees', function () {
     $this->actingAs($this->owner)
-        ->getJson('/api/v1/operational/employees')
+        ->getJson('/api/v1/employees')
         ->assertOk();
 });
 
 it('mandor cannot list employees', function () {
     $this->actingAs($this->mandor)
-        ->getJson('/api/v1/operational/employees')
+        ->getJson('/api/v1/employees')
         ->assertForbidden();
 });
 
 it('admin can create employee', function () {
     $this->actingAs($this->admin)
-        ->postJson('/api/v1/operational/employees', [
+        ->postJson('/api/v1/employees', [
             'name' => 'Budi Santoso',
             'phone' => '081234567890',
             'password' => 'password123',
@@ -69,7 +69,7 @@ it('admin can show employee detail', function () {
     $employee = User::factory()->karyawan()->create(['company_id' => $this->company->id]);
 
     $this->actingAs($this->admin)
-        ->getJson('/api/v1/operational/employees/' . $employee->uuid)
+        ->getJson('/api/v1/employees/' . $employee->uuid)
         ->assertOk()
         ->assertJsonPath('data.uuid', $employee->uuid);
 });
@@ -78,7 +78,7 @@ it('admin can update employee', function () {
     $employee = User::factory()->karyawan()->create(['company_id' => $this->company->id]);
 
     $this->actingAs($this->admin)
-        ->patchJson('/api/v1/operational/employees/' . $employee->uuid, [
+        ->patchJson('/api/v1/employees/' . $employee->uuid, [
             'name' => 'Budi Updated',
         ])
         ->assertOk()
@@ -92,7 +92,7 @@ it('admin can deactivate employee', function () {
     ]);
 
     $this->actingAs($this->admin)
-        ->deleteJson('/api/v1/operational/employees/' . $employee->uuid)
+        ->deleteJson('/api/v1/employees/' . $employee->uuid)
         ->assertOk()
         ->assertJsonPath('success', true);
 
@@ -103,7 +103,7 @@ it('admin can reset employee password', function () {
     $employee = User::factory()->karyawan()->create(['company_id' => $this->company->id]);
 
     $this->actingAs($this->admin)
-        ->putJson('/api/v1/operational/employees/' . $employee->uuid . '/reset-password', [
+        ->putJson('/api/v1/employees/' . $employee->uuid . '/reset-password', [
             'password' => 'newpassword123',
             'password_confirmation' => 'newpassword123',
         ])
@@ -113,13 +113,13 @@ it('admin can reset employee password', function () {
 
 it('validates required fields on store employee', function () {
     $this->actingAs($this->admin)
-        ->postJson('/api/v1/operational/employees', [])
+        ->postJson('/api/v1/employees', [])
         ->assertStatus(422);
 });
 
 it('owner cannot create employee', function () {
     $this->actingAs($this->owner)
-        ->postJson('/api/v1/operational/employees', [
+        ->postJson('/api/v1/employees', [
             'name' => 'Test',
             'phone' => '081111111111',
             'password' => 'password123',
@@ -130,7 +130,7 @@ it('owner cannot create employee', function () {
 
 it('mandor cannot create employee', function () {
     $this->actingAs($this->mandor)
-        ->postJson('/api/v1/operational/employees', [
+        ->postJson('/api/v1/employees', [
             'name' => 'Test',
             'phone' => '081111111111',
             'password' => 'password123',
@@ -145,7 +145,7 @@ it('employee list scoped by company', function () {
     $otherKaryawan = User::factory()->karyawan()->create(['company_id' => $otherCompany->id]);
 
     $this->actingAs($this->admin)
-        ->getJson('/api/v1/operational/employees')
+        ->getJson('/api/v1/employees')
         ->assertOk()
         ->assertJsonFragment(['uuid' => $sameKaryawan->uuid])
         ->assertJsonMissing(['uuid' => $otherKaryawan->uuid]);
@@ -158,7 +158,7 @@ it('validates unique phone on create employee', function () {
     ]);
 
     $this->actingAs($this->admin)
-        ->postJson('/api/v1/operational/employees', [
+        ->postJson('/api/v1/employees', [
             'name' => 'Duplikat',
             'phone' => '081234567890',
             'password' => 'password123',

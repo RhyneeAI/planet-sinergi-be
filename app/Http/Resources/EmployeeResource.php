@@ -1,14 +1,13 @@
 <?php
 
-namespace App\Http\Resources\Operational;
+namespace App\Http\Resources;
 
 use App\Http\Resources\Absence\AbsJabatanResource;
 use App\Http\Resources\Absence\AbsShiftResource;
-use App\Http\Resources\SubCompanyResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class OpsEmployeeResource extends JsonResource
+class EmployeeResource extends JsonResource
 {
     public function toArray(Request $request): array
     {

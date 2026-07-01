@@ -66,5 +66,6 @@
 - Role: `app/Enums/Role.php`
 - Module Config: `config/modules.php`
 - Company Scope: `app/Models/Scopes/CompanyScope.php`
+- Employees: `app/Http/Controllers/Api/EmployeeController.php`
 - Ops Config: `app/Services/Operational/OpsOperationalConfigService.php`
 - SubCompany: `app/Services/SubCompanyService.php`

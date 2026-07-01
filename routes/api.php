@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\ExportController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\SubCompanyController;
@@ -43,6 +44,21 @@ Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
                 ->only(['store', 'update', 'destroy']);
 
             Route::post('sub-companies/{uuid}/restore', [SubCompanyController::class, 'restore']);
+        });
+
+        // Employees — cross-module user management
+        Route::middleware(['role:SUPERADMIN,OWNER,ADMIN,HRD'])->group(function () {
+            Route::apiResource('employees', EmployeeController::class)
+                ->parameters(['employees' => 'user:uuid'])
+                ->only(['index', 'show']);
+        });
+
+        Route::middleware(['role:SUPERADMIN,ADMIN,HRD'])->group(function () {
+            Route::apiResource('employees', EmployeeController::class)
+                ->parameters(['employees' => 'user:uuid'])
+                ->only(['store', 'update', 'destroy']);
+            Route::put('employees/{user:uuid}/reset-password', [EmployeeController::class, 'resetPassword']);
+            Route::put('employees/{user:uuid}/toggle-active', [EmployeeController::class, 'toggleActive']);
         });
 
         Route::get('/exports/{token}', [ExportController::class, 'status'])->name('exports.status');

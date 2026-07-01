@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\Api\Operational\OpsDashboardController;
 use App\Http\Controllers\Api\Operational\OpsEditLogController;
-use App\Http\Controllers\Api\Operational\OpsEmployeeController;
 use App\Http\Controllers\Api\Operational\OpsExpenseController;
 use App\Http\Controllers\Api\Operational\OpsIncomeController;
 use App\Http\Controllers\Api\Operational\OpsJabatanController;
@@ -47,10 +46,6 @@ Route::prefix('v1/operational')->middleware(['auth:sanctum'])->group(function ()
 
     Route::middleware(['role:SUPERADMIN,OWNER,ADMIN,HRD'])->group(function () {
 
-        Route::apiResource('employees', OpsEmployeeController::class)
-            ->parameters(['employees' => 'user:uuid'])
-            ->only(['index', 'show']);
-
         Route::apiResource('jabatans', OpsJabatanController::class)
             ->parameters(['jabatans' => 'absJabatan:uuid'])
             ->only(['index', 'show']);
@@ -66,12 +61,6 @@ Route::prefix('v1/operational')->middleware(['auth:sanctum'])->group(function ()
     });
 
     Route::middleware(['role:SUPERADMIN,ADMIN,HRD'])->group(function () {
-
-        Route::apiResource('employees', OpsEmployeeController::class)
-            ->parameters(['employees' => 'user:uuid'])
-            ->only(['store', 'update', 'destroy']);
-        Route::put('employees/{user:uuid}/reset-password', [OpsEmployeeController::class, 'resetPassword']);
-        Route::put('employees/{user:uuid}/toggle-active', [OpsEmployeeController::class, 'toggleActive']);
 
         Route::apiResource('jabatans', OpsJabatanController::class)
             ->parameters(['jabatans' => 'absJabatan:uuid'])

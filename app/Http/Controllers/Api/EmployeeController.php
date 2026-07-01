@@ -1,19 +1,18 @@
 <?php
 
-namespace App\Http\Controllers\Api\Operational;
+namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Operational\OpsEmployeeRequest;
-use App\Http\Resources\Operational\OpsEmployeeResource;
+use App\Http\Requests\EmployeeRequest;
+use App\Http\Resources\EmployeeResource;
 use App\Models\User;
 use App\Services\Absence\AbsEmployeeProfileService;
 use Illuminate\Http\Request;
 use App\Http\Traits\DataTablesResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 
-class OpsEmployeeController extends Controller
+class EmployeeController extends Controller
 {
     use DataTablesResponse;
 
@@ -48,12 +47,12 @@ class OpsEmployeeController extends Controller
             $this->dataTablesResponse($request, $employees, [
                 'success' => true,
                 'message' => __('operational.employees.list'),
-                'data' => OpsEmployeeResource::collection($employees),
+                'data' => EmployeeResource::collection($employees),
             ])
         );
     }
 
-    public function store(OpsEmployeeRequest $request)
+    public function store(EmployeeRequest $request)
     {
         DB::beginTransaction();
 
@@ -75,7 +74,7 @@ class OpsEmployeeController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => __('operational.employees.stored'),
-                'data' => new OpsEmployeeResource(
+                'data' => new EmployeeResource(
                     $user->load(['absEmployeeProfile.jabatan', 'absEmployeeProfile.subCompany', 'absEmployeeProfile.shift'])
                 ),
             ], 201);
@@ -99,7 +98,7 @@ class OpsEmployeeController extends Controller
         return response()->json([
             'success' => true,
             'message' => __('operational.employees.detail'),
-            'data' => new OpsEmployeeResource($user),
+            'data' => new EmployeeResource($user),
         ]);
     }
 
@@ -112,13 +111,13 @@ class OpsEmployeeController extends Controller
             'message' => $user->is_active
                 ? __('operational.employees.activated')
                 : __('operational.employees.deactivated'),
-            'data' => new OpsEmployeeResource(
+            'data' => new EmployeeResource(
                 $user->fresh()->load(['absEmployeeProfile.jabatan', 'absEmployeeProfile.subCompany', 'absEmployeeProfile.shift'])
             ),
         ]);
     }
 
-    public function update(OpsEmployeeRequest $request, User $user)
+    public function update(EmployeeRequest $request, User $user)
     {
         DB::beginTransaction();
 
@@ -148,7 +147,7 @@ class OpsEmployeeController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => __('operational.employees.updated'),
-                'data' => new OpsEmployeeResource(
+                'data' => new EmployeeResource(
                     $user->fresh()->load(['absEmployeeProfile.jabatan', 'absEmployeeProfile.subCompany', 'absEmployeeProfile.shift'])
                 ),
             ]);

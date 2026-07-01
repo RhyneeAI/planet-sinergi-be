@@ -10,7 +10,7 @@ use App\Http\Resources\Absence\AbsAttendanceResource;
 use App\Http\Resources\Absence\AbsPayrollPeriodResource;
 use App\Http\Resources\Absence\AbsReportBonusResource;
 use App\Http\Resources\Absence\AbsReportDeductionResource;
-use App\Http\Resources\Operational\OpsEmployeeResource;
+use App\Http\Resources\EmployeeResource;
 use App\Http\Traits\DataTablesResponse;
 use App\Services\Absence\AbsReportService;
 use App\Services\ExportService;
@@ -280,7 +280,7 @@ class AbsReportController extends Controller
         return response()->json($this->dataTablesResponse($request, $records, [
             'success' => true,
             'message' => __('absence.reports.employees'),
-            'data' => OpsEmployeeResource::collection($records),
+            'data' => EmployeeResource::collection($records),
         ]));
     }
 }

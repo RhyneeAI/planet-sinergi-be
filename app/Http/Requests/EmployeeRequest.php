@@ -1,16 +1,15 @@
 <?php
 
-namespace App\Http\Requests\Operational;
+namespace App\Http\Requests;
 
 use App\Enums\Role;
 use App\Models\AbsJabatan;
 use App\Models\AbsShift;
 use App\Models\SubCompany;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 
-class OpsEmployeeRequest extends FormRequest
+class EmployeeRequest extends FormRequest
 {
     public function authorize(): bool
     {

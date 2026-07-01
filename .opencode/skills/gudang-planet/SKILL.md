@@ -394,11 +394,14 @@ Model `SubCompany` (`sub_companies`) sudah ada dan dipakai modul operasional:
 #### Employee Management
 
 | Endpoint | Method | Auth | Notes |
-|---|---|---|---|
-| `/api/v1/operational/employees` | GET | ADMIN, HRD, SUPERADMIN | Semua user |
-| `/api/v1/operational/employees` | POST | ADMIN, HRD, SUPERADMIN | Create user (tidak bisa create Superadmin/Owner) |
-| `/api/v1/operational/employees/{uuid}` | GET | ADMIN, HRD, SUPERADMIN | Detail + riwayat kasbon + lembur + gaji |
-| `/api/v1/operational/employees/{uuid}/toggle-active` | PUT | ADMIN, SUPERADMIN | Aktif/nonaktifkan user |
+|---|---|---|---|---|
+| `/api/v1/employees` | GET | ADMIN, HRD, OWNER, SUPERADMIN | Semua user (cross-module) |
+| `/api/v1/employees` | POST | ADMIN, HRD, SUPERADMIN | Create user (tidak bisa create Superadmin/Owner) |
+| `/api/v1/employees/{uuid}` | GET | ADMIN, HRD, OWNER, SUPERADMIN | Detail + riwayat kasbon + lembur + gaji |
+| `/api/v1/employees/{uuid}` | PATCH | ADMIN, HRD, SUPERADMIN | Update user |
+| `/api/v1/employees/{uuid}` | DELETE | ADMIN, HRD, SUPERADMIN | Nonaktifkan user |
+| `/api/v1/employees/{uuid}/toggle-active` | PUT | ADMIN, SUPERADMIN | Aktif/nonaktifkan user |
+| `/api/v1/employees/{uuid}/reset-password` | PUT | ADMIN, HRD, SUPERADMIN | Reset password |
 
 #### Lembur & Kasbon (Read-only)
 
@@ -631,20 +634,14 @@ Middleware `CheckModule` sudah terdaftar (alias `module` di `bootstrap/app.php`)
 | POS models            | `app/Models/Pos`* (PosProduct, PosSalesTransaction, dll.)      |
 | POS services          | `app/Services/Pos/`                                            |
 | POS laporan           | `app/Http/Controllers/Api/Pos/PosReportController.php`         |
-| Operational routes    | `routes/operational-api.php`                                   |
+| Employees controller  | `app/Http/Controllers/Api/EmployeeController.php`              |
+| Employees request     | `app/Http/Requests/EmployeeRequest.php`                        |
+| Employees resource    | `app/Http/Resources/EmployeeResource.php`                      |
+| Employees test        | `tests/Feature/Api/EmployeeTest.php`                           |
 | Company + scope       | `app/Models/Company.php`, `app/Models/Scopes/CompanyScope.php` |
 | Marketing commission  | `app/Http/Controllers/Api/ReportController.php`                |
 | SubCompany            | `app/Models/SubCompany.php`, `app/Services/SubCompanyService.php` |
 | SubCompany controller | `app/Http/Controllers/Api/SubCompanyController.php`            |
-| Ops config service    | `app/Services/Operational/OpsOperationalConfigService.php`     |
-| Ops config model      | `app/Models/OpsConfiguration.php`                              |
-| Ops mandor + cabang   | `app/Http/Controllers/Api/Operational/OpsMandorController.php` |
-| Ops Form Requests     | `app/Http/Requests/Operational/OpsIncomeRequest.php`, `OpsExpenseRequest.php` |
-| Ops proof helpers     | `ValidatesOperationalProofFiles`, `HandlesOperationalProofFiles`, `MapsOperationalProofFiles` |
-| Ops date window trait | `app/Http/Controllers/Api/Operational/UsesOperationalTransactionWindow.php` |
-| Ops mandor scope      | `app/Http/Controllers/Api/Operational/ScopesOperationalBySubCompany.php` |
-| Ops config            | `config/operational.php`                                       |
-| Ops config seeder     | `database/seeders/OpsConfigurationSeeder.php`                  |
 | Production seeder     | `database/seeders/Test/ProductionSeeder.php`                     |
 | Absensi routes        | `routes/abs-api.php`                                           |
 | Absensi controllers   | `app/Http/Controllers/Api/Absence/`                            |
