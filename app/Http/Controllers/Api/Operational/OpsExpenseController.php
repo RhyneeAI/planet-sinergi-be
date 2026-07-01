@@ -47,7 +47,7 @@ class OpsExpenseController extends Controller
             : 'date';
         $orderByValue = strtoupper($request->input('order_by_value', 'DESC')) === 'ASC' ? 'ASC' : 'DESC';
 
-        $expenses = OpsExpense::with(['mandor', 'subCompany', 'createdBy', 'transferIncome.transferConfirmation', 'editLogs'])
+        $expenses = OpsExpense::with(['mandor', 'subCompany', 'createdBy', 'transferConfirmation', 'transferIncome', 'editLogs'])
             ->withCount('editLogs')
             ->when(true, fn (Builder $query) => $this->applySubCompanyFilter($query, $request))
             ->when($request->date_from, fn($q, $date) => $q->whereDate('date', '>=', $date))
@@ -131,7 +131,7 @@ class OpsExpenseController extends Controller
             'success' => true,
             'message' => __('operational.expenses.detail'),
             'data' => new OpsExpenseResource(
-                $opsExpense->load(['mandor', 'subCompany', 'createdBy', 'transferIncome.transferConfirmation', 'editLogs'])
+                $opsExpense->load(['mandor', 'subCompany', 'createdBy', 'transferConfirmation', 'transferIncome', 'editLogs'])
             ),
         ]);
     }
@@ -372,7 +372,7 @@ class OpsExpenseController extends Controller
 
     protected function updateAdminMandorTransfer(OpsExpenseRequest $request, OpsExpense $opsExpense)
     {
-        $opsExpense->loadMissing('transferIncome.transferConfirmation');
+        $opsExpense->loadMissing('transferConfirmation');
         $income = $opsExpense->transferIncome;
 
         $oldData = $this->auditablePayload($opsExpense);
@@ -426,7 +426,7 @@ class OpsExpenseController extends Controller
                 'success' => true,
                 'message' => __('operational.expenses.updated'),
                 'data' => new OpsExpenseResource(
-                    $opsExpense->fresh()->load(['mandor', 'subCompany', 'createdBy', 'transferIncome.transferConfirmation', 'editLogs'])
+                    $opsExpense->fresh()->load(['mandor', 'subCompany', 'createdBy', 'transferConfirmation', 'transferIncome', 'editLogs'])
                 ),
             ]);
         } catch (\Throwable $e) {
@@ -524,7 +524,7 @@ class OpsExpenseController extends Controller
 
             DB::beginTransaction();
             try {
-                $opsExpense->loadMissing('transferIncome.transferConfirmation');
+                $opsExpense->loadMissing('transferConfirmation');
                 $income = $opsExpense->transferIncome;
 
                 $this->deleteRecordProofs($opsExpense);
@@ -612,9 +612,7 @@ class OpsExpenseController extends Controller
 
     protected function assertMandorTransferEditable(OpsExpense $opsExpense): ?\Illuminate\Http\JsonResponse
     {
-        $opsExpense->loadMissing('transferIncome.transferConfirmation');
-
-        $status = $opsExpense->transferIncome?->transferConfirmation?->status;
+        $status = $opsExpense->transferConfirmation?->status;
 
         if ($status !== OpsTransferConfirmationStatus::PENDING) {
             return response()->json([
