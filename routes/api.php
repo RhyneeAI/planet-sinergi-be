@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\ExportController;
+use App\Http\Controllers\Api\Operational\OpsMarketingController;
 use App\Http\Controllers\Api\PositionController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\SubCompanyController;
@@ -74,6 +75,19 @@ Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
         Route::middleware(['role:SUPERADMIN,ADMIN,HRD'])->group(function () {
             Route::apiResource('positions', PositionController::class)
                 ->parameters(['positions' => 'position:uuid'])
+                ->only(['store', 'update', 'destroy']);
+        });
+
+        // Marketings — cross-module marketing user management
+        Route::middleware(['role:SUPERADMIN,OWNER,ADMIN,KEPALA_GUDANG,KEPALA_MANDOR,GUDANG'])->group(function () {
+            Route::apiResource('marketings', OpsMarketingController::class)
+                ->parameters(['marketings' => 'user:uuid'])
+                ->only(['index', 'show']);
+        });
+
+        Route::middleware(['role:SUPERADMIN,ADMIN,KEPALA_GUDANG,KEPALA_MANDOR'])->group(function () {
+            Route::apiResource('marketings', OpsMarketingController::class)
+                ->parameters(['marketings' => 'user:uuid'])
                 ->only(['store', 'update', 'destroy']);
         });
     });

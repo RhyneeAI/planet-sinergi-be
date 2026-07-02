@@ -13329,6 +13329,177 @@
           ]
         }
       ]
+    },
+    {
+      "name": "Marketing",
+      "item": [
+        {
+          "name": "List Marketings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/marketings?role=&leader_uuid=&search=&per_page=15",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "marketings"
+              ],
+              "query": [
+                {
+                  "key": "role",
+                  "value": "",
+                  "description": "Filter by role: MARKETING_LEAD, MARKETING"
+                },
+                {
+                  "key": "leader_uuid",
+                  "value": "",
+                  "description": "Filter marketing by leader UUID"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search by name/phone/email"
+                },
+                {
+                  "key": "per_page",
+                  "value": "15",
+                  "description": "Items per page"
+                }
+              ]
+            },
+            "description": "Daftar semua marketing. Untuk MARKETING_LEAD return members_count. Bisa filter ?leader_uuid= untuk ambil anggota dari LEAD tertentu.\n\nRole: SUPERADMIN, OWNER, ADMIN, KEPALA_GUDANG, KEPALA_MANDOR, GUDANG"
+          },
+          "response": []
+        },
+        {
+          "name": "Show Marketing",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/marketings/{{marketing_uuid}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "marketings",
+                "{{marketing_uuid}}"
+              ]
+            },
+            "description": "Detail marketing — return leader (jika MARKETING) atau members (jika MARKETING_LEAD) + members_count.\n\nRole: SUPERADMIN, OWNER, ADMIN, KEPALA_GUDANG, KEPALA_MANDOR, GUDANG"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Marketing",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"phone\": \"\",\n  \"email\": null,\n  \"address\": null,\n  \"role\": \"MARKETING\",\n  \"leader_uuid\": null\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/marketings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "marketings"
+              ]
+            },
+            "description": "Buat marketing baru. Jika role=MARKETING, isi leader_uuid untuk assign ke LEAD tertentu.\n\nRole: SUPERADMIN, ADMIN, KEPALA_GUDANG, KEPALA_MANDOR"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Marketing",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"phone\": \"\",\n  \"email\": null,\n  \"address\": null,\n  \"password\": null,\n  \"leader_uuid\": null\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/marketings/{{marketing_uuid}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "marketings",
+                "{{marketing_uuid}}"
+              ]
+            },
+            "description": "Update marketing. Kirim leader_uuid untuk ganti leader assignment (hanya untuk MARKETING).\n\nRole: SUPERADMIN, ADMIN, KEPALA_GUDANG, KEPALA_MANDOR"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Marketing",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/marketings/{{marketing_uuid}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "marketings",
+                "{{marketing_uuid}}"
+              ]
+            },
+            "description": "Hapus marketing. MARKETING_LEAD hanya bisa dihapus jika tidak punya anggota. Tidak bisa dihapus jika memiliki transaksi.\n\nRole: SUPERADMIN, ADMIN, KEPALA_GUDANG, KEPALA_MANDOR"
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "auth": {
