@@ -16,7 +16,7 @@ class AbsEmployeeProfile extends Model
 
     protected $fillable = [
         'user_id',
-        'abs_jabatan_id',
+        'position_id',
         'sub_company_id',
         'abs_shift_id',
         'company_id',
@@ -34,9 +34,9 @@ class AbsEmployeeProfile extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function jabatan()
+    public function position()
     {
-        return $this->belongsTo(AbsJabatan::class, 'abs_jabatan_id');
+        return $this->belongsTo(Position::class, 'position_id');
     }
 
     public function subCompany()

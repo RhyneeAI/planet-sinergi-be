@@ -2,7 +2,6 @@
 
 namespace App\Http\Resources;
 
-use App\Http\Resources\Absence\AbsJabatanResource;
 use App\Http\Resources\Absence\AbsShiftResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -23,8 +22,8 @@ class EmployeeResource extends JsonResource
             'can_login' => true,
             'is_active' => (bool) $this->is_active,
             'profile' => $profile ? [
-                'jabatan' => $profile->relationLoaded('jabatan') && $profile->jabatan
-                    ? new AbsJabatanResource($profile->jabatan)
+                'position' => $profile->relationLoaded('position') && $profile->position
+                    ? new PositionResource($profile->position)
                     : null,
                 'sub_company' => $profile->relationLoaded('subCompany')
                     ? new SubCompanyResource($profile->subCompany)

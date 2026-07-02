@@ -56,7 +56,7 @@ return [
         'bonus_deleted' => 'Bonus gaji berhasil dihapus.',
         'already_final' => 'Payroll sudah difinalisasi dan tidak dapat diubah.',
         'profile_not_found' => 'Profil karyawan tidak ditemukan.',
-        'jabatan_not_assigned' => 'Jabatan belum ditetapkan pada profil karyawan.',
+        'position_not_assigned' => 'Jabatan belum ditetapkan pada profil karyawan.',
         'slip_not_available' => 'Slip gaji hanya tersedia setelah payroll difinalisasi.',
         'loan_deduction_reason' => 'Cicilan kasbon #:id',
     ],
@@ -100,7 +100,7 @@ return [
     ],
     'validation' => [
         'branch_uuid_not_found' => 'Cabang tidak ditemukan.',
-        'jabatan_uuid_not_found' => 'Jabatan tidak ditemukan.',
+        'position_uuid_not_found' => 'Jabatan tidak ditemukan.',
         'sub_company_uuid_not_found' => 'Cabang operasional tidak ditemukan.',
         'shift_uuid_not_found' => 'Shift tidak ditemukan.',
         'phone_unique' => 'Nomor telepon sudah terdaftar.',

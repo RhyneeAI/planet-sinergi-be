@@ -20,10 +20,10 @@ class AbsEmployeeDetailResource extends JsonResource
             'role' => $this->role->value,
             'is_active' => $this->is_active,
             'profile' => $profile ? [
-                'jabatan' => $profile->jabatan ? [
-                    'uuid' => (string) $profile->jabatan->uuid,
-                    'name' => $profile->jabatan->name,
-                    'daily_rate' => (float) $profile->jabatan->daily_rate,
+                'position' => $profile->position ? [
+                    'uuid' => (string) $profile->position->uuid,
+                    'name' => $profile->position->name,
+                    'daily_rate' => (float) $profile->position->daily_rate,
                 ] : null,
                 'sub_company' => $profile->subCompany ? [
                     'uuid' => (string) $profile->subCompany->uuid,

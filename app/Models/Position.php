@@ -1,21 +1,21 @@
 <?php
 
 namespace App\Models;
-use Database\Factories\Abs\AbsJabatanFactory;
 
 use App\Models\Scopes\CompanyScope;
 use App\Traits\HasUuid;
+use Database\Factories\PositionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class AbsJabatan extends Model
+class Position extends Model
 {
     use HasFactory, HasUuid, SoftDeletes;
 
-    protected static $factory = AbsJabatanFactory::class;
+    protected static $factory = PositionFactory::class;
 
-    protected $table = 'abs_jabatans';
+    protected $table = 'positions';
 
     protected $fillable = [
         'uuid',
@@ -40,6 +40,6 @@ class AbsJabatan extends Model
 
     public function employeeProfiles()
     {
-        return $this->hasMany(AbsEmployeeProfile::class, 'abs_jabatan_id');
+        return $this->hasMany(AbsEmployeeProfile::class, 'position_id');
     }
 }

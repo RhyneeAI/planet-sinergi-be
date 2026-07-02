@@ -1,8 +1,8 @@
 <?php
 
 use App\Models\AbsEmployeeProfile;
-use App\Models\AbsJabatan;
 use App\Models\AbsShift;
+use App\Models\Position;
 use App\Models\Company;
 use App\Models\SubCompany;
 use App\Models\User;
@@ -46,7 +46,7 @@ beforeEach(function () {
         'company_id' => $this->company->id,
     ]);
 
-    $this->jabatan = AbsJabatan::create([
+    $this->position = Position::create([
         'name' => 'Operator',
         'daily_rate' => 120000,
         'company_id' => $this->company->id,
@@ -58,7 +58,7 @@ beforeEach(function () {
     ]);
 
     AbsEmployeeProfile::where('user_id', $this->employee->id)->update([
-        'abs_jabatan_id' => $this->jabatan->id,
+        'position_id' => $this->position->id,
         'sub_company_id' => $this->subCompany->id,
         'abs_shift_id' => $this->shift->id,
     ]);
@@ -71,24 +71,13 @@ it('admin can create employee via employees api', function () {
             'phone' => '081234567890',
             'password' => 'password123',
             'role' => 'KARYAWAN',
-            'jabatan_uuid' => $this->jabatan->uuid,
+            'position_uuid' => $this->position->uuid,
             'sub_company_uuid' => $this->subCompany->uuid,
             'shift_uuid' => $this->shift->uuid,
         ])
         ->assertStatus(201)
-        ->assertJsonPath('data.profile.jabatan.name', 'Operator')
-        ->assertJsonPath('data.profile.jabatan.daily_rate', 120000);
-});
-
-it('admin can manage jabatan via operational api', function () {
-    $this->actingAs($this->admin)
-        ->postJson('/api/v1/operational/jabatans', [
-            'name' => 'Staff Lapangan',
-            'daily_rate' => 100000,
-        ])
-        ->assertStatus(201)
-        ->assertJsonPath('data.name', 'Staff Lapangan')
-        ->assertJsonPath('data.daily_rate', 100000);
+        ->assertJsonPath('data.profile.position.name', 'Operator')
+        ->assertJsonPath('data.profile.position.daily_rate', 120000);
 });
 
 it('employee can check in within sub company radius', function () {

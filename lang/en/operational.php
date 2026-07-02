@@ -113,14 +113,7 @@ return [
             'role_not_allowed_for_employee' => 'This role must be created from the marketing menu, not employees.',
         ],
     ],
-    'jabatans' => [
-        'list' => 'Job positions retrieved successfully.',
-        'detail' => 'Job position detail retrieved successfully.',
-        'stored' => 'Job position created successfully.',
-        'updated' => 'Job position updated successfully.',
-        'deleted' => 'Job position deleted successfully.',
-        'in_use' => 'This job position is still assigned to employees and cannot be deleted.',
-    ],
+
     'mandors' => [
         'list' => 'Mandor list retrieved successfully.',
         'stored' => 'Mandor and operational branch created successfully.',

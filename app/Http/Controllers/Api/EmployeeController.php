@@ -25,7 +25,7 @@ class EmployeeController extends Controller
         $orderByKey = $request->input('order_by', 'name');
         $orderByValue = $request->input('order_by_value', 'ASC');
 
-        $employees = User::with(['absEmployeeProfile.jabatan', 'absEmployeeProfile.subCompany', 'absEmployeeProfile.shift'])
+        $employees = User::with(['absEmployeeProfile.position', 'absEmployeeProfile.subCompany', 'absEmployeeProfile.shift'])
             ->when($request->role, fn($q, $role) => $q->where('role', $role))
             ->when(
                 $request->sub_company_uuid,
@@ -75,7 +75,7 @@ class EmployeeController extends Controller
                 'success' => true,
                 'message' => __('operational.employees.stored'),
                 'data' => new EmployeeResource(
-                    $user->load(['absEmployeeProfile.jabatan', 'absEmployeeProfile.subCompany', 'absEmployeeProfile.shift'])
+                    $user->load(['absEmployeeProfile.position', 'absEmployeeProfile.subCompany', 'absEmployeeProfile.shift'])
                 ),
             ], 201);
         } catch (\Throwable $e) {
@@ -87,7 +87,7 @@ class EmployeeController extends Controller
     public function show(User $user)
     {
         $user->load([
-            'absEmployeeProfile.jabatan',
+            'absEmployeeProfile.position',
             'absEmployeeProfile.subCompany',
             'absEmployeeProfile.shift',
             'absOvertimes' => fn($q) => $q->orderBy('date', 'DESC')->limit(50),
@@ -112,7 +112,7 @@ class EmployeeController extends Controller
                 ? __('operational.employees.activated')
                 : __('operational.employees.deactivated'),
             'data' => new EmployeeResource(
-                $user->fresh()->load(['absEmployeeProfile.jabatan', 'absEmployeeProfile.subCompany', 'absEmployeeProfile.shift'])
+                $user->fresh()->load(['absEmployeeProfile.position', 'absEmployeeProfile.subCompany', 'absEmployeeProfile.shift'])
             ),
         ]);
     }
@@ -148,7 +148,7 @@ class EmployeeController extends Controller
                 'success' => true,
                 'message' => __('operational.employees.updated'),
                 'data' => new EmployeeResource(
-                    $user->fresh()->load(['absEmployeeProfile.jabatan', 'absEmployeeProfile.subCompany', 'absEmployeeProfile.shift'])
+                    $user->fresh()->load(['absEmployeeProfile.position', 'absEmployeeProfile.subCompany', 'absEmployeeProfile.shift'])
                 ),
             ]);
         } catch (\Throwable $e) {

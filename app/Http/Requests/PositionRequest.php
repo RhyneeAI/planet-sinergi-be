@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Requests\Operational;
+namespace App\Http\Requests;
 
+use App\Models\Position;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class OpsJabatanRequest extends FormRequest
+class PositionRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -14,17 +15,17 @@ class OpsJabatanRequest extends FormRequest
 
     public function rules(): array
     {
-        $jabatan = $this->route('absJabatan');
-        $jabatanId = $jabatan instanceof \App\Models\AbsJabatan ? $jabatan->id : null;
+        $position = $this->route('position');
+        $positionId = $position instanceof Position ? $position->id : null;
 
         return [
             'name' => [
                 $this->isMethod('post') ? 'required' : 'sometimes',
                 'string',
                 'max:100',
-                Rule::unique('abs_jabatans', 'name')
+                Rule::unique('positions', 'name')
                     ->where('company_id', $this->user()->company_id)
-                    ->ignore($jabatanId),
+                    ->ignore($positionId),
             ],
             'daily_rate' => [
                 $this->isMethod('post') ? 'required' : 'sometimes',

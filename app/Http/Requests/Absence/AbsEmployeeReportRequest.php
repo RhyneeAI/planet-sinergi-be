@@ -15,7 +15,7 @@ class AbsEmployeeReportRequest extends FormRequest
     {
         return [
             'mode' => ['sometimes', 'nullable', 'in:export,data'],
-            'jabatan_uuid' => ['sometimes', 'nullable', 'uuid'],
+            'position_uuid' => ['sometimes', 'nullable', 'uuid'],
             'sub_company_uuid' => ['sometimes', 'nullable', 'uuid'],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:200'],
         ];

@@ -1,13 +1,15 @@
 <?php
 
-namespace Database\Factories\Abs;
+namespace Database\Factories;
 
 use App\Models\Company;
+use App\Models\Position;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class AbsJabatanFactory extends Factory
+class PositionFactory extends Factory
 {
-    protected $model = \App\Models\AbsJabatan::class;
+    protected $model = Position::class;
+
     public function definition(): array
     {
         return [

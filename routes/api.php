@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\ExportController;
+use App\Http\Controllers\Api\PositionController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\SubCompanyController;
 use Illuminate\Support\Facades\Route;
@@ -62,5 +63,18 @@ Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
         });
 
         Route::get('/exports/{token}', [ExportController::class, 'status'])->name('exports.status');
+
+        // Positions — cross-module job positions
+        Route::middleware(['role:SUPERADMIN,OWNER,ADMIN,HRD'])->group(function () {
+            Route::apiResource('positions', PositionController::class)
+                ->parameters(['positions' => 'position:uuid'])
+                ->only(['index', 'show']);
+        });
+
+        Route::middleware(['role:SUPERADMIN,ADMIN,HRD'])->group(function () {
+            Route::apiResource('positions', PositionController::class)
+                ->parameters(['positions' => 'position:uuid'])
+                ->only(['store', 'update', 'destroy']);
+        });
     });
 });

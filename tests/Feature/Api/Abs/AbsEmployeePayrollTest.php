@@ -3,7 +3,7 @@
 use App\Models\AbsDeduction;
 use App\Models\AbsBonus;
 use App\Models\AbsEmployeeProfile;
-use App\Models\AbsJabatan;
+use App\Models\Position;
 use App\Models\AbsPayrollPeriod;
 use App\Models\AbsShift;
 use App\Models\Company;
@@ -30,7 +30,7 @@ beforeEach(function () {
     ]);
     User::$skipSubCompanyAutoCreate = false;
 
-    $this->jabatan = AbsJabatan::factory()->create([
+    $this->position = Position::factory()->create([
         'company_id' => $this->company->id,
         'daily_rate' => 150000,
     ]);
@@ -43,7 +43,7 @@ beforeEach(function () {
     ]);
 
     AbsEmployeeProfile::where('user_id', $this->employee->id)->update([
-        'abs_jabatan_id' => $this->jabatan->id,
+        'position_id' => $this->position->id,
         'sub_company_id' => $this->subCompany->id,
         'abs_shift_id' => $this->shift->id,
     ]);

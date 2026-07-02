@@ -119,12 +119,12 @@ class AbsReportService
     public function employeesQuery(Request $request): Builder
     {
         return User::with([
-            'absEmployeeProfile.jabatan',
+            'absEmployeeProfile.position',
             'absEmployeeProfile.subCompany',
             'absEmployeeProfile.shift'
         ])
-            ->when($request->jabatan_uuid, function ($q, $uuid) {
-                $q->whereHas('absEmployeeProfile.jabatan', function ($p0) use ($uuid) {
+            ->when($request->position_uuid, function ($q, $uuid) {
+                $q->whereHas('absEmployeeProfile.position', function ($p0) use ($uuid) {
                     $p0->where('uuid', $uuid);
                 });
             })
@@ -242,7 +242,7 @@ class AbsReportService
                 $record->name,
                 $record->phone,
                 $employeeProfile?->subCompany?->name,
-                $employeeProfile?->jabatan?->name,
+                $employeeProfile?->position?->name,
                 $record->is_active ? 'Aktif' : 'Tidak Aktif',
                 $employeeProfile?->shift?->name
             ];

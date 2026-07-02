@@ -18,7 +18,7 @@
     <p><strong>Nama:</strong> {{ $period->user->name }}</p>
     <p><strong>Periode:</strong> {{ sprintf('%02d', $period->period_month) }}/{{ $period->period_year }}</p>
     <p><strong>Cabang:</strong> {{ $period->user->absEmployeeProfile?->subCompany?->name ?? '-' }}</p>
-    <p><strong>Jabatan:</strong> {{ $period->user->absEmployeeProfile?->jabatan?->name ?? '-' }}</p>
+    <p><strong>Jabatan:</strong> {{ $period->user->absEmployeeProfile?->position?->name ?? '-' }}</p>
 
     <div class="section">
         <table>

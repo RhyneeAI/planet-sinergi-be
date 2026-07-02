@@ -15,7 +15,7 @@ class AbsEmployeeController extends Controller
 
     public function index(Request $request)
     {
-        $employees = User::with('absEmployeeProfile.jabatan', 'absEmployeeProfile.subCompany', 'absEmployeeProfile.shift')
+        $employees = User::with('absEmployeeProfile.position', 'absEmployeeProfile.subCompany', 'absEmployeeProfile.shift')
             ->when($request->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($search) . '%'])
@@ -39,7 +39,7 @@ class AbsEmployeeController extends Controller
     public function show(User $user)
     {
         $user->load([
-            'absEmployeeProfile.jabatan',
+            'absEmployeeProfile.position',
             'absEmployeeProfile.subCompany',
             'absEmployeeProfile.shift',
             'absOvertimes' => fn($q) => $q->orderBy('date', 'DESC')->limit(50),

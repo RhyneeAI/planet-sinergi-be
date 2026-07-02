@@ -56,7 +56,7 @@ return [
         'bonus_deleted' => 'Bonus deleted successfully.',
         'already_final' => 'Payroll is finalized and cannot be modified.',
         'profile_not_found' => 'Employee profile not found.',
-        'jabatan_not_assigned' => 'Job position is not assigned to employee profile.',
+        'position_not_assigned' => 'Job position is not assigned to employee profile.',
         'slip_not_available' => 'Payslip is only available after payroll is finalized.',
         'loan_deduction_reason' => 'Loan installment #:id',
     ],
@@ -100,7 +100,7 @@ return [
     ],
     'validation' => [
         'branch_uuid_not_found' => 'Branch not found.',
-        'jabatan_uuid_not_found' => 'Job position not found.',
+        'position_uuid_not_found' => 'Job position not found.',
         'sub_company_uuid_not_found' => 'Operational branch not found.',
         'shift_uuid_not_found' => 'Shift not found.',
         'phone_unique' => 'Phone number is already registered.',

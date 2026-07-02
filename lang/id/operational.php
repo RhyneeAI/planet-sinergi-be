@@ -113,14 +113,7 @@ return [
             'role_not_allowed_for_employee' => 'Role ini harus dibuat melalui menu marketing, bukan karyawan.',
         ],
     ],
-    'jabatans' => [
-        'list' => 'Daftar jabatan berhasil diambil.',
-        'detail' => 'Detail jabatan berhasil diambil.',
-        'stored' => 'Jabatan berhasil ditambahkan.',
-        'updated' => 'Jabatan berhasil diperbarui.',
-        'deleted' => 'Jabatan berhasil dihapus.',
-        'in_use' => 'Jabatan masih digunakan oleh karyawan dan tidak dapat dihapus.',
-    ],
+
     'mandors' => [
         'list' => 'Daftar mandor berhasil diambil.',
         'stored' => 'Mandor dan cabang operasional berhasil dibuat.',
