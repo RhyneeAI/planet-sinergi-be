@@ -34,6 +34,14 @@ class AuthController extends Controller
             ]);
         }
 
+        $blockedRoles = [Role::MARKETING, Role::MARKETING_LEAD];
+
+        if (in_array($user->role, $blockedRoles)) {
+            throw ValidationException::withMessages([
+                'phone' => ['Akun Anda tidak memiliki akses login.'],
+            ]);
+        }
+
         // Cek user aktif
         if (!$user->is_active) {
             throw ValidationException::withMessages([
