@@ -5745,6 +5745,201 @@
             }
           ],
           "description": "Laporan income/expense — ringkasan per mandor, detail per item, dan download.\n\nKEPALA_MANDOR mendapat akses setara ADMIN untuk laporan (kecuali data internal pusat)."
+        },
+        {
+          "name": "Marketing",
+          "item": [
+            {
+              "name": "List Marketings",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept-Language",
+                    "value": "{{lang}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/operational/marketings?role=&leader_uuid=&search=&per_page=15",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "operational",
+                    "marketings"
+                  ],
+                  "query": [
+                    {
+                      "key": "role",
+                      "value": "",
+                      "description": "Filter by role: MARKETING_LEAD, MARKETING"
+                    },
+                    {
+                      "key": "leader_uuid",
+                      "value": "",
+                      "description": "Filter marketing by leader UUID"
+                    },
+                    {
+                      "key": "search",
+                      "value": "",
+                      "description": "Search by name/phone/email"
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "15"
+                    }
+                  ]
+                },
+                "description": "Role: SUPERADMIN, OWNER, ADMIN, KEPALA_GUDANG, KEPALA_MANDOR, GUDANG"
+              },
+              "response": []
+            },
+            {
+              "name": "Show Marketing",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept-Language",
+                    "value": "{{lang}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/operational/marketings/{{marketing_uuid}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "operational",
+                    "marketings",
+                    "{{marketing_uuid}}"
+                  ]
+                },
+                "description": "Role: SUPERADMIN, OWNER, ADMIN, KEPALA_GUDANG, KEPALA_MANDOR, GUDANG"
+              },
+              "response": []
+            },
+            {
+              "name": "Create Marketing",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept-Language",
+                    "value": "{{lang}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"\",\n  \"phone\": \"\",\n  \"email\": null,\n  \"address\": null,\n  \"role\": \"MARKETING\",\n  \"leader_uuid\": null\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/v1/operational/marketings",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "operational",
+                    "marketings"
+                  ]
+                },
+                "description": "Role: SUPERADMIN, ADMIN, KEPALA_GUDANG, KEPALA_MANDOR"
+              },
+              "response": []
+            },
+            {
+              "name": "Update Marketing",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept-Language",
+                    "value": "{{lang}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"\",\n  \"phone\": \"\",\n  \"email\": null,\n  \"address\": null,\n  \"password\": null,\n  \"leader_uuid\": null\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/v1/operational/marketings/{{marketing_uuid}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "operational",
+                    "marketings",
+                    "{{marketing_uuid}}"
+                  ]
+                },
+                "description": "Role: SUPERADMIN, ADMIN, KEPALA_GUDANG, KEPALA_MANDOR"
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Marketing",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept-Language",
+                    "value": "{{lang}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/operational/marketings/{{marketing_uuid}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "operational",
+                    "marketings",
+                    "{{marketing_uuid}}"
+                  ]
+                },
+                "description": "Role: SUPERADMIN, ADMIN, KEPALA_GUDANG, KEPALA_MANDOR"
+              },
+              "response": []
+            }
+          ]
         }
       ]
     },
@@ -13341,6 +13536,10 @@
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
               }
             ],
             "url": {
@@ -13388,6 +13587,10 @@
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
               }
             ],
             "url": {
@@ -13418,6 +13621,10 @@
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
               }
             ],
             "body": {
@@ -13451,6 +13658,10 @@
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
               }
             ],
             "body": {
@@ -13481,6 +13692,10 @@
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
               }
             ],
             "url": {
